@@ -394,11 +394,11 @@ export default function DashboardPage() {
 
       {selectedTestForTimer && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center z-50 p-4 animate-[fadeIn_0.2s_ease-out]">
-          <div className="bg-snow-white border-2 border-cloud-gray border-b-8 rounded-[28px] w-full max-w-[520px] p-6 md:p-8 flex flex-col gap-6 shadow-none animate-[scaleIn_0.2s_ease-out] relative">
+          <div className="bg-snow-white border-2 border-cloud-gray border-b-8 rounded-[24px] w-full max-w-[460px] p-4 md:p-6 flex flex-col gap-4 shadow-none animate-[scaleIn_0.2s_ease-out] relative">
             
             {/* Mascot & Speech Bubble */}
-            <div className="flex gap-4 items-center mb-2">
-              <div className="w-[72px] h-[72px] relative shrink-0">
+            <div className="flex gap-3 md:gap-4 items-center mb-1">
+              <div className="w-[56px] h-[56px] md:w-[72px] md:h-[72px] relative shrink-0">
                 <Image 
                   src="/emoji/suspicious.png" 
                   alt="Thinking Mascot" 
@@ -407,55 +407,55 @@ export default function DashboardPage() {
                   unoptimized
                 />
               </div>
-              <div className="grow relative bg-snow-white border-2 border-cloud-gray rounded-2xl p-4 before:content-[''] before:absolute before:left-[-10px] before:top-[50%] before:-translate-y-[50%] before:border-y-8 before:border-y-transparent before:border-r-8 before:border-r-cloud-gray after:content-[''] after:absolute after:-left-[8px] after:top-[50%] after:-translate-y-[50%] after:border-y-8 after:border-y-transparent after:border-r-8 after:border-r-snow-white">
-                <h3 className="font-feather text-[18px] md:text-[20px] text-charcoal font-bold leading-tight uppercase tracking-wide">
+              <div className="grow relative bg-snow-white border-2 border-cloud-gray rounded-xl p-3 before:content-[''] before:absolute before:left-[-10px] before:top-[50%] before:-translate-y-[50%] before:border-y-8 before:border-y-transparent before:border-r-8 before:border-r-cloud-gray after:content-[''] after:absolute after:-left-[8px] after:top-[50%] after:-translate-y-[50%] after:border-y-8 after:border-y-transparent after:border-r-8 after:border-r-snow-white">
+                <h3 className="font-feather text-sm md:text-base text-charcoal font-bold leading-tight uppercase tracking-wide">
                   {selectedTestForTimer.testTitle}
                 </h3>
-                <p className="text-graphite text-xs md:text-sm font-din-round mt-1 leading-snug">
+                <p className="text-graphite text-[10px] md:text-xs font-din-round mt-0.5 leading-snug">
                   How long do you want to give yourself for this test session?
                 </p>
               </div>
             </div>
 
             {/* Timer Options List */}
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-2 md:gap-3">
               {[5, 10, 15, 30, 60].map((mins) => (
                 <div
                   key={mins}
                   onClick={() => setModalTimerDuration(mins)}
-                  className={`flex items-center justify-between p-4 rounded-xl border-2 cursor-pointer transition-all duration-150 select-none active:translate-y-[4px] active:shadow-none ${
+                  className={`flex items-center justify-between py-2.5 px-4 rounded-xl border-2 cursor-pointer transition-all duration-150 select-none active:translate-y-[4px] active:shadow-none ${
                     modalTimerDuration === mins
                       ? "border-sky-blue bg-sky-blue/15 shadow-[0_4px_0_#189edc] text-sky-blue"
                       : "border-cloud-gray bg-snow-white shadow-[0_4px_0_var(--color-cloud-gray)] hover:bg-cloud-gray/20 text-almost-black"
                   }`}
                 >
                   <div className="flex flex-col font-din-round">
-                    <span className="font-bold text-body tracking-wide">
+                    <span className="font-bold text-xs md:text-sm tracking-wide">
                       {mins === 60 ? "1 Hour" : `${mins} Minutes`}
                     </span>
-                    <span className="text-xs text-graphite font-medium opacity-80 mt-0.5">
+                    <span className="text-[10px] md:text-xs text-graphite font-medium opacity-80 mt-0.5">
                       {mins === 5 ? "Quick practice" : mins === 10 ? "Standard session" : mins === 15 ? "Deep focus" : mins === 30 ? "Extended challenge" : "Full simulated exam"}
                     </span>
                   </div>
                   {modalTimerDuration === mins && (
-                    <span className="text-sky-blue font-bold text-xl">✓</span>
+                    <span className="text-sky-blue font-bold text-lg">✓</span>
                   )}
                 </div>
               ))}
             </div>
 
             {/* Modal Actions */}
-            <div className="flex items-center gap-4 mt-2">
+            <div className="flex items-center gap-3 mt-1">
               <button
                 onClick={() => setSelectedTestForTimer(null)}
-                className="flex-1 bg-snow-white text-sky-blue border-2 border-cloud-gray font-bold py-3 rounded-xl shadow-[0_4px_0_var(--color-cloud-gray)] active:translate-y-[4px] active:shadow-none hover:bg-cloud-gray/20 transition-all text-body text-center cursor-pointer font-din-round"
+                className="flex-1 bg-snow-white text-sky-blue border-2 border-cloud-gray font-bold py-2 md:py-3 rounded-xl shadow-[0_4px_0_var(--color-cloud-gray)] active:translate-y-[4px] active:shadow-none hover:bg-cloud-gray/20 transition-all text-xs md:text-sm text-center cursor-pointer font-din-round"
               >
                 CANCEL
               </button>
               <button
                 onClick={startTestWithTimer}
                 disabled={savingTimer}
-                className="flex-1 bg-duo-green text-white font-bold py-3 rounded-xl shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none hover:brightness-105 transition-all text-body text-center cursor-pointer font-din-round"
+                className="flex-1 bg-duo-green text-white font-bold py-2 md:py-3 rounded-xl shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none hover:brightness-105 transition-all text-xs md:text-sm text-center cursor-pointer font-din-round"
               >
                 {savingTimer ? "STARTING..." : "START TEST"}
               </button>
