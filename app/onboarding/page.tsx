@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { Button } from "@/components/ui/Button";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { useUser } from "@clerk/nextjs";
@@ -9,7 +10,6 @@ import { supabase } from "@/lib/supabase";
 interface StepOption {
   id: string;
   label: string;
-  icon: string;
   description?: string;
 }
 
@@ -28,12 +28,12 @@ export default function OnboardingPage() {
 
   // Options
   const categories: StepOption[] = [
-    { id: "Civil Service", label: "Civil Service", icon: "🇵🇭", description: "Professional & Subprofessional levels" },
-    { id: "NAPOLCOM", label: "NAPOLCOM", icon: "🛡️", description: "National Police Commission Exam" },
-    { id: "AFP", label: "AFP (AFPSAT)", icon: "🎖️", description: "Armed Forces Aptitude Test" },
-    { id: "CET", label: "CET", icon: "🎓", description: "College Entrance Exams" },
-    { id: "LET", label: "LET", icon: "✏️", description: "Licensure Exam for Teachers" },
-    { id: "Others", label: "Others", icon: "⚙️", description: "General Aptitude and IQ tests" },
+    { id: "Civil Service", label: "Civil Service", description: "Professional & Subprofessional levels" },
+    { id: "NAPOLCOM", label: "NAPOLCOM", description: "National Police Commission Exam" },
+    { id: "AFP", label: "AFP (AFPSAT)", description: "Armed Forces Aptitude Test" },
+    { id: "CET", label: "CET", description: "College Entrance Exams" },
+    { id: "LET", label: "LET", description: "Licensure Exam for Teachers" },
+    { id: "Others", label: "Others", description: "General Aptitude and IQ tests" },
   ];
 
   type TopicTree = { [key: string]: TopicTree | null };
@@ -359,9 +359,17 @@ export default function OnboardingPage() {
       {/* Onboarding Wizard Body */}
       <main className="grow flex flex-col justify-center px-6 py-12 max-w-[650px] w-full mx-auto">
         {/* Character speech bubble */}
-        <div className="flex gap-4 items-start mb-8 animate-[fadeIn_0.4s_ease-out]">
-          <div className="text-5xl shrink-0 select-none animate-[bounce_2s_infinite]">🦉</div>
-          <div className="relative bg-white border-2 border-cloud-gray rounded-2xl p-4 shadow-sm before:content-[''] before:absolute before:left-[-10px] before:top-[22px] before:border-y-8 before:border-y-transparent before:border-r-8 before:border-r-cloud-gray after:content-[''] after:absolute after:-left-8 after:top-[22px] after:border-y-8 after:border-y-transparent after:border-r-8 after:border-r-white">
+        <div className="flex gap-4 items-center mb-8 animate-[fadeIn_0.4s_ease-out]">
+          <div className="w-28 h-28 md:w-36 md:h-36 rounded-full overflow-hidden border-2 border-cloud-gray relative bg-duo-green-light shrink-0">
+            <Image 
+              src="/emoji/profile.png" 
+              alt="Mascot Profile" 
+              fill 
+              className="object-cover scale-[1.7] translate-y-1"
+              unoptimized
+            />
+          </div>
+          <div className="relative bg-white border-2 border-cloud-gray rounded-2xl p-4 shadow-sm before:content-[''] before:absolute before:left-[-10px] before:top-[50%] before:-translate-y-[50%] before:border-y-8 before:border-y-transparent before:border-r-8 before:border-r-cloud-gray after:content-[''] after:absolute after:-left-[8px] after:top-[50%] after:-translate-y-[50%] after:border-y-8 after:border-y-transparent after:border-r-8 after:border-r-white grow">
             <h2 className="font-feather text-lg md:text-[20px] text-charcoal leading-snug font-bold">
               {getStepQuestion()}
             </h2>
@@ -376,16 +384,17 @@ export default function OnboardingPage() {
                 <div
                   key={opt.id}
                   onClick={() => { setCategory(opt.id); setTopicPath([]); setSubTopic(""); }}
-                  className={`flex items-start gap-4 p-5 rounded-2xl border-2 cursor-pointer transition-all duration-150 active:translate-y-0.5 select-none ${
+                  className={`flex flex-col p-5 rounded-2xl border-2 cursor-pointer transition-all duration-150 active:translate-y-0.5 select-none ${
                     category === opt.id
                       ? "border-sky-blue bg-[#ddf4ff] shadow-[0_4px_0_#189edc] text-sky-blue"
                       : "border-cloud-gray hover:bg-gray-50 shadow-[0_4px_0_var(--color-cloud-gray)]"
                   }`}
                 >
-                  <span className="text-3xl shrink-0">{opt.icon}</span>
-                  <div className="flex flex-col">
-                    <span className="font-bold text-body">{opt.label}</span>
-                    <span className="text-xs text-graphite mt-0.5 font-medium leading-normal">
+                  <div className="flex flex-col font-din-round">
+                    <span className="font-feather text-lg md:text-xl font-extrabold tracking-wide mb-1 uppercase text-charcoal">
+                      {opt.label}
+                    </span>
+                    <span className="text-xs text-graphite font-medium leading-normal">
                       {opt.description}
                     </span>
                   </div>
