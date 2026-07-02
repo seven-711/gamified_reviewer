@@ -1,0 +1,1647 @@
+{
+  "abstract_reasoning_test1": [
+    {
+      "id": 1,
+      "type": "image",
+      "prompt": "Which figure completes the series?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test1/q1.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 0,
+      "explanation": "The correct answer is A."
+    },
+    {
+      "id": 2,
+      "type": "image",
+      "prompt": "Which figure completes the series?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test1/q2.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 2,
+      "explanation": "The correct answer is C."
+    },
+    {
+      "id": 3,
+      "type": "image",
+      "prompt": "Which figure completes the series?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test1/q3.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 2,
+      "explanation": "The correct answer is C."
+    },
+    {
+      "id": 4,
+      "type": "image",
+      "prompt": "Which figure completes the series?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test1/q4.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 3,
+      "explanation": "The correct answer is D."
+    },
+    {
+      "id": 5,
+      "type": "image",
+      "prompt": "Which figure completes the series?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test1/q5.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 1,
+      "explanation": "The correct answer is B."
+    },
+    {
+      "id": 6,
+      "type": "image",
+      "prompt": "Which figure completes the statement?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test1/q6.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 1,
+      "explanation": "The correct answer is B."
+    },
+    {
+      "id": 7,
+      "type": "image",
+      "prompt": "Which figure completes the statement?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test1/q7.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 2,
+      "explanation": "The correct answer is C."
+    },
+    {
+      "id": 8,
+      "type": "image",
+      "prompt": "Which figure completes the statement?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test1/q8.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 3,
+      "explanation": "The correct answer is D."
+    },
+    {
+      "id": 9,
+      "type": "image",
+      "prompt": "Which figure completes the statement?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test1/q9.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 0,
+      "explanation": "The correct answer is A."
+    },
+    {
+      "id": 10,
+      "type": "image",
+      "prompt": "Which figure completes the statement?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test1/q10.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 2,
+      "explanation": "The correct answer is C."
+    },
+    {
+      "id": 11,
+      "type": "image",
+      "prompt": "Which figure is the odd one out?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test1/q11.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E"
+      ],
+      "correctIndex": 2,
+      "explanation": "The correct answer is C."
+    },
+    {
+      "id": 12,
+      "type": "image",
+      "prompt": "Which figure is the odd one out?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test1/q12.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E"
+      ],
+      "correctIndex": 3,
+      "explanation": "The correct answer is D."
+    },
+    {
+      "id": 13,
+      "type": "image",
+      "prompt": "Which figure is the odd one out?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test1/q13.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E"
+      ],
+      "correctIndex": 0,
+      "explanation": "The correct answer is A."
+    },
+    {
+      "id": 14,
+      "type": "image",
+      "prompt": "Which figure is the odd one out?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test1/q14.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E"
+      ],
+      "correctIndex": 3,
+      "explanation": "The correct answer is D."
+    },
+    {
+      "id": 15,
+      "type": "image",
+      "prompt": "Which figure is the odd one out?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test1/q15.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E"
+      ],
+      "correctIndex": 4,
+      "explanation": "The correct answer is E."
+    },
+    {
+      "id": 16,
+      "type": "image",
+      "prompt": "Which figure completes the series?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test1/q16.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 3,
+      "explanation": "The correct answer is D."
+    },
+    {
+      "id": 17,
+      "type": "image",
+      "prompt": "Which figure completes the series?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test1/q17.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 0,
+      "explanation": "The correct answer is A."
+    },
+    {
+      "id": 18,
+      "type": "image",
+      "prompt": "Which figure belongs in neither group?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test1/q18.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 2,
+      "explanation": "The correct answer is C."
+    },
+    {
+      "id": 19,
+      "type": "image",
+      "prompt": "Which figure belongs in neither group?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test1/q19.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 0,
+      "explanation": "The correct answer is A."
+    },
+    {
+      "id": 20,
+      "type": "image",
+      "prompt": "Which figure is next in the series?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test1/q20.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 1,
+      "explanation": "The correct answer is B."
+    },
+    {
+      "id": 21,
+      "type": "image",
+      "prompt": "Which figure is next in the series?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test1/q21.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 3,
+      "explanation": "The correct answer is D."
+    },
+    {
+      "id": 22,
+      "type": "image",
+      "prompt": "Which figure completes the grid?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test1/q22.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 1,
+      "explanation": "The correct answer is B."
+    },
+    {
+      "id": 23,
+      "type": "image",
+      "prompt": "Which figure completes the grid?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test1/q23.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 2,
+      "explanation": "The correct answer is C."
+    },
+    {
+      "id": 24,
+      "type": "image",
+      "prompt": "Which figure is the odd one out?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test1/q24.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 2,
+      "explanation": "The correct answer is C."
+    },
+    {
+      "id": 25,
+      "type": "image",
+      "prompt": "Which figure is the odd one out?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test1/q25.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 3,
+      "explanation": "The correct answer is D."
+    }
+  ],
+  "abstract_reasoning_test2": [
+    {
+      "id": 1,
+      "type": "image",
+      "prompt": "Which figure completes the series?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test2/q1.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 1,
+      "explanation": "The correct answer is B."
+    },
+    {
+      "id": 2,
+      "type": "image",
+      "prompt": "Which figure completes the series?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test2/q2.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 2,
+      "explanation": "The correct answer is C."
+    },
+    {
+      "id": 3,
+      "type": "image",
+      "prompt": "Which figure completes the series?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test2/q3.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 0,
+      "explanation": "The correct answer is A."
+    },
+    {
+      "id": 4,
+      "type": "image",
+      "prompt": "Which figure completes the series?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test2/q4.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 3,
+      "explanation": "The correct answer is D."
+    },
+    {
+      "id": 5,
+      "type": "image",
+      "prompt": "Which figure completes the series?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test2/q5.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 1,
+      "explanation": "The correct answer is B."
+    },
+    {
+      "id": 6,
+      "type": "image",
+      "prompt": "Which figure completes the statement?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test2/q6.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 2,
+      "explanation": "The correct answer is C."
+    },
+    {
+      "id": 7,
+      "type": "image",
+      "prompt": "Which figure completes the statement?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test2/q7.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 1,
+      "explanation": "The correct answer is B."
+    },
+    {
+      "id": 8,
+      "type": "image",
+      "prompt": "Which figure completes the statement?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test2/q8.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 1,
+      "explanation": "The correct answer is B."
+    },
+    {
+      "id": 9,
+      "type": "image",
+      "prompt": "Which figure completes the statement?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test2/q9.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 3,
+      "explanation": "The correct answer is D."
+    },
+    {
+      "id": 10,
+      "type": "image",
+      "prompt": "Which figure completes the statement?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test2/q10.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 2,
+      "explanation": "The correct answer is C."
+    },
+    {
+      "id": 11,
+      "type": "image",
+      "prompt": "Which figure completes the series?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test2/q11.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E"
+      ],
+      "correctIndex": 4,
+      "explanation": "The correct answer is E."
+    },
+    {
+      "id": 12,
+      "type": "image",
+      "prompt": "Which figure completes the series?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test2/q12.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E"
+      ],
+      "correctIndex": 3,
+      "explanation": "The correct answer is D."
+    },
+    {
+      "id": 13,
+      "type": "image",
+      "prompt": "Which figure completes the series?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test2/q13.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E"
+      ],
+      "correctIndex": 1,
+      "explanation": "The correct answer is B."
+    },
+    {
+      "id": 14,
+      "type": "image",
+      "prompt": "Which figure completes the series?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test2/q14.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E"
+      ],
+      "correctIndex": 0,
+      "explanation": "The correct answer is A."
+    },
+    {
+      "id": 15,
+      "type": "image",
+      "prompt": "Which figure completes the series?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test2/q15.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E"
+      ],
+      "correctIndex": 3,
+      "explanation": "The correct answer is D."
+    },
+    {
+      "id": 16,
+      "type": "image",
+      "prompt": "Which figure completes the series?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test2/q16.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 2,
+      "explanation": "The correct answer is C."
+    },
+    {
+      "id": 17,
+      "type": "image",
+      "prompt": "Which figure completes the series?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test2/q17.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 3,
+      "explanation": "The correct answer is D."
+    },
+    {
+      "id": 18,
+      "type": "image",
+      "prompt": "Which figure belongs in neither group?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test2/q18.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 3,
+      "explanation": "The correct answer is D."
+    },
+    {
+      "id": 19,
+      "type": "image",
+      "prompt": "Which figure belongs in neither group?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test2/q19.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 1,
+      "explanation": "The correct answer is B."
+    },
+    {
+      "id": 20,
+      "type": "image",
+      "prompt": "Which figure is next in the series?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test2/q20.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 2,
+      "explanation": "The correct answer is C."
+    },
+    {
+      "id": 21,
+      "type": "image",
+      "prompt": "Which figure is next in the series?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test2/q21.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 1,
+      "explanation": "The correct answer is B."
+    },
+    {
+      "id": 22,
+      "type": "image",
+      "prompt": "Which figure completes the grid?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test2/q22.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 3,
+      "explanation": "The correct answer is D."
+    },
+    {
+      "id": 23,
+      "type": "image",
+      "prompt": "Which figure completes the grid?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test2/q23.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 0,
+      "explanation": "The correct answer is A."
+    },
+    {
+      "id": 24,
+      "type": "image",
+      "prompt": "Which figure is the odd one out?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test2/q24.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 3,
+      "explanation": "The correct answer is D."
+    },
+    {
+      "id": 25,
+      "type": "image",
+      "prompt": "Which figure is the odd one out?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test2/q25.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 3,
+      "explanation": "The correct answer is D."
+    }
+  ],
+  "abstract_reasoning_test3": [
+    {
+      "id": 1,
+      "type": "image",
+      "prompt": "Which figure completes the series?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test3/q1.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 2,
+      "explanation": "The correct answer is C."
+    },
+    {
+      "id": 2,
+      "type": "image",
+      "prompt": "Which figure completes the series?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test3/q2.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 3,
+      "explanation": "The correct answer is D."
+    },
+    {
+      "id": 3,
+      "type": "image",
+      "prompt": "Which figure completes the series?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test3/q3.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 0,
+      "explanation": "The correct answer is A."
+    },
+    {
+      "id": 4,
+      "type": "image",
+      "prompt": "Which figure completes the series?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test3/q4.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 0,
+      "explanation": "The correct answer is A."
+    },
+    {
+      "id": 5,
+      "type": "image",
+      "prompt": "Which figure completes the series?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test3/q5.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 1,
+      "explanation": "The correct answer is B."
+    },
+    {
+      "id": 6,
+      "type": "image",
+      "prompt": "Which figure completes the statement?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test3/q6.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 1,
+      "explanation": "The correct answer is B."
+    },
+    {
+      "id": 7,
+      "type": "image",
+      "prompt": "Which figure completes the statement?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test3/q7.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 3,
+      "explanation": "The correct answer is D."
+    },
+    {
+      "id": 8,
+      "type": "image",
+      "prompt": "Which figure completes the statement?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test3/q8.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 0,
+      "explanation": "The correct answer is A."
+    },
+    {
+      "id": 9,
+      "type": "image",
+      "prompt": "Which figure completes the statement?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test3/q9.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 2,
+      "explanation": "The correct answer is C."
+    },
+    {
+      "id": 10,
+      "type": "image",
+      "prompt": "Which figure completes the statement?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test3/q10.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 3,
+      "explanation": "The correct answer is D."
+    },
+    {
+      "id": 11,
+      "type": "image",
+      "prompt": "Which figure is the odd one out?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test3/q11.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E"
+      ],
+      "correctIndex": 0,
+      "explanation": "The correct answer is A."
+    },
+    {
+      "id": 12,
+      "type": "image",
+      "prompt": "Which figure is the odd one out?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test3/q12.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E"
+      ],
+      "correctIndex": 1,
+      "explanation": "The correct answer is B."
+    },
+    {
+      "id": 13,
+      "type": "image",
+      "prompt": "Which figure is the odd one out?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test3/q13.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E"
+      ],
+      "correctIndex": 4,
+      "explanation": "The correct answer is E."
+    },
+    {
+      "id": 14,
+      "type": "image",
+      "prompt": "Which figure is the odd one out?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test3/q14.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E"
+      ],
+      "correctIndex": 2,
+      "explanation": "The correct answer is C."
+    },
+    {
+      "id": 15,
+      "type": "image",
+      "prompt": "Which figure is the odd one out?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test3/q15.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E"
+      ],
+      "correctIndex": 3,
+      "explanation": "The correct answer is D."
+    },
+    {
+      "id": 16,
+      "type": "image",
+      "prompt": "Which figure completes the series?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test3/q16.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 1,
+      "explanation": "The correct answer is B."
+    },
+    {
+      "id": 17,
+      "type": "image",
+      "prompt": "Which figure completes the series?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test3/q17.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 0,
+      "explanation": "The correct answer is A."
+    },
+    {
+      "id": 18,
+      "type": "image",
+      "prompt": "Which figure belongs in neither group?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test3/q18.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 2,
+      "explanation": "The correct answer is C."
+    },
+    {
+      "id": 19,
+      "type": "image",
+      "prompt": "Which figure belongs in neither group?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test3/q19.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 0,
+      "explanation": "The correct answer is A."
+    },
+    {
+      "id": 20,
+      "type": "image",
+      "prompt": "Which figure is next in the series?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test3/q20.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 3,
+      "explanation": "The correct answer is D."
+    },
+    {
+      "id": 21,
+      "type": "image",
+      "prompt": "Which figure is next in the series?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test3/q21.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E"
+      ],
+      "correctIndex": 1,
+      "explanation": "The correct answer is B."
+    },
+    {
+      "id": 22,
+      "type": "image",
+      "prompt": "Which figure completes the grid?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test3/q22.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E"
+      ],
+      "correctIndex": 2,
+      "explanation": "The correct answer is C."
+    },
+    {
+      "id": 23,
+      "type": "image",
+      "prompt": "Which figure completes the grid?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test3/q23.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E"
+      ],
+      "correctIndex": 3,
+      "explanation": "The correct answer is D."
+    },
+    {
+      "id": 24,
+      "type": "image",
+      "prompt": "Which figure is the odd one out?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test3/q24.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E"
+      ],
+      "correctIndex": 2,
+      "explanation": "The correct answer is C."
+    },
+    {
+      "id": 25,
+      "type": "image",
+      "prompt": "Which figure is the odd one out?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test3/q25.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E"
+      ],
+      "correctIndex": 4,
+      "explanation": "The correct answer is E."
+    }
+  ],
+  "abstract_reasoning_test4": [
+    {
+      "id": 1,
+      "type": "image",
+      "prompt": "Which figure completes the series?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test4/q1.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 3,
+      "explanation": "The correct answer is D."
+    },
+    {
+      "id": 2,
+      "type": "image",
+      "prompt": "Which figure completes the series?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test4/q2.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 1,
+      "explanation": "The correct answer is B."
+    },
+    {
+      "id": 3,
+      "type": "image",
+      "prompt": "Which figure completes the series?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test4/q3.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 2,
+      "explanation": "The correct answer is C."
+    },
+    {
+      "id": 4,
+      "type": "image",
+      "prompt": "Which figure completes the series?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test4/q4.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 2,
+      "explanation": "The correct answer is C."
+    },
+    {
+      "id": 5,
+      "type": "image",
+      "prompt": "Which figure completes the series?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test4/q5.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 0,
+      "explanation": "The correct answer is A."
+    },
+    {
+      "id": 6,
+      "type": "image",
+      "prompt": "Which figure completes the statement?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test4/q6.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 1,
+      "explanation": "The correct answer is B."
+    },
+    {
+      "id": 7,
+      "type": "image",
+      "prompt": "Which figure completes the statement?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test4/q7.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 3,
+      "explanation": "The correct answer is D."
+    },
+    {
+      "id": 8,
+      "type": "image",
+      "prompt": "Which figure completes the statement?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test4/q8.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 1,
+      "explanation": "The correct answer is B."
+    },
+    {
+      "id": 9,
+      "type": "image",
+      "prompt": "Which figure completes the statement?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test4/q9.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 2,
+      "explanation": "The correct answer is C."
+    },
+    {
+      "id": 10,
+      "type": "image",
+      "prompt": "Which figure completes the statement?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test4/q10.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 3,
+      "explanation": "The correct answer is D."
+    },
+    {
+      "id": 11,
+      "type": "image",
+      "prompt": "Which figure is the odd one out?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test4/q11.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E"
+      ],
+      "correctIndex": 1,
+      "explanation": "The correct answer is B."
+    },
+    {
+      "id": 12,
+      "type": "image",
+      "prompt": "Which figure is the odd one out?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test4/q12.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E"
+      ],
+      "correctIndex": 3,
+      "explanation": "The correct answer is D."
+    },
+    {
+      "id": 13,
+      "type": "image",
+      "prompt": "Which figure is the odd one out?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test4/q13.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E"
+      ],
+      "correctIndex": 0,
+      "explanation": "The correct answer is A."
+    },
+    {
+      "id": 14,
+      "type": "image",
+      "prompt": "Which figure is the odd one out?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test4/q14.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E"
+      ],
+      "correctIndex": 3,
+      "explanation": "The correct answer is D."
+    },
+    {
+      "id": 15,
+      "type": "image",
+      "prompt": "Which figure is the odd one out?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test4/q15.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E"
+      ],
+      "correctIndex": 4,
+      "explanation": "The correct answer is E."
+    },
+    {
+      "id": 16,
+      "type": "image",
+      "prompt": "Which figure completes the series?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test4/q16.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 1,
+      "explanation": "The correct answer is B."
+    },
+    {
+      "id": 17,
+      "type": "image",
+      "prompt": "Which figure completes the series?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test4/q17.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 2,
+      "explanation": "The correct answer is C."
+    },
+    {
+      "id": 18,
+      "type": "image",
+      "prompt": "Which figure belongs in neither group?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test4/q18.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 1,
+      "explanation": "The correct answer is B."
+    },
+    {
+      "id": 19,
+      "type": "image",
+      "prompt": "Which figure belongs in neither group?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test4/q19.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 3,
+      "explanation": "The correct answer is D."
+    },
+    {
+      "id": 20,
+      "type": "image",
+      "prompt": "Which figure is next in the series?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test4/q20.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 3,
+      "explanation": "The correct answer is D."
+    },
+    {
+      "id": 21,
+      "type": "image",
+      "prompt": "Which figure is next in the series?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test4/q21.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 0,
+      "explanation": "The correct answer is A."
+    },
+    {
+      "id": 22,
+      "type": "image",
+      "prompt": "Which figure completes the grid?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test4/q22.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 2,
+      "explanation": "The correct answer is C."
+    },
+    {
+      "id": 23,
+      "type": "image",
+      "prompt": "Which figure completes the grid?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test4/q23.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 1,
+      "explanation": "The correct answer is B."
+    },
+    {
+      "id": 24,
+      "type": "image",
+      "prompt": "Which figure is the odd one out?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test4/q24.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 2,
+      "explanation": "The correct answer is C."
+    },
+    {
+      "id": 25,
+      "type": "image",
+      "prompt": "Which figure is the odd one out?",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test4/q25.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 1,
+      "explanation": "The correct answer is B."
+    }
+  ],
+  "abstract_reasoning_test5": [
+    {
+      "id": 1,
+      "type": "image",
+      "prompt": "Analyze the pattern and select the correct answer.",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test5/q1.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 3,
+      "explanation": "The correct answer is D."
+    },
+    {
+      "id": 2,
+      "type": "image",
+      "prompt": "Analyze the pattern and select the correct answer.",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test5/q2.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 3,
+      "explanation": "The correct answer is D."
+    },
+    {
+      "id": 3,
+      "type": "image",
+      "prompt": "Analyze the pattern and select the correct answer.",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test5/q3.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 0,
+      "explanation": "The correct answer is A."
+    },
+    {
+      "id": 4,
+      "type": "image",
+      "prompt": "Analyze the pattern and select the correct answer.",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test5/q4.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 1,
+      "explanation": "The correct answer is B."
+    },
+    {
+      "id": 5,
+      "type": "image",
+      "prompt": "Analyze the pattern and select the correct answer.",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test5/q5.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 0,
+      "explanation": "The correct answer is A."
+    },
+    {
+      "id": 6,
+      "type": "image",
+      "prompt": "Analyze the pattern and select the correct answer.",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test5/q6.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 2,
+      "explanation": "The correct answer is C."
+    },
+    {
+      "id": 7,
+      "type": "image",
+      "prompt": "Analyze the pattern and select the correct answer.",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test5/q7.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 0,
+      "explanation": "The correct answer is A."
+    },
+    {
+      "id": 8,
+      "type": "image",
+      "prompt": "Analyze the pattern and select the correct answer.",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test5/q8.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 2,
+      "explanation": "The correct answer is C."
+    },
+    {
+      "id": 9,
+      "type": "image",
+      "prompt": "Analyze the pattern and select the correct answer.",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test5/q9.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 2,
+      "explanation": "The correct answer is C."
+    },
+    {
+      "id": 10,
+      "type": "image",
+      "prompt": "Analyze the pattern and select the correct answer.",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test5/q10.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 2,
+      "explanation": "The correct answer is C."
+    },
+    {
+      "id": 11,
+      "type": "image",
+      "prompt": "Analyze the pattern and select the correct answer.",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test5/q11.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 2,
+      "explanation": "The correct answer is C."
+    },
+    {
+      "id": 12,
+      "type": "image",
+      "prompt": "Analyze the pattern and select the correct answer.",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test5/q12.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 3,
+      "explanation": "The correct answer is D."
+    },
+    {
+      "id": 13,
+      "type": "image",
+      "prompt": "Analyze the pattern and select the correct answer.",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test5/q13.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 3,
+      "explanation": "The correct answer is D."
+    },
+    {
+      "id": 14,
+      "type": "image",
+      "prompt": "Analyze the pattern and select the correct answer.",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test5/q14.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 2,
+      "explanation": "The correct answer is C."
+    },
+    {
+      "id": 15,
+      "type": "image",
+      "prompt": "Analyze the pattern and select the correct answer.",
+      "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test5/q15.webp",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correctIndex": 0,
+      "explanation": "The correct answer is A."
+    }
+  ]
+}

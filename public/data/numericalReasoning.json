@@ -1,0 +1,489 @@
+{
+  "numerical_reasoning_test1": [
+    {
+      "id": 1,
+      "type": "image",
+      "prompt": "Which share had the largest difference between highest and lowest price over the last 12 months?",
+      "image": "/img/afp_reviewer_imgs/numerical_reasoning/numerical_reasoning_test1/q1.webp",
+      "options": [
+        "(A) Huver Co.",
+        "(B) Drebs Ltd",
+        "(C) Fevs Plc",
+        "(D) Fauvers",
+        "(E) Steapars"
+      ],
+      "correctIndex": 2,
+      "explanation": "The information that we need is shown in the table Share Prices.\nStep 1 - Calculate the difference between the maximum and the minimum prices.\nHuver Co. = 1,360 - 860 = 500\nDrebs Ltd = 22 - 11 = 11\nFevs Plc = 1,955 - 1,242 = 713\nFauvers = 724 - 464 = 260\nSteapars = 2,630 - 2,216 = 414\nTip: Notice the wording of the question is asking for the share with the largest absolute change in price, NOT the largest percentage change, which would have been Drebs Ltd. If the question had wanted the percentage change it would have used the word percentage."
+    },
+    {
+      "id": 2,
+      "type": "image",
+      "prompt": "What was yesterday's cost difference between 50 shares in Fevs plc and 100 shares in Steapars?",
+      "image": "/img/afp_reviewer_imgs/numerical_reasoning/numerical_reasoning_test1/q2.webp",
+      "options": [
+        "(A) €164,726",
+        "(B) €251,163",
+        "(C) €172,577",
+        "(D) €164,045",
+        "(E) None of these"
+      ],
+      "correctIndex": 3,
+      "explanation": "Step 1 - Calculate yesterday's share price for each share:\nFevs plc = 1,586 / 0.91 = 1,742.86\nSteapars = 2,537 / 1.01 = 2,511.88\nStep 2 - Calculate the cost difference between 50 Fevs and 100 Steapars shares yesterday:\n50 x 1,742.86 = 87,143\n100 x 2,511.88 = 251,188\nDifference = 251,188 - 87,143 = 164,045\nTip: Percentage increases and decreases catch out a lot of people. For this question, think about what's happening. The percentage change from yesterday to today in the case of Fevs is a 9% decrease. So that means (today's price) / (yesterday's price) = 0.91 (a 9% decrease). Using algebra we can recast this as yesterday's price = today's price / 0.91."
+    },
+    {
+      "id": 3,
+      "type": "image",
+      "prompt": "Today's Drebs Ltd share price represents a 40% increase on the price one month ago. What was the Drebs Ltd share price a month ago?",
+      "image": "/img/afp_reviewer_imgs/numerical_reasoning/numerical_reasoning_test1/q3.webp",
+      "options": [
+        "(A) €22",
+        "(B) €25.20",
+        "(C) €12.68",
+        "(D) €12.90",
+        "(E) €12.86"
+      ],
+      "correctIndex": 4,
+      "explanation": "Step 1 - Drebs Ltd's share price is shown as 18 Euros at today's prices.\nThis is a 40% increase and so represents 1.40 (140%) of the price one month ago.\nStep 2 - The price one month ago is calculated as follows:\n18 / 1.40 = 12.86"
+    },
+    {
+      "id": 4,
+      "type": "image",
+      "prompt": "If a driver travels an average of 4,250 miles per month driving along motorways in an Xtam car, what is the predicted annual consumption of fuel (in gallons)?",
+      "image": "/img/afp_reviewer_imgs/numerical_reasoning/numerical_reasoning_test1/q4.webp",
+      "options": [
+        "(A) Cannot say",
+        "(B) 1,500",
+        "(C) 125",
+        "(D) 150",
+        "(E) 1,250"
+      ],
+      "correctIndex": 1,
+      "explanation": "Step 1 - The Xtam's fuel consumption is shown as 34 miles to the gallon for motorway driving.\nSo, 4,250 miles / 34 = 125 gallons per month.\nStep 2 - Annual petrol consumption = 125 x 12 = 1,500 gallons."
+    },
+    {
+      "id": 5,
+      "type": "image",
+      "prompt": "A car dealership has £600,000 to spend and wants to buy equal numbers of the Taber and Ursa cars. What is the largest number of each type of car that can be ordered?",
+      "image": "/img/afp_reviewer_imgs/numerical_reasoning/numerical_reasoning_test1/q5.webp",
+      "options": [
+        "(A) 27",
+        "(B) 48",
+        "(C) 19",
+        "(D) 21",
+        "(E) 22"
+      ],
+      "correctIndex": 3,
+      "explanation": "Step 1 - The cost of the Taber and Ursa cars are £12,500 and £15,250 respectively.\nStep 2 - Since the numbers of each car purchased must be equal, calculate the combined cost as follows: £12,500 + £15,250 = £27,750.\nStep 3 - £600,000 / £27,750 = 21.6."
+    },
+    {
+      "id": 6,
+      "type": "image",
+      "prompt": "What is the ratio of the cost of a Taber: Velvo: Xtam?",
+      "image": "/img/afp_reviewer_imgs/numerical_reasoning/numerical_reasoning_test1/q6.webp",
+      "options": [
+        "(A) 2:4:5",
+        "(B) 1:4:6",
+        "(C) 1:3:5",
+        "(D) 2:3:5",
+        "(E) 1:2:3"
+      ],
+      "correctIndex": 2,
+      "explanation": "Step 1 - Taber: Velvo: Xtam costs = 12,500 : 37,500 : 62,500\nNotice the common denominator here is 12,500. So the ratio can be simplified to the following. 12,500/12,500 : 37,500/12,500: 62,500/12,500 = 1:3:5."
+    },
+    {
+      "id": 7,
+      "type": "image",
+      "prompt": "Legal sector spending on IT hardware, IT software and IT consulting are all set to increase by the same amounts in Year 6 as they did from Year 4 to Year 5. Assuming this is the case, what is the total legal sector spend in Year 6 on these three IT areas combined?",
+      "image": "/img/afp_reviewer_imgs/numerical_reasoning/numerical_reasoning_test1/q7.webp",
+      "options": [
+        "(A) £75 million",
+        "(B) £85 million",
+        "(C) £95 million",
+        "(D) £105 million",
+        "(E) £110 million"
+      ],
+      "correctIndex": 4,
+      "explanation": "Step 1 - Calculate the increases in each IT spending category\nIT hardware = 45 (increase of £5 million from Year 4)\nIT software = 30 (increase of £5 million from Year 4)\nIT consulting = 20 (increase of £5 million from Year 4)\nStep 2 - Calculate the total for the year after the projected year 5. Since there is an even increase the same increase of £5 million will occur in IT hardware, software and consulting.\nTotal = 45 + 30 + 20 + (3 x 5) = £110 million"
+    },
+    {
+      "id": 8,
+      "type": "image",
+      "prompt": "For years 1 to 3 inclusive, by how much did Make Fit Ltd's income from consultancy services differ from those of Pure Gap plc?",
+      "image": "/img/afp_reviewer_imgs/numerical_reasoning/numerical_reasoning_test1/q8.webp",
+      "options": [
+        "(A) £110 more",
+        "(B) £110,000 less",
+        "(C) £1,100,000 more",
+        "(D) £110 less",
+        "(E) £1,100,000 less"
+      ],
+      "correctIndex": 4,
+      "explanation": "Step 1 - Total the income for each company across the three years 1, 2 and 3.\nMake Fit Ltd = 290 + 180 + 260 = 730\nPure Gap plc = 230 + 310 + 300 = 840\n730 - 840 = -110 (£10,000's)"
+    },
+    {
+      "id": 9,
+      "type": "image",
+      "prompt": "Which of the following statements is false regarding legal sector spending between Year 4 and projected Year 5?",
+      "image": "/img/afp_reviewer_imgs/numerical_reasoning/numerical_reasoning_test1/q9.webp",
+      "options": [
+        "(A) IT consulting will increase by £5million.",
+        "(B) IT consulting will match that of year 2.",
+        "(C) IT software will exceed IT consulting.",
+        "(D) Spending on IT hardware will decline.",
+        "(E) None of these."
+      ],
+      "correctIndex": 3,
+      "explanation": "a) The projected spend on IT consulting is projected to increase by £5million. Option A is true.\nb) The projected spend on IT consulting is £5million, which matches year 2. Option B is true.\nc) The projected spend on IT software is £30million and for IT consulting it's £20million. Option C is true.\nd) There are increases projected for IT hardware, for IT software and for consulting. The option for D is false.\ne) We see that option D is false, so E cannot be the correct answer.\nThus the correct answer is (D) Spending on IT hardware, software and consulting is projected to decline."
+    },
+    {
+      "id": 10,
+      "type": "image",
+      "prompt": "In which year(s) did Make Fit Ltd and Pure Gap plc's combined IT consultancy income exceed £6million?",
+      "image": "/img/afp_reviewer_imgs/numerical_reasoning/numerical_reasoning_test1/q10.webp",
+      "options": [
+        "(A) Year 1 and Year 4",
+        "(B) Only Year 4",
+        "(C) Year 1 and Year 3",
+        "(D) Only Year 3",
+        "(E) Year 3 and Year 4"
+      ],
+      "correctIndex": 1,
+      "explanation": "Step 1 - Find the total for each of the years shown and see which years exceed £6million.\nMake Fit Ltd and Pure Gap plc's combined IT consulting income\nYear 1 290 + 230 (£10,000s) = £5.2 million\nYear 2 180 + 310 (£10,000s) = £4.9 million\nYear 3 260 + 300 (£10,000s) = £5.6 million\nYear 4 320 + 290 (£10,000s) = £6.1 million"
+    },
+    {
+      "id": 11,
+      "type": "image",
+      "prompt": "If actual labour costs rise so as to halve their difference from the target, what will be the change in actual Gross Profit?",
+      "image": "/img/afp_reviewer_imgs/numerical_reasoning/numerical_reasoning_test1/q11.webp",
+      "options": [
+        "(A) Falls by £4,500",
+        "(B) Rises by £4,500",
+        "(C) No overall effect",
+        "(D) Rises by £9,000",
+        "(E) Falls by £9,000"
+      ],
+      "correctIndex": 0,
+      "explanation": "Step 1 - Halve the labour costs discrepancy against target\n(target labour costs - actual labour costs)/2 = (175,000 - 166,000)/2 = £4,500.\nStep 2 - Calculate effect on Gross Profit\nIf labour costs rise by £4,500, then profit falls by £4,500."
+    },
+    {
+      "id": 12,
+      "type": "image",
+      "prompt": "IKE Computers aim to grow monthly gross profit by 1.5%. If all costs remain constant, what will the sales turnover need to be in February to hit the target?",
+      "image": "/img/afp_reviewer_imgs/numerical_reasoning/numerical_reasoning_test1/q12.webp",
+      "options": [
+        "(A) £242,099",
+        "(B) £277,987",
+        "(C) £38,555",
+        "(D) £274,299",
+        "(E) 288,000"
+      ],
+      "correctIndex": 1,
+      "explanation": "Step 1 - Calculate the required gross profit increase. 36,521 x 1.5% = £547.82.\nGiven that costs are constant, this means the Net Turnover needs to increase By £547.8 too. So the Net Turnover needs to be £547.8 + £238,521 = £239,068.8.\nStep 2 - We have worked out the Net Turnover, but the question asks for Sales Turnover (i.e. before the sales tax of 14.0% is deducted). So Sales Turnover = 239,068.8 / 86.0% = £277,986.98."
+    },
+    {
+      "id": 13,
+      "type": "image",
+      "prompt": "If IKE Computers employed eighty permanent employees in January who were on the same salary, what would have been the effect on labour costs if they had replaced twenty permanent employees with interim staff each on monthly salaries of £3,000?",
+      "image": "/img/afp_reviewer_imgs/numerical_reasoning/numerical_reasoning_test1/q13.webp",
+      "options": [
+        "(A) Cannot tell",
+        "(B) Decrease of £130,000",
+        "(C) Decrease of £20,750",
+        "(D) Increase of £2,075",
+        "(E) Increase of £18,500"
+      ],
+      "correctIndex": 4,
+      "explanation": "Step 1 - Calculate the monthly cost of each full-time employee in January\n166,000 / 80 = 2,075.\nStep 2 - Calculate the difference in monthly labour costs\n3,000 - 2,075 = 925.\nStep 3 - Calculate the difference of replacing 20 full time employees with interims\n925 x 20 = £18,500."
+    },
+    {
+      "id": 14,
+      "type": "image",
+      "prompt": "Which sector represents approximately 19% of the profits from the five sectors shown?",
+      "image": "/img/afp_reviewer_imgs/numerical_reasoning/numerical_reasoning_test1/q14.webp",
+      "options": [
+        "(A) Leisure",
+        "(B) Manufacturing",
+        "(C) Retail",
+        "(D) Government",
+        "(E) Utilities"
+      ],
+      "correctIndex": 4,
+      "explanation": "The series of calculations is best shown in a table.\nStep 1 - calculate sum | Step 2 - Total | Step 3 - % of total\nLeisure 5.2 + 7.4 + 4.6 = 17.2 | 17.2 | 22%\nManufacturing 5 + 7.2 + 6.3 = 18.5 | 18.5 | 24%\nRetail 4.4 + 5.8 + 3.8 = 14 | 14 | 18%\nGovernment 4.5 + 5.9 + 3.6 + 14 | 14 | 18%\nUtilities 3.5 + 5.1 + 6.2 = 14.8 | 14.8 | 19%\nTOTAL = 78.5"
+    },
+    {
+      "id": 15,
+      "type": "image",
+      "prompt": "If the ratio of profit to turnover for Pacific Rim contracts was 2:15, what was the Government turnover in the Pacific Rim (in £100,000s)?",
+      "image": "/img/afp_reviewer_imgs/numerical_reasoning/numerical_reasoning_test1/q15.webp",
+      "options": [
+        "(A) 36",
+        "(B) 27",
+        "(C) 270",
+        "(D) 360",
+        "(E) 540"
+      ],
+      "correctIndex": 2,
+      "explanation": "Step 1 - Contracts ratio of profit (£3.6million) to turnover = 2:15\nTurnover = £3.6 million x 15/2 = £27 million = 270 (in £100,000s)"
+    },
+    {
+      "id": 16,
+      "type": "image",
+      "prompt": "Reyes Heslop had a target for Leisure profits to be a quarter of their total profits. Assuming profits in other areas remain the same, by how much did the Leisure profits miss this target?",
+      "image": "/img/afp_reviewer_imgs/numerical_reasoning/numerical_reasoning_test1/q16.webp",
+      "options": [
+        "(A) £1.8 million",
+        "(B) £2.4 million",
+        "(C) £2.7 million",
+        "(D) £3.2 million",
+        "(E) £3.4 million"
+      ],
+      "correctIndex": 3,
+      "explanation": "Step 1 - Calculate the total Reyes Heslop profits across all areas other than Leisure.\n(6.3 + 7.2 + 5.0) + (3.8 + 5.8 + 4.4) + (3.6 + 5.9 + 4.5) + (6.2 + 5.1 + 3.5) = 61.3million.\nStep 2 - This needs to be 3/4 of all profits for the condition to be met. Therefore all profits, across all sectors, would be 61.3 / 75% = 81.7333million.\nStep 3 - Now we look at the difference between actual and target Leisure profits.\nActual = (4.6 + 7.4 + 5.2) = 17.2\nTarget = (81.7333 - 61.3) = 20.4333\nShortfall = 3.2333 (millions)\nNote: the INCORRECT way of doing this question would be to:\nSum profits across all areas, calculate 1/4, then see the difference between that figure and 17.2 million. This method would calculate 1/4 of the profits including the reduced figure from Leisure. To see this, use the figure you arrive at using this method for Leisure (19.625) and the total profits become 80.93. Which is not 4x 19.625."
+    },
+    {
+      "id": 17,
+      "type": "image",
+      "prompt": "A competitor wants to takeover Reyes Heslop and offers a price of 8 times current profits. Reyes Heslop shareholders reject this offer and suggest a price that is 20% higher, what is this suggested price?",
+      "image": "/img/afp_reviewer_imgs/numerical_reasoning/numerical_reasoning_test1/q17.webp",
+      "options": [
+        "(A) £79 million",
+        "(B) £63 million",
+        "(C) £628 million",
+        "(D) £754 million",
+        "(E) £502 million"
+      ],
+      "correctIndex": 3,
+      "explanation": "Step 1 - Calculate the current profits total across all sectors.\n4.6 + 7.4 + 5.2 + 6.3 + 7.2 + 5.0 + 3.8 + 5.8 + 4.4 + 3.6 + 5.9 + 4.5 + 6.2 + 5.1 + 3.5 = £78.5 million.\nStep 2 - Takeover offer price = (£78.5 million x 8) = £628 million.\nSuggested offer price = £628 x 120% = £753.6 million"
+    },
+    {
+      "id": 18,
+      "type": "image",
+      "prompt": "What is the difference between direct sales and telesales across the five teams combined?",
+      "image": "/img/afp_reviewer_imgs/numerical_reasoning/numerical_reasoning_test1/q18.webp",
+      "options": [
+        "(A) £10 million",
+        "(B) £11 million",
+        "(C) £12 million",
+        "(D) £13 million",
+        "(E) £14 million"
+      ],
+      "correctIndex": 1,
+      "explanation": "Step 1 - Calculate the total direct sales and telesales across the five teams\nTeam | Direct Sales | Telesales\nTeam A | 17 | 16\nTeam B | 13 | 17\nTeam C | 16 | 18\nTeam D | 15 | 17\nTeam E | 14 | 18\nTOTAL | 75 | 86\nStep 2 - Calculate the difference\n86 - 75 = £11 million"
+    },
+    {
+      "id": 19,
+      "type": "image",
+      "prompt": "If there are 50 direct sales and 65 telesales employees assigned to each of the Eastern region's teams A-E, what are the average sales per sales employee for the lowest performing team in terms of overall sales (to the nearest £10,000)?",
+      "image": "/img/afp_reviewer_imgs/numerical_reasoning/numerical_reasoning_test1/q19.webp",
+      "options": [
+        "(A) Cannot tell from the data",
+        "(B) £200,000 (direct); £340,000 (telesales)",
+        "(C) £260,000 (direct); £260,000 (telesales)",
+        "(D) £340,000 (telesales); £200,000 (direct)",
+        "(E) £20,000 (direct sales); £30,000 (telesales)"
+      ],
+      "correctIndex": 2,
+      "explanation": "Step 1 - Obtain the lowest performing team from calculating the overall sales (direct sales and telesales combined)\nTeam A total = 33\nTeam B total = 30\nTeam C total = 34\nTeam D total = 32\nTeam E total = 32\nSo, Team B is the lowest performing team overall.\nStep 2 - Calculate the average sales per direct sales employee\n13/50 = 0.26 million\nStep 3 - calculate the average sales per telesales sales employee\n17/65 = 0.26 million"
+    },
+    {
+      "id": 20,
+      "type": "image",
+      "prompt": "If the Eastern Region's total sales represent 26% of the total for all regions, what are the total sales across all regions (to the nearest £million)?",
+      "image": "/img/afp_reviewer_imgs/numerical_reasoning/numerical_reasoning_test1/q20.webp",
+      "options": [
+        "(A) £124 million",
+        "(B) £142 million",
+        "(C) £161 million",
+        "(D) £619 million",
+        "(E) £620 million"
+      ],
+      "correctIndex": 3,
+      "explanation": "Step 1 - Calculate the total sales\n86 (for telesales) + 75 (for direct sales) = £161 million\nStep 2 - Calculate the total sales across all regions\n£161 million = 26%\n100% = 161 x 100/26 = £619.23 million"
+    },
+    {
+      "id": 21,
+      "type": "image",
+      "prompt": "What are the total sales targets for next year across all five teams if the target is set as a 20% and 10% increase in this year's Direct Sales and Telesales respectively?",
+      "image": "/img/afp_reviewer_imgs/numerical_reasoning/numerical_reasoning_test1/q20.webp",
+      "options": [
+        "(A) Direct (£75 million); Telesales (£86 million)",
+        "(B) Direct Sales (£104 million); Telesales (£82 million)",
+        "(C) Direct (£82 million); Telesales (£104 million)",
+        "(D) Direct (£95 million); Telesales (£90 million)",
+        "(E) Direct (£90 million); Telesales (£94.6 million)"
+      ],
+      "correctIndex": 4,
+      "explanation": "Step 1 - Calculate the increase in the direct sales and telesales totals, as follows:\nTeam | Direct Sales | Telesales\nTeam A | 17 | 16\nTeam B | 13 | 17\nTeam C | 16 | 18\nTeam D | 15 | 17\nTeam E | 14 | 18\nTotal | 75 | 86\nTotal + % | 75 x 120% = 90 | 86 x 110% = 94.6"
+    }
+  ],
+  "numerical_reasoning_test2": [
+    {
+      "id": 1,
+      "type": "image",
+      "prompt": "Which company has the highest annual profit per employee?",
+      "image": "/img/afp_reviewer_imgs/numerical_reasoning/numerical_reasoning_test2/q1-3.webp",
+      "options": [
+        "(A) A",
+        "(B) B",
+        "(C) C",
+        "(D) D"
+      ],
+      "correctIndex": 0,
+      "explanation": "Step 1 - Simply divide the annual profit by the number of employees for each company:\nCompany A = £4,000/employee.\nCompany B = £3,250/employee.\nCompany C = £2,625/employee.\nCompany D = £1,667/employee.\nTip - This is a relatively easy question; don’t waste time by looking for anything more complicated."
+    },
+    {
+      "id": 2,
+      "type": "image",
+      "prompt": "If the profits per employee remain the same, how many extra employees would Company B have to recruit to achieve annual profits of £39,000?",
+      "image": "/img/afp_reviewer_imgs/numerical_reasoning/numerical_reasoning_test2/q1-3.webp",
+      "options": [
+        "(A) 6",
+        "(B) 3",
+        "(C) 12",
+        "(D) 4"
+      ],
+      "correctIndex": 3,
+      "explanation": "Step 1 - For company B, profit per employee is originally (£26,000 ÷ 8) = £3,250/employee.\nSo £39,000 ÷ £3,250 = 12 employees, which is 4 more than they currently have.\nTip - Whilst each question can be done in isolation, it will help here if you can quickly locate the workings from the previous question."
+    },
+    {
+      "id": 3,
+      "type": "image",
+      "prompt": "If every employee of Company D contributes equally, how much would each employee have to contribute in order to collectively buy Company A?",
+      "image": "/img/afp_reviewer_imgs/numerical_reasoning/numerical_reasoning_test2/q1-3.webp",
+      "options": [
+        "(A) £1,000",
+        "(B) £1,500",
+        "(C) £1,700",
+        "(D) £2,700"
+      ],
+      "correctIndex": 0,
+      "explanation": "Step 1 - We are told that the cost to buy Company A is £18,000. We are also told there are 18 employees in Company D. So £18,000 ÷ 18 employees = £1,000 per person."
+    },
+    {
+      "id": 4,
+      "type": "image",
+      "prompt": "Between 1990 and 2000, what was the decrease in energy use for the PC Room, Meeting Rooms and Office Space combined?",
+      "image": "/img/afp_reviewer_imgs/numerical_reasoning/numerical_reasoning_test2/q4-6.webp",
+      "options": [
+        "(A) 1,310kWh",
+        "(B) 1,400kWh",
+        "(C) 1,450kWh",
+        "(D) Cannot say"
+      ],
+      "correctIndex": 0,
+      "explanation": "Step 1 - The graphs give percentages, with the total shown at the bottom. Don’t waste time by working out the kWh value for each of the PC Room, the Meeting Rooms and the Office Space. Use the percentages and add up at the end:\nIn 1990: (20% + 12% + 41%) of 17,000kWh = 12,410kWh\nIn 2000: (21% + 14% + 39%) of 15,000kWh = 11,100kWh.\nWhich is a decrease of 1,310kWh."
+    },
+    {
+      "id": 5,
+      "type": "image",
+      "prompt": "If the Building Energy Use today is 6% less than it was in 2000, by what percentage is today’s Building Energy Use lower than that of 1990?",
+      "image": "/img/afp_reviewer_imgs/numerical_reasoning/numerical_reasoning_test2/q4-6.webp",
+      "options": [
+        "(A) 82.9%",
+        "(B) 17.1%",
+        "(C) 17.8%",
+        "(D) Cannot say"
+      ],
+      "correctIndex": 1,
+      "explanation": "Step 1 - Total energy usage in 2000 = 15,000kWh, so today’s at 6% less is 15,000 x 0.94 = 14,100kWh. This compares with 1990 levels of 17,000kWh.\nStep 2 - To work out the reduction from 17,000 to 14,100, calculate (14,100 ÷ 17,000) = 0.8294, which is a reduction of (1-0.8294 = 0.17059) 17.1%."
+    },
+    {
+      "id": 6,
+      "type": "image",
+      "prompt": "Which space experienced the smallest reduction in kWh used between 1990 and 2000?",
+      "image": "/img/afp_reviewer_imgs/numerical_reasoning/numerical_reasoning_test2/q4-6.webp",
+      "options": [
+        "(A) Office Space",
+        "(B) Print Room",
+        "(C) Meeting Rooms",
+        "(D) PC Room"
+      ],
+      "correctIndex": 3,
+      "explanation": "Step 1- Calculate the value of kWh for 1990 and 2000 for each of the rooms.\nRoom | 1990/ kWh | 2000/ kWh\nMeeting Rooms | 2.04 | 2.10\nOffice Space | 6.97 | 5.85\nPrint Room | 2.55 | 1.80\nPC Room | 3.40 | 3.15\nKitchen | 2.04 | 2.10\nStep 2- Subtract the kWh for 2000 from that of 1990 for each of the rooms.\nRoom | Δ (1990 - 2000) kWh\nMeeting Rooms | -0.06\nOffice Space | 1.12\nPrint Room | 0.75\nPC Room | 0.25\nKitchen | -0.06\nStep 3- Look for the smallest positive value. Negative values represent an increase between 1990 and 2000.\nTip – You only need to perform 4 calculations, as two of the rooms have the same values."
+    },
+    {
+      "id": 7,
+      "type": "image",
+      "prompt": "Approximately what percentage of the people sampled are unemployed?",
+      "image": "/img/afp_reviewer_imgs/numerical_reasoning/numerical_reasoning_test2/q-7-8.webp",
+      "options": [
+        "(A) 7%",
+        "(B) 5%",
+        "(C) 6%",
+        "(D) 4%"
+      ],
+      "correctIndex": 3,
+      "explanation": "Step 1 - Make sure you add together the male and female figures to arrive at a figure for ‘people’.\nTotal number unemployed = 52,000 + 43,000 = 95,000.\nStep 2 - Total number people sampled = 1,343,000 + 1,031,000 = 2,374,000.\nStep 3 - So now 95,000 ÷ 2,374,000 = 4%."
+    },
+    {
+      "id": 8,
+      "type": "image",
+      "prompt": "If it is predicted that the number of females employed in IT will rise by 10% every year, but the number of males stays the same, what percent of IT employees would be female after a three year period?",
+      "image": "/img/afp_reviewer_imgs/numerical_reasoning/numerical_reasoning_test2/q-7-8.webp",
+      "options": [
+        "(A) 54.1%",
+        "(B) 53.5%",
+        "(C) 85.0%",
+        "(D) 45.5%"
+      ],
+      "correctIndex": 0,
+      "explanation": "Step 1 - Number of female IT employees to start with is 107,000 from the table.\nStep 2 - If the number of female employees rises by 10%, that gives 142,417 employees after three years (107,000 x 1.10 x 1.10 x 1.10 = 142,417).\nStep 3 - The number of male IT employees is still 121,000, so the total in IT is now 142,417 + 121,000 = 263,417. So 142,417 out of 263,417 IT employees is 54.07%.\nTip - With this question, where we are dealing with number of people, you should end up with integers in the working since it is not possible to have part of a person. If you start to get decimals, consider whether you have made a mistake."
+    },
+    {
+      "id": 9,
+      "type": "image",
+      "prompt": "What was the average accident cost per vehicle on the road in Ribley in November?",
+      "image": "/img/afp_reviewer_imgs/numerical_reasoning/numerical_reasoning_test2/q9-11.webp",
+      "options": [
+        "(A) £0.23",
+        "(B) £0.47",
+        "(C) £15.40",
+        "(D) £2.30"
+      ],
+      "correctIndex": 0,
+      "explanation": "Step 1 - Hopefully you have noticed that the ‘Vehicles on Road’ figures are in thousands.\nTotal average cost of accidents in Ribley in November = 10 x £1,900 = £19,000. Number of vehicles on road = 81,000. So £19,000 ÷ 81,000 = £0.2346.\nTip - Don’t be fooled into thinking the answer is simply the ‘Average cost per accident’ figure given on the right hand side; per vehicle on the road is what the question is after. If it looks as though all you have to do for a question is read a number from the figure, you have probably misunderstood."
+    },
+    {
+      "id": 10,
+      "type": "image",
+      "prompt": "Comparing Wartop with Surren, what was the difference in average accident cost per vehicle on the road in October?",
+      "image": "/img/afp_reviewer_imgs/numerical_reasoning/numerical_reasoning_test2/q9-11.webp",
+      "options": [
+        "(A) 3.4p",
+        "(B) 6.4p",
+        "(C) £64.60",
+        "(D) £0.70"
+      ],
+      "correctIndex": 1,
+      "explanation": "Step 1 - The working is similar to the previous question, but there is a but more work to this question as you have to work it out for two towns. Again, don’t forget that the ‘Vehicles on Road’ figure is in thousands. The fact that the question asks for ‘average accident cost’ means we can answer the question because we are given the ‘Average cost per accident’ figure to apply to all accidents. Otherwise we’d have to know the cost of every single accident.\nWartop: (£3,200 per accident x 4 accidents) ÷ 89,000 vehicles on road = (12,800) ÷ 89,000 = £0.1438.\nSurren: (£1,050 per accident x 9 accidents) ÷ 119,000 vehicles on road = (9,450) ÷ 119,000 = £0.0794.\nStep 2 - Difference = £0.064."
+    },
+    {
+      "id": 11,
+      "type": "image",
+      "prompt": "The only towns in the County are Ribley, Wartop and Surren. What was the average accident cost per vehicle on the road in September for the County?",
+      "image": "/img/afp_reviewer_imgs/numerical_reasoning/numerical_reasoning_test2/q9-11.webp",
+      "options": [
+        "(A) £0.17",
+        "(B) £0.32",
+        "(C) £0.94",
+        "(D) £20.50"
+      ],
+      "correctIndex": 1,
+      "explanation": "Tip - Don’t be fooled into working out the average accident cost per vehicle on road for all three towns, and then finding the average of these by summing and dividing by three. This is not the overall average, this would give a distorted average toward the town with the lowest number of accidents.\nStep 1 - We need to first find the total costs of all accidents for all towns: (£1,900 x 6) + (£3,200 x 18) + (£1,050 x 20) = £90,000.\nStep 2 - Now divide this by the total number of vehicles on the road for all three towns (76,000 + 101,000 + 104,000) = 281,000.\nStep 3 - So £90,000 ÷ 281,000 = £0.320."
+    },
+    {
+      "id": 12,
+      "type": "image",
+      "prompt": "In 1996, total output from all fuels was 200TWh. If output for Nuclear in 2006 was twice that for Coal in 1996, what was the output for Nuclear in 2006?",
+      "image": "/img/afp_reviewer_imgs/numerical_reasoning/numerical_reasoning_test2/q12.webp",
+      "options": [
+        "(A) 140TWh",
+        "(B) 400TWh",
+        "(C) 64TWh",
+        "(D) 96TWh"
+      ],
+      "correctIndex": 0,
+      "explanation": "Tip - If you read this quickly, it might be daunting. It needn’t be if you take each step at a time.\nStep 1 - We are told that the total output from all fuels in 1996 is 200TWh, so we can work out what is was for coal in 1996.\nCoal in 1996 was 35% of 200TWh: 70TWh. So Nuclear in 2006 is twice this: 140TWh."
+    }
+  ]
+}
