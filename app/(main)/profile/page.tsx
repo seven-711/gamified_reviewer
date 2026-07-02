@@ -89,10 +89,10 @@ export default function ProfilePage() {
           <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-2 border-cloud-gray relative bg-duo-green-light shrink-0">
             <img src="/emoji/profile.png" alt="Avatar" className="object-cover w-full h-full rounded-full scale-[1.7] translate-y-1" />
           </div>
-          <div className="flex flex-col flex-1 items-center md:items-start text-center md:text-left gap-2 w-full">
-            <h1 className="font-feather text-3xl font-bold text-white mb-1">{user.fullName || "Learner"}</h1>
-            <p className="text-silver font-medium text-body">{user.primaryEmailAddress?.emailAddress}</p>
-            <p className="text-sky-blue font-bold text-body tracking-wide uppercase mt-1">
+          <div className="flex flex-col flex-1 items-center md:items-start text-center md:text-left gap-2 w-full font-din-round">
+            <h1 className="font-feather text-2xl md:text-3xl font-bold text-white mb-1">{user.fullName || "Learner"}</h1>
+            <p className="text-silver font-medium text-sm md:text-body">{user.primaryEmailAddress?.emailAddress}</p>
+            <p className="text-sky-blue font-bold text-sm md:text-body tracking-wide uppercase mt-1">
                {profile?.exam_category} • {profile?.study_style}
             </p>
           </div>
@@ -114,7 +114,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Stats Section */}
-        <h2 className="font-feather text-2xl font-bold text-white mb-4">Statistics</h2>
+        <h2 className="font-feather text-xl md:text-2xl font-bold text-white mb-4">Statistics</h2>
         <div className="grid grid-cols-2 gap-4 mb-10">
           <div className="border-2 border-cloud-gray rounded-2xl p-4 flex items-center gap-4">
              <div className="text-3xl">🔥</div>
@@ -147,7 +147,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Achievements Section Mock */}
-        <h2 className="font-feather text-2xl font-bold text-white mb-4">Achievements</h2>
+        <h2 className="font-feather text-xl md:text-2xl font-bold text-white mb-4">Achievements</h2>
         <div className="border-2 border-cloud-gray rounded-2xl p-6 flex items-center justify-between opacity-50">
            <div className="flex items-center gap-4">
               <Image src="/emoji/quest.png" alt="Quest" width={48} height={48} className="grayscale w-auto h-auto" unoptimized />

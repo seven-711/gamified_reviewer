@@ -345,12 +345,12 @@ function LessonContent() {
         </header>
 
         <main className="grow flex flex-col max-w-[800px] w-full mx-auto px-4 md:px-6 py-4 md:py-6">
-          <h2 className="font-feather text-[20px] md:text-[28px] text-charcoal mb-4 leading-snug">
+          <h2 className="font-feather text-[17px] md:text-[28px] text-charcoal mb-4 leading-snug">
             {example.prompt}
           </h2>
           <div className="bg-sky-blue/10 rounded-2xl p-6 border-2 border-sky-blue/20">
             <p className="text-sky-blue font-bold mb-2 uppercase text-sm tracking-wider">Solution / Explanation</p>
-            <div className="text-[17px] text-almost-black whitespace-pre-wrap leading-relaxed">
+            <div className="text-[14px] md:text-[17px] text-almost-black whitespace-pre-wrap leading-relaxed">
               {example.explanation}
             </div>
           </div>
@@ -462,7 +462,7 @@ function LessonContent() {
 
       {/* Main Quiz Area */}
       <main className="grow flex flex-col max-w-[800px] w-full mx-auto px-4 md:px-6 py-4 md:py-6">
-        <h2 className="font-feather text-[20px] md:text-[28px] text-charcoal mb-4 leading-snug">
+        <h2 className="font-feather text-[17px] md:text-[28px] text-charcoal mb-4 leading-snug">
           {question.prompt}
         </h2>
 
@@ -544,7 +544,7 @@ function LessonContent() {
                 <div className="hidden md:flex absolute left-4 w-7 h-7 bg-cloud-gray/20 rounded-md items-center justify-center text-graphite text-xs font-bold border-b-2 border-cloud-gray/40">
                   {idx + 1}
                 </div>
-                <span className={`font-bold text-base md:text-xl w-full text-center ${textClass}`}>
+                <span className={`font-bold text-sm md:text-xl w-full text-center ${textClass}`}>
                   {opt}
                 </span>
               </button>

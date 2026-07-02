@@ -15,9 +15,9 @@ export default function LeaderboardPage() {
            </div>
         </div>
         
-        <h2 className="font-feather text-2xl text-white font-bold mb-4 text-center">Unlock Leaderboards!</h2>
+        <h2 className="font-feather text-xl md:text-2xl text-white font-bold mb-4 text-center">Unlock Leaderboards!</h2>
         
-        <p className="text-silver text-[17px] font-medium mb-8 text-center">
+        <p className="text-silver text-[14px] md:text-[17px] font-medium mb-8 text-center">
           Complete 1 more lesson to start competing
         </p>
         

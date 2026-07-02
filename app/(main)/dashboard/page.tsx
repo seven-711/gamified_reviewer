@@ -239,7 +239,7 @@ export default function DashboardPage() {
                   Section 1, Unit 1
                 </span>
               </div>
-              <h2 className="font-feather text-xl md:text-2xl font-bold tracking-wide">
+              <h2 className="font-feather text-lg md:text-2xl font-bold tracking-wide">
                 {profile?.exam_category} {fullTopic ? `- ${fullTopic}` : "- Fundamentals"}
               </h2>
             </div>
@@ -318,15 +318,15 @@ export default function DashboardPage() {
                     className={`relative z-10 w-full flex items-center justify-between p-5 md:p-6 rounded-2xl transition-all duration-200 text-left ${cardClass}`}
                   >
                     <div className="flex flex-col gap-1.5 font-din-round">
-                      <h3 className={`font-feather text-lg md:text-xl font-bold tracking-wide ${titleClass}`}>
+                      <h3 className={`font-feather text-base md:text-xl font-bold tracking-wide ${titleClass}`}>
                         {testTitle}
                       </h3>
-                      <div className={`text-sm ${subtitleClass}`}>
+                      <div className={`text-xs md:text-sm ${subtitleClass}`}>
                         {scoreData ? (
                           <div className="flex flex-col gap-1 mt-1">
                             <span>Highest Score: {scoreData.score}/{scoreData.total}</span>
                             {scoreData.attempts ? (
-                              <span className="text-xs opacity-80 normal-case tracking-normal">
+                              <span className="text-[10px] md:text-xs opacity-80 normal-case tracking-normal">
                                 Prev Best: {scoreData.previousBest || 0} | Last: {scoreData.lastScore || 0} | Attempts: {scoreData.attempts}
                               </span>
                             ) : null}
