@@ -270,10 +270,16 @@ export default function DashboardPage() {
                 const saved = localStorage.getItem("timer_duration");
                 setModalTimerDuration(saved ? parseInt(saved, 10) : 5);
               }}
-              className="flex items-center gap-2 opacity-70 hover:opacity-100 transition-opacity cursor-pointer text-silver font-bold text-xs uppercase tracking-wide select-none"
+              className="flex items-center gap-2 bg-duo-green-light/10 hover:bg-duo-green-light/20 border-2 border-cloud-gray rounded-full px-3 py-1.5 md:py-2 md:px-4 cursor-pointer select-none transition-all shadow-[0_3px_0_var(--color-cloud-gray)] active:translate-y-[3px] active:shadow-none active:scale-[0.98] group text-almost-black font-din-round text-xs md:text-sm"
             >
-              <span>⏱️ Timer: {modalTimerDuration === 60 ? "1 Hour" : `${modalTimerDuration} Mins`}</span>
-              <span className="text-[10px] text-sky-blue hover:underline font-extrabold normal-case">(Change)</span>
+              <span className="text-sm md:text-base shrink-0">⏱️</span>
+              <span className="font-extrabold tracking-wider uppercase text-silver group-hover:text-almost-black transition-colors flex items-center gap-1">
+                <span className="hidden sm:inline">Timer:</span>
+                <span className="text-sky-blue font-black">{modalTimerDuration === 60 ? "1 Hour" : `${modalTimerDuration} Mins`}</span>
+              </span>
+              <span className="bg-sky-blue/15 text-sky-blue font-bold px-2 py-0.5 rounded-full text-[9px] md:text-[10px] tracking-wider uppercase transition-all group-hover:bg-sky-blue group-hover:text-white shrink-0">
+                Change
+              </span>
             </div>
 
             <label className="flex items-center cursor-pointer gap-3 opacity-70 hover:opacity-100 transition-opacity">
