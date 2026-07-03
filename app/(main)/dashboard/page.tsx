@@ -120,6 +120,11 @@ export default function DashboardPage() {
           }
         }
 
+        const saved = localStorage.getItem("timer_duration");
+        if (saved) {
+          setModalTimerDuration(parseInt(saved, 10));
+        }
+
         setLoading(false);
       } catch (err) {
         console.error("Dashboard load failed", err);
@@ -156,9 +161,15 @@ export default function DashboardPage() {
 
   const handleTopicClick = (topicName: string, testId?: string) => {
     if (testId) {
-      setSelectedTestForTimer({ testId, testTitle: topicName });
       const saved = localStorage.getItem("timer_duration");
-      setModalTimerDuration(saved ? parseInt(saved, 10) : 5);
+      if (saved) {
+        // Clear in-progress saved state so they start fresh with the new/existing timer
+        localStorage.removeItem(`quiz_state_${testId}`);
+        router.push(`/lesson?testId=${testId}`);
+      } else {
+        setSelectedTestForTimer({ testId, testTitle: topicName });
+        setModalTimerDuration(5);
+      }
     } else {
       router.push("/lesson");
     }
@@ -183,10 +194,12 @@ export default function DashboardPage() {
       }
     }
     
-    // Clear in-progress saved state so they start fresh with the new timer
-    localStorage.removeItem(`quiz_state_${selectedTestForTimer.testId}`);
+    if (selectedTestForTimer.testId !== "settings") {
+      // Clear in-progress saved state so they start fresh with the new timer
+      localStorage.removeItem(`quiz_state_${selectedTestForTimer.testId}`);
+      router.push(`/lesson?testId=${selectedTestForTimer.testId}`);
+    }
     
-    router.push(`/lesson?testId=${selectedTestForTimer.testId}`);
     setSelectedTestForTimer(null);
     setSavingTimer(false);
   };
@@ -249,8 +262,20 @@ export default function DashboardPage() {
             </button>
           </div>
 
-          {/* Developer Toggle */}
-          <div className="flex justify-end w-full px-4 md:px-0">
+          {/* Settings / Controls Row */}
+          <div className="flex justify-between items-center w-full px-4 md:px-0">
+            <div 
+              onClick={() => {
+                setSelectedTestForTimer({ testId: "settings", testTitle: "Practice Timer Settings" });
+                const saved = localStorage.getItem("timer_duration");
+                setModalTimerDuration(saved ? parseInt(saved, 10) : 5);
+              }}
+              className="flex items-center gap-2 opacity-70 hover:opacity-100 transition-opacity cursor-pointer text-silver font-bold text-xs uppercase tracking-wide select-none"
+            >
+              <span>⏱️ Timer: {modalTimerDuration === 60 ? "1 Hour" : `${modalTimerDuration} Mins`}</span>
+              <span className="text-[10px] text-sky-blue hover:underline font-extrabold normal-case">(Change)</span>
+            </div>
+
             <label className="flex items-center cursor-pointer gap-3 opacity-70 hover:opacity-100 transition-opacity">
               <span className="text-silver font-bold text-xs uppercase tracking-wide">Unlock All</span>
               <div className="relative">
@@ -412,7 +437,9 @@ export default function DashboardPage() {
                   {selectedTestForTimer.testTitle}
                 </h3>
                 <p className="text-graphite text-[10px] md:text-xs font-din-round mt-0.5 leading-snug">
-                  How long do you want to give yourself for this test session?
+                  {selectedTestForTimer.testId === "settings" 
+                    ? "Set the default duration for your practice tests."
+                    : "How long do you want to give yourself for this test session?"}
                 </p>
               </div>
             </div>
@@ -457,7 +484,9 @@ export default function DashboardPage() {
                 disabled={savingTimer}
                 className="flex-1 bg-duo-green text-white font-bold py-2 md:py-3 rounded-xl shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none hover:brightness-105 transition-all text-xs md:text-sm text-center cursor-pointer font-din-round"
               >
-                {savingTimer ? "STARTING..." : "START TEST"}
+                {savingTimer 
+                  ? (selectedTestForTimer.testId === "settings" ? "SAVING..." : "STARTING...") 
+                  : (selectedTestForTimer.testId === "settings" ? "SAVE SETTING" : "START TEST")}
               </button>
             </div>
           </div>

@@ -15,18 +15,25 @@ interface UserProfile {
   difficulty: string;
   total_score: number;
   streak: number;
+  timer_duration?: number;
 }
 
 export default function ProfilePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [timerDuration, setTimerDuration] = useState<number>(5);
+  const [savingTimer, setSavingTimer] = useState(false);
   const { user, isLoaded, isSignedIn } = useUser();
 
   useEffect(() => {
     async function loadData() {
       if (!isLoaded) return;
       if (!isSignedIn || !user) {
+        const saved = localStorage.getItem("timer_duration");
+        if (saved) {
+          setTimerDuration(parseInt(saved, 10));
+        }
         setLoading(false);
         return;
       }
@@ -44,6 +51,15 @@ export default function ProfilePage() {
         }
 
         setProfile(userProfile);
+        if (userProfile.timer_duration) {
+          setTimerDuration(userProfile.timer_duration);
+          localStorage.setItem("timer_duration", userProfile.timer_duration.toString());
+        } else {
+          const saved = localStorage.getItem("timer_duration");
+          if (saved) {
+            setTimerDuration(parseInt(saved, 10));
+          }
+        }
         setLoading(false);
       } catch (err) {
         console.error("Profile load failed", err);
@@ -52,6 +68,26 @@ export default function ProfilePage() {
     }
     loadData();
   }, [router, user, isLoaded, isSignedIn]);
+
+  const handleTimerChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = parseInt(e.target.value, 10);
+    setTimerDuration(value);
+    localStorage.setItem("timer_duration", value.toString());
+    
+    if (isSignedIn && user) {
+      setSavingTimer(true);
+      try {
+        await supabase
+          .from("profiles")
+          .update({ timer_duration: value })
+          .eq("id", user.id);
+      } catch (err) {
+        console.error("Failed to update profile timer duration in DB", err);
+      } finally {
+        setSavingTimer(false);
+      }
+    }
+  };
 
   if (loading || !isLoaded) {
     return (
@@ -144,6 +180,38 @@ export default function ProfilePage() {
                <span className="text-silver font-medium text-caption uppercase tracking-wide">Rank</span>
              </div>
           </div>
+        </div>
+
+        {/* Preferences Section */}
+        <h2 className="font-feather text-xl md:text-2xl font-bold text-white mb-4">Preferences</h2>
+        <div className="border-2 border-cloud-gray rounded-2xl p-4 md:p-6 flex flex-col sm:flex-row items-center justify-between gap-4 bg-duo-green-light/10 mb-8">
+           <div className="flex items-center gap-4 text-left w-full sm:w-auto">
+              <div className="text-3xl shrink-0 select-none">⏱️</div>
+              <div className="flex flex-col gap-0.5">
+                 <h3 className="font-bold text-[17px] text-white">Default Timer Duration</h3>
+                 <p className="text-silver text-xs font-medium leading-tight">
+                   {savingTimer ? "Saving changes..." : "Adjust your practice exam length"}
+                 </p>
+              </div>
+           </div>
+           
+           <div className="relative w-full sm:w-[160px] shrink-0">
+             <select 
+               value={timerDuration}
+               onChange={handleTimerChange}
+               disabled={savingTimer}
+               className="w-full bg-[#131f24] text-white border-2 border-cloud-gray rounded-xl px-3 py-2.5 font-bold text-sm tracking-wide select-none cursor-pointer focus:outline-none focus:border-sky-blue transition-colors appearance-none shadow-[0_4px_0_var(--color-cloud-gray)] active:translate-y-[2px] active:shadow-[0_2px_0_var(--color-cloud-gray)]"
+             >
+               <option value={5}>5 Minutes</option>
+               <option value={10}>10 Minutes</option>
+               <option value={15}>15 Minutes</option>
+               <option value={30}>30 Minutes</option>
+               <option value={60}>1 Hour</option>
+             </select>
+             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-white font-bold">
+               ▼
+             </div>
+           </div>
         </div>
 
         {/* Achievements Section Mock */}
