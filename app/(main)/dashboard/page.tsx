@@ -32,6 +32,16 @@ export default function DashboardPage() {
   const [selectedTestForTimer, setSelectedTestForTimer] = useState<{ testId: string; testTitle: string } | null>(null);
   const [modalTimerDuration, setModalTimerDuration] = useState<number>(5);
   const [savingTimer, setSavingTimer] = useState(false);
+  const [quantSection, setQuantSection] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("quant_reasoning_section");
+      if (saved) {
+        setQuantSection(saved);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     async function loadData() {
@@ -239,6 +249,10 @@ export default function DashboardPage() {
   }
   if (activeIndex >= testCount) activeIndex = testCount - 1; // Cap at the last test if all are completed
 
+  const isQuantTopic = formattedTopic === "quantitative_reasoning";
+  const showSubOnboarding = isQuantTopic && !quantSection;
+  const showComingSoon = isQuantTopic && quantSection && quantSection !== "part1";
+
   return (
     <>
       <main className="flex-1 w-full max-w-[600px] mx-auto pb-24">
@@ -262,52 +276,265 @@ export default function DashboardPage() {
             </button>
           </div>
 
-          {/* Settings / Controls Row */}
-          <div className="flex justify-between items-center w-full px-4 md:px-0">
-            <div 
-              onClick={() => {
-                setSelectedTestForTimer({ testId: "settings", testTitle: "Practice Timer Settings" });
-                const saved = localStorage.getItem("timer_duration");
-                setModalTimerDuration(saved ? parseInt(saved, 10) : 5);
-              }}
-              className="flex items-center gap-2 bg-duo-green-light/10 hover:bg-duo-green-light/20 border-2 border-cloud-gray rounded-full px-3 py-1.5 md:py-2 md:px-4 cursor-pointer select-none transition-all shadow-[0_3px_0_var(--color-cloud-gray)] active:translate-y-[3px] active:shadow-none active:scale-[0.98] group text-almost-black font-din-round text-xs md:text-sm"
-            >
-              <span className="text-sm md:text-base shrink-0">⏱️</span>
-              <span className="font-extrabold tracking-wider uppercase text-silver group-hover:text-almost-black transition-colors flex items-center gap-1">
-                <span className="hidden sm:inline">Timer:</span>
-                <span className="text-sky-blue font-black">{modalTimerDuration === 60 ? "1 Hour" : `${modalTimerDuration} Mins`}</span>
-              </span>
-              <span className="bg-sky-blue/15 text-sky-blue font-bold px-2 py-0.5 rounded-full text-[9px] md:text-[10px] tracking-wider uppercase transition-all group-hover:bg-sky-blue group-hover:text-white shrink-0">
-                Change
-              </span>
-            </div>
-
-            <label className="flex items-center cursor-pointer gap-3 opacity-70 hover:opacity-100 transition-opacity">
-              <span className="text-silver font-bold text-xs uppercase tracking-wide">Unlock All</span>
-              <div className="relative">
-                <input type="checkbox" className="sr-only" checked={unlockAll} onChange={() => setUnlockAll(!unlockAll)} />
-                <div className={`block w-10 h-6 rounded-full transition-colors ${unlockAll ? 'bg-duo-green' : 'bg-[#29353c]'}`}></div>
-                <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${unlockAll ? 'transform translate-x-4' : ''}`}></div>
+          {/* Quantitative Reasoning Active Section Banner */}
+          {isQuantTopic && quantSection && (
+            <div className="w-full flex items-center justify-between bg-sky-blue/10 border-2 border-sky-blue/20 rounded-2xl p-4 font-din-round animate-[fadeIn_0.3s_ease-out]">
+              <div className="flex flex-col text-left">
+                <span className="text-[10px] text-silver font-black uppercase tracking-wider">Current Focus Area</span>
+                <span className="text-sm font-extrabold text-sky-blue uppercase">
+                  {quantSection === "part1" 
+                    ? "Part 1: Quantitative Aptitude" 
+                    : quantSection === "part2_secA" 
+                    ? "Part 2: Reasoning - Section A"
+                    : quantSection === "part2_secB"
+                    ? "Part 2: Reasoning - Section B"
+                    : "Part 2: Reasoning - Section C"}
+                </span>
               </div>
-            </label>
-          </div>
+              <button
+                onClick={() => {
+                  setQuantSection(null);
+                  localStorage.removeItem("quant_reasoning_section");
+                }}
+                className="bg-sky-blue hover:bg-sky-blue/95 hover:brightness-105 text-white font-extrabold text-[11px] px-3.5 py-2 rounded-xl shadow-[0_3px_0_#107cb0] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer font-din-round uppercase tracking-wider"
+              >
+                Change
+              </button>
+            </div>
+          )}
 
-          {/* Topic Cards */}
-          <div className="flex flex-col w-full gap-4 md:gap-5 pb-24 px-4 md:px-0">
-            {Array.from({ length: testCount }, (_, i) => i + 1).map((testNum, index) => {
-              const isActive = index === activeIndex;
-              const isLocked = !unlockAll && index > activeIndex;
-              
-              let testTitle = `${topicName} - Test ${testNum}`;
-              if (formattedTopic === "quantitative_reasoning") {
-                if (testNum === 1) testTitle = "Chapter 1: HCF and LCM";
-                else if (testNum === 2) testTitle = "Chapter 2: Permutation and Combination";
-                else if (testNum === 3) testTitle = "Chapter 3: Probability";
-                else if (testNum === 4) testTitle = "Chapter 4: Ratio and Proportion";
-                else testTitle = `Chapter ${testNum}`;
-              }
-              const testId = `${formattedTopic}_test${testNum}`;
-              const scoreData = scores[testId];
+          {showSubOnboarding ? (
+            /* Sub-onboarding Selector */
+            <div className="flex flex-col gap-6 w-full px-4 md:px-0 animate-[fadeIn_0.3s_ease-out]">
+              {/* Character mascot card */}
+              <div className="flex gap-4 items-center bg-sky-blue/5 border-2 border-sky-blue/20 rounded-2xl p-4 md:p-5 shadow-sm text-left">
+                <div className="w-20 h-20 relative shrink-0">
+                  <Image 
+                    src="/emoji/suspicious.png" 
+                    alt="Thinking Mascot" 
+                    fill 
+                    className="object-contain drop-shadow-md"
+                    unoptimized
+                  />
+                </div>
+                <div className="grow">
+                  <h3 className="font-feather text-base md:text-lg font-bold text-charcoal leading-snug">
+                    Choose Your Focus Area
+                  </h3>
+                  <p className="text-xs md:text-sm text-graphite font-medium mt-1 leading-relaxed">
+                    Quantitative Reasoning contains a large question pool. Select a section below to get started:
+                  </p>
+                </div>
+              </div>
+
+              {/* 4 Cards selection */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+                {/* Card 1: Part 1 */}
+                <div
+                  onClick={() => {
+                    setQuantSection("part1");
+                    localStorage.setItem("quant_reasoning_section", "part1");
+                  }}
+                  className="flex flex-col justify-between p-5 rounded-2xl border-2 border-cloud-gray hover:border-sky-blue bg-snow-white hover:bg-sky-blue/5 shadow-[0_4px_0_var(--color-cloud-gray)] hover:shadow-[0_4px_0_#189edc] cursor-pointer transition-all duration-150 active:translate-y-0.5 select-none text-left"
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-2xl">📈</span>
+                      <span className="bg-duo-green/10 text-duo-green text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                        Ready (5 Chapters)
+                      </span>
+                    </div>
+                    <h4 className="font-feather text-base md:text-lg font-bold text-charcoal">
+                      Part 1: Quantitative Aptitude
+                    </h4>
+                    <p className="text-xs text-graphite font-medium mt-1 leading-normal">
+                      Covers HCF/LCM, Permutations, Probability, Ratios, and Percentages.
+                    </p>
+                  </div>
+                  <div className="mt-4 text-sky-blue font-bold text-xs flex items-center gap-1">
+                    Start Learning →
+                  </div>
+                </div>
+
+                {/* Card 2: Part 2 Sec A */}
+                <div
+                  onClick={() => {
+                    setQuantSection("part2_secA");
+                    localStorage.setItem("quant_reasoning_section", "part2_secA");
+                  }}
+                  className="flex flex-col justify-between p-5 rounded-2xl border-2 border-cloud-gray hover:border-sky-blue bg-snow-white hover:bg-sky-blue/5 shadow-[0_4px_0_var(--color-cloud-gray)] hover:shadow-[0_4px_0_#189edc] cursor-pointer transition-all duration-150 active:translate-y-0.5 select-none text-left opacity-75"
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-2xl">🧠</span>
+                      <span className="bg-silver/10 text-silver text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                        Coming Soon
+                      </span>
+                    </div>
+                    <h4 className="font-feather text-base md:text-lg font-bold text-charcoal">
+                      Part 2: Reasoning (Sec A)
+                    </h4>
+                    <p className="text-xs text-graphite font-medium mt-1 leading-normal">
+                      Logical deductions, analytical scenarios, and verbal-logical relations.
+                    </p>
+                  </div>
+                  <div className="mt-4 text-silver font-bold text-xs">
+                    Explore Preview →
+                  </div>
+                </div>
+
+                {/* Card 3: Part 2 Sec B */}
+                <div
+                  onClick={() => {
+                    setQuantSection("part2_secB");
+                    localStorage.setItem("quant_reasoning_section", "part2_secB");
+                  }}
+                  className="flex flex-col justify-between p-5 rounded-2xl border-2 border-cloud-gray hover:border-sky-blue bg-snow-white hover:bg-sky-blue/5 shadow-[0_4px_0_var(--color-cloud-gray)] hover:shadow-[0_4px_0_#189edc] cursor-pointer transition-all duration-150 active:translate-y-0.5 select-none text-left opacity-75"
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-2xl">🔍</span>
+                      <span className="bg-silver/10 text-silver text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                        Coming Soon
+                      </span>
+                    </div>
+                    <h4 className="font-feather text-base md:text-lg font-bold text-charcoal">
+                      Part 2: Reasoning (Sec B)
+                    </h4>
+                    <p className="text-xs text-graphite font-medium mt-1 leading-normal">
+                      Number series, coding-decoding, and puzzle-based analytical tasks.
+                    </p>
+                  </div>
+                  <div className="mt-4 text-silver font-bold text-xs">
+                    Explore Preview →
+                  </div>
+                </div>
+
+                {/* Card 4: Part 2 Sec C */}
+                <div
+                  onClick={() => {
+                    setQuantSection("part2_secC");
+                    localStorage.setItem("quant_reasoning_section", "part2_secC");
+                  }}
+                  className="flex flex-col justify-between p-5 rounded-2xl border-2 border-cloud-gray hover:border-sky-blue bg-snow-white hover:bg-sky-blue/5 shadow-[0_4px_0_var(--color-cloud-gray)] hover:shadow-[0_4px_0_#189edc] cursor-pointer transition-all duration-150 active:translate-y-0.5 select-none text-left opacity-75"
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-2xl">🧩</span>
+                      <span className="bg-silver/10 text-silver text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                        Coming Soon
+                      </span>
+                    </div>
+                    <h4 className="font-feather text-base md:text-lg font-bold text-charcoal">
+                      Part 2: Reasoning (Sec C)
+                    </h4>
+                    <p className="text-xs text-graphite font-medium mt-1 leading-normal">
+                      Spatial reasoning, pattern completion, and abstract diagrams.
+                    </p>
+                  </div>
+                  <div className="mt-4 text-silver font-bold text-xs">
+                    Explore Preview →
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : showComingSoon ? (
+            /* Coming Soon Placeholder */
+            <div className="flex flex-col gap-6 items-center text-center py-10 px-4 md:px-0 animate-[fadeIn_0.3s_ease-out] w-full">
+              <div className="flex flex-col items-center gap-4 max-w-[450px]">
+                {/* Floating Mascot with shadow */}
+                <div className="w-28 h-28 relative shrink-0 animate-[float_3s_infinite] drop-shadow-[0_6px_12px_rgba(0,0,0,0.1)]">
+                  <Image 
+                    src="/emoji/hmm.png" 
+                    alt="Thinking Mascot" 
+                    fill 
+                    className="object-contain"
+                    unoptimized
+                  />
+                </div>
+                
+                {/* Dialogue Speech Bubble with bottom pop-border */}
+                <div className="relative bg-snow-white border-2 border-cloud-gray border-b-8 rounded-[24px] p-6 shadow-none max-w-full text-center mt-2 before:content-[''] before:absolute before:top-[-10px] before:left-1/2 before:-translate-x-1/2 before:border-x-8 before:border-x-transparent before:border-b-8 before:border-b-cloud-gray after:content-[''] after:absolute after:-top-[8px] after:left-1/2 after:-translate-x-1/2 after:border-x-8 after:border-x-transparent after:border-b-8 after:border-b-snow-white">
+                  <h3 className="font-feather text-lg md:text-xl font-black text-charcoal uppercase tracking-wider mb-2">
+                    Coming Soon!
+                  </h3>
+                  <p className="text-xs md:text-sm text-graphite leading-relaxed font-semibold">
+                    We're still curating the database for this section. You can practice <span className="text-sky-blue font-black">Part 1</span> in the meantime!
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3 w-full max-w-[400px] mt-4">
+                <button
+                  onClick={() => {
+                    setQuantSection("part1");
+                    localStorage.setItem("quant_reasoning_section", "part1");
+                  }}
+                  className="flex-1 bg-duo-green hover:bg-duo-green/90 text-white font-bold py-3 rounded-2xl shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none transition-all text-sm font-din-round uppercase tracking-wide cursor-pointer"
+                >
+                  Switch to Part 1
+                </button>
+                <button
+                  onClick={() => {
+                    setQuantSection(null);
+                    localStorage.removeItem("quant_reasoning_section");
+                  }}
+                  className="flex-1 bg-snow-white text-sky-blue border-2 border-cloud-gray font-bold py-3 rounded-2xl shadow-[0_4px_0_var(--color-cloud-gray)] active:translate-y-[4px] active:shadow-none hover:bg-cloud-gray/25 transition-all text-sm font-din-round uppercase tracking-wide cursor-pointer"
+                >
+                  Other Sections
+                </button>
+              </div>
+            </div>
+          ) : (
+            /* Standard Dashboard Content */
+            <>
+              {/* Settings / Controls Row */}
+              <div className="flex justify-between items-center w-full px-4 md:px-0">
+                <div 
+                  onClick={() => {
+                    setSelectedTestForTimer({ testId: "settings", testTitle: "Practice Timer Settings" });
+                    const saved = localStorage.getItem("timer_duration");
+                    setModalTimerDuration(saved ? parseInt(saved, 10) : 5);
+                  }}
+                  className="flex items-center gap-2 bg-duo-green-light/10 hover:bg-duo-green-light/20 border-2 border-cloud-gray rounded-full px-3 py-1.5 md:py-2 md:px-4 cursor-pointer select-none transition-all shadow-[0_3px_0_var(--color-cloud-gray)] active:translate-y-[3px] active:shadow-none active:scale-[0.98] group text-almost-black font-din-round text-xs md:text-sm"
+                >
+                  <span className="text-sm md:text-base shrink-0">⏱️</span>
+                  <span className="font-extrabold tracking-wider uppercase text-silver group-hover:text-almost-black transition-colors flex items-center gap-1">
+                    <span className="hidden sm:inline">Timer:</span>
+                    <span className="text-sky-blue font-black">{modalTimerDuration === 60 ? "1 Hour" : `${modalTimerDuration} Mins`}</span>
+                  </span>
+                  <span className="bg-sky-blue/15 text-sky-blue font-bold px-2 py-0.5 rounded-full text-[9px] md:text-[10px] tracking-wider uppercase transition-all group-hover:bg-sky-blue group-hover:text-white shrink-0">
+                    Change
+                  </span>
+                </div>
+
+                <label className="flex items-center cursor-pointer gap-3 opacity-70 hover:opacity-100 transition-opacity">
+                  <span className="text-silver font-bold text-xs uppercase tracking-wide">Unlock All</span>
+                  <div className="relative">
+                    <input type="checkbox" className="sr-only" checked={unlockAll} onChange={() => setUnlockAll(!unlockAll)} />
+                    <div className={`block w-10 h-6 rounded-full transition-colors ${unlockAll ? 'bg-duo-green' : 'bg-[#29353c]'}`}></div>
+                    <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${unlockAll ? 'transform translate-x-4' : ''}`}></div>
+                  </div>
+                </label>
+              </div>
+
+              {/* Topic Cards */}
+              <div className="flex flex-col w-full gap-4 md:gap-5 pb-24 px-4 md:px-0">
+                {Array.from({ length: testCount }, (_, i) => i + 1).map((testNum, index) => {
+                  const isActive = index === activeIndex;
+                  const isLocked = !unlockAll && index > activeIndex;
+                  
+                  let testTitle = `${topicName} - Test ${testNum}`;
+                  if (formattedTopic === "quantitative_reasoning") {
+                    if (testNum === 1) testTitle = "Chapter 1: HCF and LCM";
+                    else if (testNum === 2) testTitle = "Chapter 2: Permutation and Combination";
+                    else if (testNum === 3) testTitle = "Chapter 3: Probability";
+                    else if (testNum === 4) testTitle = "Chapter 4: Ratio and Proportion";
+                    else if (testNum === 5) testTitle = "Chapter 5: Percentage";
+                    else testTitle = `Chapter ${testNum}`;
+                  }
+                  const testId = `${formattedTopic}_test${testNum}`;
+                  const scoreData = scores[testId];
               
               let cardClass = "";
               let titleClass = "";
@@ -416,6 +643,8 @@ export default function DashboardPage() {
               </button>
             </div>
           </div>
+          </>
+          )}
         </div>
       </main>
       
@@ -508,6 +737,10 @@ export default function DashboardPage() {
           @keyframes scaleIn {
             from { opacity: 0; transform: scale(0.95); }
             to { opacity: 1; transform: scale(1); }
+          }
+          @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
           }
         `
       }} />

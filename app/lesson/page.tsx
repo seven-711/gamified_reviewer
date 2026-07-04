@@ -6,8 +6,22 @@ import { ProgressBar } from "@/components/ui/ProgressBar";
 import { QuizFooter } from "@/components/ui/QuizFooter";
 // Data fetched via API to improve client bundle performance
 import Image from "next/image";
+import { parseMathText } from "@/lib/mathUtils";
 
 type QuizStatus = "none" | "selected" | "correct" | "wrong" | "completed";
+
+function shuffleArray<T>(array: T[], indices: number[]): T[] {
+  return indices.map(i => array[i]);
+}
+
+function generateShuffledIndices(length: number): number[] {
+  const indices = Array.from({ length }, (_, i) => i);
+  for (let i = indices.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [indices[i], indices[j]] = [indices[j], indices[i]];
+  }
+  return indices;
+}
 
 function LessonContent() {
   const router = useRouter();
@@ -15,6 +29,7 @@ function LessonContent() {
   const testId = searchParams.get("testId") || "abstract_reasoning_test1";
   
   const [questions, setQuestions] = useState<any[]>([]);
+  const [shuffledIndices, setShuffledIndices] = useState<number[]>([]);
   const [testExamples, setTestExamples] = useState<any[]>([]);
   const [loadingData, setLoadingData] = useState(true);
 
@@ -61,15 +76,25 @@ function LessonContent() {
           throw new Error("No questions found for this test");
         }
         const loadedExamples = data.examples || [];
-        setQuestions(loadedQuestions);
         setTestExamples(loadedExamples);
 
         const savedState = localStorage.getItem(`quiz_state_${testId}`);
+        let activeIndices: number[] = [];
+
         if (savedState) {
           try {
             const parsed = JSON.parse(savedState);
+            if (parsed.shuffledIndices && parsed.shuffledIndices.length === loadedQuestions.length) {
+              activeIndices = parsed.shuffledIndices;
+            } else {
+              activeIndices = generateShuffledIndices(loadedQuestions.length);
+            }
+            setShuffledIndices(activeIndices);
+            setQuestions(shuffleArray(loadedQuestions, activeIndices));
+
             setPhase(parsed.phase || (loadedExamples.length > 0 && !parsed.phase ? "examples" : "quiz"));
-            setCurrentExampleIndex(parsed.currentExampleIndex || 0);
+            const savedExampleIndex = parsed.currentExampleIndex || 0;
+            setCurrentExampleIndex(savedExampleIndex < loadedExamples.length ? savedExampleIndex : 0);
             setCurrentIndex(parsed.currentIndex ?? 0);
             setSelectedOption(parsed.selectedOption ?? null);
             setStatus(parsed.status ?? "none");
@@ -85,8 +110,17 @@ function LessonContent() {
             }
           } catch (e) {
             console.error("Failed to parse saved quiz state", e);
+            activeIndices = generateShuffledIndices(loadedQuestions.length);
+            setShuffledIndices(activeIndices);
+            setQuestions(shuffleArray(loadedQuestions, activeIndices));
+            setPhase(loadedExamples.length > 0 ? "examples" : "quiz");
+            const savedDuration = localStorage.getItem("timer_duration");
+            setTimeLeft((savedDuration ? parseInt(savedDuration, 10) : 5) * 60);
           }
         } else {
+          activeIndices = generateShuffledIndices(loadedQuestions.length);
+          setShuffledIndices(activeIndices);
+          setQuestions(shuffleArray(loadedQuestions, activeIndices));
           setPhase(loadedExamples.length > 0 ? "examples" : "quiz");
           const savedDuration = localStorage.getItem("timer_duration");
           setTimeLeft((savedDuration ? parseInt(savedDuration, 10) : 5) * 60);
@@ -113,10 +147,11 @@ function LessonContent() {
         status,
         timeLeft,
         correctAnswers,
-        showHowToAnswer
+        showHowToAnswer,
+        shuffledIndices
       }));
     }
-  }, [phase, currentExampleIndex, currentIndex, selectedOption, status, timeLeft, correctAnswers, showHowToAnswer, isLoaded, testId]);
+  }, [phase, currentExampleIndex, currentIndex, selectedOption, status, timeLeft, correctAnswers, showHowToAnswer, isLoaded, testId, shuffledIndices]);
 
   // Timer logic
   // Timer logic
@@ -136,6 +171,13 @@ function LessonContent() {
 
     return () => clearInterval(interval);
   }, [isLoaded, status]);
+
+  // Automatically transition to quiz phase if example index goes out of bounds or examples are empty
+  useEffect(() => {
+    if (phase === "examples" && (testExamples.length === 0 || currentExampleIndex >= testExamples.length)) {
+      setPhase("quiz");
+    }
+  }, [currentExampleIndex, testExamples.length, phase]);
 
   // Save highest score when test is completed
   useEffect(() => {
@@ -171,6 +213,15 @@ function LessonContent() {
     }
   }, [status, correctAnswers, questions.length, testId]);
 
+  console.log('Quiz Render Diagnostics:', { 
+    phase, 
+    currentIndex, 
+    questionsLength: questions.length, 
+    status,
+    currentExampleIndex,
+    testExamplesLength: testExamples.length,
+    hasExample: !!testExamples[currentExampleIndex]
+  });
   const question = questions[currentIndex];
   const progress = (currentIndex / questions.length) * 100;
 
@@ -324,7 +375,25 @@ function LessonContent() {
 
   if (phase === "examples") {
     const example = testExamples[currentExampleIndex];
-    if (!example) return null;
+    if (!example) {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem(`quiz_state_${testId}`);
+      }
+      return (
+        <div className="min-h-screen flex flex-col items-center justify-center bg-white font-din-round text-almost-black px-6 text-center">
+          <div className="flex flex-col items-center gap-4">
+            <div className="h-12 w-12 animate-spin rounded-full border-4 border-cloud-gray border-t-duo-green"></div>
+            <p className="text-graphite font-bold">Recovering test session...</p>
+          </div>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-6 bg-duo-green text-white font-bold px-6 py-3 rounded-2xl shadow-[0_4px_0_#3f8f01] active:translate-y-1 active:shadow-none transition-all cursor-pointer"
+          >
+            RELOAD SESSION
+          </button>
+        </div>
+      );
+    }
     return (
       <div className="min-h-dvh flex flex-col bg-white font-din-round text-almost-black pb-[120px]">
         <header className="sticky top-0 bg-white py-4 px-4 md:px-6 z-30">
@@ -345,13 +414,13 @@ function LessonContent() {
         </header>
 
         <main className="grow flex flex-col max-w-[800px] w-full mx-auto px-4 md:px-6 py-4 md:py-6">
-          <h2 className="font-feather text-[17px] md:text-[28px] text-charcoal mb-4 leading-snug">
-            {example.prompt}
+          <h2 className="font-feather text-[22px] md:text-[28px] text-charcoal mb-4 leading-snug">
+            {parseMathText(example.prompt)}
           </h2>
           <div className="bg-sky-blue/10 rounded-2xl p-6 border-2 border-sky-blue/20">
             <p className="text-sky-blue font-bold mb-2 uppercase text-sm tracking-wider">Solution / Explanation</p>
             <div className="text-[14px] md:text-[17px] text-almost-black whitespace-pre-wrap leading-relaxed">
-              {example.explanation}
+              {parseMathText(example.explanation)}
             </div>
           </div>
         </main>
@@ -371,6 +440,21 @@ function LessonContent() {
               {currentExampleIndex < testExamples.length - 1 ? "NEXT EXAMPLE" : "START TEST"}
             </button>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (phase === "quiz" && !question) {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem(`quiz_state_${testId}`);
+      window.location.reload();
+    }
+    return (
+      <div className="min-h-screen flex items-center justify-center font-din-round">
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-cloud-gray border-t-duo-green"></div>
+          <p className="text-graphite font-bold">Resetting corrupted session...</p>
         </div>
       </div>
     );
@@ -462,8 +546,8 @@ function LessonContent() {
 
       {/* Main Quiz Area */}
       <main className="grow flex flex-col max-w-[800px] w-full mx-auto px-4 md:px-6 py-4 md:py-6">
-        <h2 className="font-feather text-[17px] md:text-[28px] text-charcoal mb-4 leading-snug">
-          {question.prompt}
+        <h2 className="font-feather text-[22px] md:text-[28px] text-charcoal mb-4 leading-snug">
+          {parseMathText(question.prompt)}
         </h2>
 
         {/* Question Image */}
@@ -539,13 +623,13 @@ function LessonContent() {
                 key={idx}
                 onClick={() => handleOptionSelect(idx)}
                 disabled={status === "correct" || status === "wrong"}
-                className={`p-2 md:p-4 rounded-2xl border-2 flex items-center justify-center transition-all duration-150 relative ${cardClass}`}
+                className={`py-4 px-3 md:p-4 rounded-2xl border-2 flex items-center justify-center transition-all duration-150 relative ${cardClass}`}
               >
                 <div className="hidden md:flex absolute left-4 w-7 h-7 bg-cloud-gray/20 rounded-md items-center justify-center text-graphite text-xs font-bold border-b-2 border-cloud-gray/40">
                   {idx + 1}
                 </div>
-                <span className={`font-bold text-sm md:text-xl w-full text-center ${textClass}`}>
-                  {opt}
+                <span className={`font-bold text-[17px] md:text-xl w-full text-center ${textClass}`}>
+                  {parseMathText(opt)}
                 </span>
               </button>
             );

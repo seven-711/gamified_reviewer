@@ -1,5 +1,6 @@
 import React from "react";
 import { Button } from "./Button";
+import { parseMathText } from "@/lib/mathUtils";
 
 interface QuizFooterProps {
   status: "none" | "selected" | "correct" | "wrong" | "completed";
@@ -65,7 +66,7 @@ export function QuizFooter({ status, onCheck, onContinue, explanation, correctAn
                                   <tr key={rIdx} className="border-b border-current/20 last:border-0">
                                     {cells.map((cell, cIdx) => (
                                       <td key={cIdx} className={`py-2 px-4 border-r border-current/20 last:border-0 ${rIdx === 0 ? 'font-bold bg-current/10' : 'font-medium'}`}>
-                                        {cell}
+                                        {parseMathText(cell)}
                                       </td>
                                     ))}
                                   </tr>
@@ -92,12 +93,12 @@ export function QuizFooter({ status, onCheck, onContinue, explanation, correctAn
                           const suffix = line.substring(colonIndex + 1);
                           elements.push(
                             <p key={i} className="mb-2 last:mb-0">
-                              <span className="font-bold">{prefix}</span>
-                              <span className="font-medium">{suffix}</span>
+                              <span className="font-bold">{parseMathText(prefix)}</span>
+                              <span className="font-medium">{parseMathText(suffix)}</span>
                             </p>
                           );
                         } else {
-                          elements.push(<p key={i} className="mb-2 last:mb-0 font-medium">{line}</p>);
+                          elements.push(<p key={i} className="mb-2 last:mb-0 font-medium">{parseMathText(line)}</p>);
                         }
                       }
                     });

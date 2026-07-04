@@ -31,6 +31,38 @@
         "prompt": "A sum of ₹ 1,300 is divided amongst P, Q, R and S such that P's share / Q's share = Q's share / R's share = R's share / S's share = 2 / 3. Then P's share is:",
         "explanation": "P/Q = 2/3, Q/R = 2/3, R/S = 2/3\nP : Q = 2 : 3\nQ : R = 2 : 3\nR : S = 2 : 3\nMultiplying ratios to make Q and R common:\nP : Q : R : S = (2×2×2) : (3×2×2) : (3×3×2) : (3×3×3) = 8 : 12 : 18 : 27\nSum of ratios = 8 + 12 + 18 + 27 = 65\nP's share = (8 / 65) × 1300 = ₹ 160."
       }
+    ],
+    "quantitative_reasoning_test5": [
+      {
+        "id": 1,
+        "type": "text",
+        "prompt": "In an election, there are two candidates. The candidate who gets 46% is rejected by a majority of 2688 votes. Find the total number of votes polled.",
+        "explanation": "Out of the total votes polled (100%):\n* Winning candidate: $100\\% - 46\\% = 54\\%$ of the votes\n* Losing candidate: $46\\%$ of the votes\n\nDifference (Majority):\n$$54\\% - 46\\% = 8\\% \\text{ of total votes}$$\n\nGiven the majority is 2688 votes:\n$$8\\% \\text{ of total votes} = 2688$$\n$$\\text{Total votes polled} = \\frac{2688}{8/100} = \\frac{2688 \\times 100}{8} = 33,600$$"
+      },
+      {
+        "id": 2,
+        "type": "text",
+        "prompt": "What percentage is equivalent to \\frac{5}{8}?",
+        "explanation": "To convert a fraction to a percentage, multiply by 100:\n$$\\frac{5}{8} \\times 100 = \\frac{125}{2} = 62\\frac{1}{2}\\%$$"
+      },
+      {
+        "id": 3,
+        "type": "text",
+        "prompt": "The salary of Kannan is increased from ₹3500 to ₹4025. Find the increase per cent.",
+        "explanation": "Increase in salary:\n$$\\text{₹}4025 - \\text{₹}3500 = \\text{₹}525$$\n\nPercentage increase in salary:\n$$\\frac{525}{3500} \\times 100 = 15\\%$$"
+      },
+      {
+        "id": 4,
+        "type": "text",
+        "prompt": "The price of sugar in the market rises by 25%. A person whose income is fixed, has to reduce the consumption of sugar so that the expenditure remains the same. By what percentage should he reduce the consumption of sugar?",
+        "explanation": "Let the price rise by $r\\% = 25\\%$.\nTo keep the expenditure unchanged, the percentage reduction in consumption is calculated as:\n$$\\text{Reduction} = r \\times \\frac{100}{100 + r}\\%$$\n$$\\text{Reduction} = 25 \\times \\frac{100}{100 + 25}\\% = 25 \\times \\frac{100}{125}\\% = 20\\%$$"
+      },
+      {
+        "id": 5,
+        "type": "text",
+        "prompt": "Two numbers are 25% and 50% more than a third number. What percentage is the first of the second?",
+        "explanation": "Let the third number be 100.\n* First number = $100 + 25\\% = 125$\n* Second number = $100 + 50\\% = 150$\n\nPercentage of the first number relative to the second:\n$$\\text{Percentage} = \\frac{125}{150} \\times 100 = \\frac{5}{6} \\times 100 = 83\\frac{1}{3}\\%$$"
+      }
     ]
   },
   "quantitativeReasoningTests": {
@@ -1820,6 +1852,1915 @@
         ],
         "correctIndex": 1,
         "explanation": "Number of possible events = 36\nE = Event of getting product of 2 results even\nNumber of favourable events = {(1, 6), (1, 4), (1, 2), (2, 1), (2, 2), (2, 3), (2, 4), (2, 5), (2, 6),\n(3, 2), (3, 4), (3, 6), (4, 1), (4, 2), (4, 3), (4, 4), (4, 5), (4, 6),\n(5, 2), (5, 4), (5, 6), (6, 1), (6, 2), (6, 3), (6, 4), (6, 5), (6, 6)} = 27\n∴ P(E) = n(E)/n(S) = 27/36 = 3/4"
+      }
+    ],
+    "quantitative_reasoning_test5": [
+      {
+        "id": 1,
+        "type": "text",
+        "prompt": "An empty fuel tank of a car was filled with ordinary type of petrol. When the tank was one-third empty, it was filled with high speed petrol. Again when the tank was one-third empty, it was filled with an ordinary type of petrol. Again, when the tank was one-third empty, it was filled with high speed petrol. At this time what was the percentage of high speed petrol in the tank?",
+        "options": [
+          "(A) 51 23/27%",
+          "(B) 48 4/27%",
+          "(C) 49 4/27%",
+          "(D) 50 23/27%",
+          "(E) None of these"
+        ],
+        "correctIndex": 1,
+        "explanation": "Let the capacity of the tank be **27 litres**.\n\n| Stage | Ordinary Petrol | High-Speed Petrol |\n| ----- | --------------: | ----------------: |\n| I     |              27 |                 0 |\n| II    |              18 |                 9 |\n| III   |     12 + 9 = 21 |                 6 |\n| IV    |              14 |        4 + 9 = 13 |\n\nTherefore,\n$$\\text{Percentage of high-speed petrol} = \\frac{13}{14+13}\\times100 = \\frac{13}{27}\\times100 = 48\\frac{4}{27}\\%$$"
+      },
+      {
+        "id": 2,
+        "type": "text",
+        "prompt": "The length of a rectangle increases by 20% and the breadth by 30%. Then the perimeter of the rectangle will increase by",
+        "options": [
+          "(A) 56%",
+          "(B) 25%",
+          "(C) 22 2/3%",
+          "(D) Data inadequate",
+          "(E) None of these"
+        ],
+        "correctIndex": 3,
+        "explanation": "Let the length and breadth of the rectangle be **l** and **b** respectively.\n\nPerimeter: $P=2(l+b)$\n\nAfter the increase:\n* Length = **1.2l**\n* Breadth = **1.3b**\n\nNew perimeter:\n$=2(1.2l+1.3b) = 2.4l+2.6b$\n\nSince the ratio of **l : b** is not given, the percentage increase in perimeter **cannot be determined**."
+      },
+      {
+        "id": 3,
+        "type": "text",
+        "prompt": "In a company there are 75% skilled workers and remaining are unskilled. The 80% of skilled workers and 20% of unskilled workers are permanent. If the number of temporary workers is 126, what is the number of total workers?",
+        "options": [
+          "(A) 480",
+          "(B) 510",
+          "(C) 360",
+          "(D) 377",
+          "(E) None of these"
+        ],
+        "correctIndex": 2,
+        "explanation": "Assume the total number of workers = **1000**\n* Skilled workers = **75% of 1000 = 750**\n* Unskilled workers = **25% of 1000 = 250**\n\nPermanent workers:\n$$\\frac{80}{100}\\times750+\\frac{20}{100}\\times250 = 600+50 = 650$$\n\nTemporary workers:\n$$1000-650 = 350$$\n\nGiven temporary workers = **126**\nTherefore,\n$$\\frac{1000}{350}\\times126 = 360$$\n\nHence, total workers = **360** (option c)."
+      },
+      {
+        "id": 4,
+        "type": "text",
+        "prompt": "If the height of a triangle is decreased by 40% and its base is increased by 40%, what will be the effect on its area?",
+        "options": [
+          "(A) No change",
+          "(B) 8% decrease",
+          "(C) 16% decrease",
+          "(D) 16% increase",
+          "(E) 8% increase"
+        ],
+        "correctIndex": 2,
+        "explanation": "Required percentage change in area:\n$$-40+40+\\frac{(-40)\\times40}{100} = -16\\%$$\n\nTherefore, the area **decreases by 16%**."
+      },
+      {
+        "id": 5,
+        "type": "text",
+        "prompt": "The population of a town is 123,456,789. It increases by 10% during the first year, 20% during the second year and 30% during the third year. What is the average per cent increase during the three years?",
+        "options": [
+          "(A) 20%",
+          "(B) 23 11/15%",
+          "(C) 23 13/15%",
+          "(D) 26 2/3%",
+          "(E) None of these"
+        ],
+        "correctIndex": 2,
+        "explanation": "Initial population: **123456789**\n\nAfter three successive increases:\n$$123456789 \\times \\frac{110}{100} \\times \\frac{120}{100} \\times \\frac{130}{100} = 123456789 \\times \\frac{171.6}{100}$$\n\nOverall percentage increase:\n$$171.6-100 = 71.6\\%$$\n\nAverage annual percentage increase:\n$$\\frac{71.6}{3} = \\frac{716}{30} = 23\\frac{13}{15}\\%$$"
+      },
+      {
+        "id": 6,
+        "type": "text",
+        "prompt": "The monthly income and monthly expenditure of a person were ₹13,500 and ₹9,000 respectively. In the next year his income increased by 14% while his expenditure is increased by 7%. The percentage increase in his savings is",
+        "options": [
+          "(A) 7%",
+          "(B) 21%",
+          "(C) 28%",
+          "(D) 35%",
+          "(E) None of these"
+        ],
+        "correctIndex": 2,
+        "explanation": "Monthly income = **₹13,500**\nMonthly expenditure = **₹9,000**\nSavings: $13500-9000 = \\text{₹}4500$\n\nNext year:\nIncome: $\\frac{114}{100}\\times13500 = \\text{₹}15390$\nExpenditure: $\\frac{107}{100}\\times9000 = \\text{₹}9630$\n\nNew savings:\n$15390-9630 = \\text{₹}5760$\n\nIncrease in savings:\n$5760-4500 = \\text{₹}1260$\n\nPercentage increase:\n$$\\frac{1260}{4500}\\times100 = 28\\%$$"
+      },
+      {
+        "id": 7,
+        "type": "text",
+        "prompt": "60 = ?% of 400",
+        "options": [
+          "(A) 6",
+          "(B) 12",
+          "(C) 20",
+          "(D) 15",
+          "(E) None of these"
+        ],
+        "correctIndex": 3,
+        "explanation": "$$60=?\\% \\text{ of } 400$$\n$$60=\\frac{x}{100}\\times400$$\n$$60=4x$$\n$$x=\\frac{60}{4}=15$$"
+      },
+      {
+        "id": 8,
+        "type": "text",
+        "prompt": "40% of ? = 240",
+        "options": [
+          "(A) 60",
+          "(B) 6000",
+          "(C) 960",
+          "(D) 600",
+          "(E) None of these"
+        ],
+        "correctIndex": 3,
+        "explanation": "$$40\\% \\text{ of } x = 240$$\n$$\\frac{40}{100}x=240$$\n$$x=\\frac{240\\times100}{40} = 600$$"
+      },
+      {
+        "id": 9,
+        "type": "text",
+        "prompt": "23% of 8040 + 42% of 545 = ?% of 3000",
+        "options": [
+          "(A) 56.17",
+          "(B) 63.54",
+          "(C) 71.04",
+          "(D) 69.27",
+          "(E) None of these"
+        ],
+        "correctIndex": 3,
+        "explanation": "$$23\\% \\text{ of } 8040 + 42\\% \\text{ of } 545 = ?\\% \\text{ of } 3000$$\n$$23\\times\\frac{8040}{100} + 42\\times\\frac{545}{100} = \\frac{3000x}{100}$$\n$$3000x = 23(8040)+42(545)$$\n$$= 184920 + 22890 = 207810$$\n$$x=\\frac{207810}{3000} = 69.27$$"
+      },
+      {
+        "id": 10,
+        "type": "text",
+        "prompt": "Sunil decided to donate 5% of his salary. On the day of donation he changed his mind and donated ₹1687.50, which was 75% of what he had decided earlier. How much is Sunil's salary?",
+        "options": [
+          "(A) ₹37500",
+          "(B) ₹45000",
+          "(C) ₹33750"
+        ],
+        "correctIndex": 1,
+        "explanation": "Let Sunil's salary be **₹x**.\nHe originally planned to donate **5%** of his salary:\n$$5\\% \\text{ of } x = \\frac{x}{20}$$\n\nHe actually donated **75%** of the planned donation:\n$$1687.50 = \\frac{75}{100}\\times\\frac{x}{20} = \\frac{3x}{80}$$\n$$3x=1687.50\\times80$$\n$$x=\\frac{1687.50\\times80}{3} = \\text{₹}45,000$$"
+      },
+      {
+        "id": 11,
+        "type": "text",
+        "prompt": "Suresh gave 40% of his income to his wife. He gave 25% of the remaining amount to his son. Of the remaining amount he spent 60% on education. Now the amount with him is ₹2700. What is the amount he gave to his wife?",
+        "options": [
+          "(A) ₹4000",
+          "(B) ₹5000",
+          "(C) ₹8000",
+          "(D) ₹6000"
+        ],
+        "correctIndex": 3,
+        "explanation": "Amount given to wife = **40%** of income\nRemaining = **60%**\n\nAmount given to son = **25% of 60% = 15%**\nRemaining after giving to son = **45%**\n\nAmount spent on education = **60% of 45% = 27%**\nRemaining amount = $45\\%-27\\% = 18\\%$\n\nGiven:\n$$18\\% = \\text{₹}2700$$\n\nTherefore:\n$$40\\% = \\frac{2700}{18}\\times40 = \\text{₹}6000$$"
+      },
+      {
+        "id": 12,
+        "type": "text",
+        "prompt": "In an examination 70% of the candidates passed in English, 80% passed in Mathematics, 10% failed in both the subjects. If 144 candidates passed in both, the total number of candidates was",
+        "options": [
+          "(A) 125",
+          "(B) 200",
+          "(C) 240",
+          "(D) 375"
+        ],
+        "correctIndex": 2,
+        "explanation": "Assume the total number of candidates = **100**\nPassed in English = **70**\nFailed in English = **30**\nFailed in both subjects = **10**\nFailed only in English = $30 - 10 = 20$\n\nPassed in Mathematics = **80**\nFailed in Mathematics = **20**\nFailed only in Mathematics = $20 - 10 = 10$\n\nTotal failures = $20 + 10 + 10 = 40$\nHence, candidates who passed = $100 - 40 = 60$\n\nGiven that **144 candidates passed**:\n$$60\\% = 144$$\nTotal candidates:\n$$\\frac{100}{60}\\times144 = 240$$"
+      },
+      {
+        "id": 13,
+        "type": "text",
+        "prompt": "About 8% of the voters in an election did not cast their votes. In this election, there were only two candidates. The winner by obtaining 48% of the total votes defeated his contestant by 1100 votes. The total number of voters in the election was",
+        "options": [
+          "(A) 21000",
+          "(B) 23500",
+          "(C) 22000",
+          "(D) 27500"
+        ],
+        "correctIndex": 3,
+        "explanation": "Assume the total number of voters = **100**\nUncast votes = **8**\nVotes polled = $100 - 8 = 92$\n\nWinner obtained = **48**\nLoser obtained = $92 - 48 = 44$\nDifference in votes = $48 - 44 = 4$\n\nGiven:\n$$4\\% = 1100$$\nTherefore:\n$$100\\% = \\frac{100}{4}\\times1100 = 27,500$$"
+      },
+      {
+        "id": 14,
+        "type": "text",
+        "prompt": "If all sides of a hexagon are increased by 7%, find the % increase in its area.",
+        "options": [
+          "(A) 42.49%",
+          "(B) 32.14%",
+          "(C) 25.7%",
+          "(D) 14.49%",
+          "(E) None of these"
+        ],
+        "correctIndex": 3,
+        "explanation": "Required percentage increase:\n$$= 7 + 7 + \\frac{7\\times7}{100}$$\n$$= 14 + 0.49 = 14.49\\%$$"
+      },
+      {
+        "id": 15,
+        "type": "text",
+        "prompt": "Anil's monthly income is 30% more than Ashok's. Ashok's monthly income is 10% less than Manoj's. If the difference between the monthly income of Anil and Manoj is ₹1360, what is the monthly income of Ashok?",
+        "options": [
+          "(A) ₹8100",
+          "(B) ₹10430",
+          "(C) ₹9000",
+          "(D) Data inadequate",
+          "(E) None of these"
+        ],
+        "correctIndex": 4,
+        "explanation": "Let Manoj's monthly income = **₹100**\nAshok's income:\n$$\\frac{90}{100}\\times100 = \\text{₹}90$$\n\nAnil's income:\n$$\\frac{130}{100}\\times90 = \\text{₹}117$$\n\nDifference between Anil's and Manoj's income: $117 - 100 = 17$\n\nGiven the actual difference is **₹1360**:\nAshok's monthly income:\n$$\\frac{90}{17}\\times1360 = \\text{₹}7200$$\n\nSince ₹7200 is **not among the options**, the correct choice is **None of these** (option e)."
+      },
+      {
+        "id": 16,
+        "type": "text",
+        "prompt": "The 75% of a number is 380 more than 35% of the same number. What is 20% of that number?",
+        "options": [
+          "(A) 190",
+          "(B) 195.5",
+          "(C) 189.5",
+          "(D) 180",
+          "(E) None of these"
+        ],
+        "correctIndex": 0,
+        "explanation": "Let the number be **x**.\nGiven:\n$$75\\%-35\\%=40\\%$$\n$$40\\% \\text{ of } x = 380$$\n$$\\frac{40}{100}x=380$$\n\n$$20\\% \\text{ of } x = \\frac{380}{2} = 190$$"
+      },
+      {
+        "id": 17,
+        "type": "text",
+        "prompt": "The length of a rectangle is increased by 30% and the breadth by 20%. Then the perimeter of the rectangle will increase by what per cent.",
+        "options": [
+          "(A) 56%",
+          "(B) 25%",
+          "(C) 26%",
+          "(D) Data inadequate",
+          "(E) None of these"
+        ],
+        "correctIndex": 3,
+        "explanation": "To determine the increase in the perimeter, the **ratio of the length to the breadth** of the rectangle must be known.\nSince this information is **not provided**, the answer **cannot be determined** (option d)."
+      },
+      {
+        "id": 18,
+        "type": "text",
+        "prompt": "Two litres of water evaporate from 10 litres of a solution containing 10% salt. The percentage of salt in the remaining solution is",
+        "options": [
+          "(A) 12%",
+          "(B) 12.5%",
+          "(C) 8%",
+          "(D) 8.5%",
+          "(E) None of these"
+        ],
+        "correctIndex": 1,
+        "explanation": "Initially:\n* Total solution = **10 litres**\n* Salt = **10% of 10 = 1 litre**\n\nAfter **2 litres of water evaporate**:\nRemaining solution = $10 - 2 = 8\\text{ litres}$\nSalt remains unchanged = **1 litre**\n\nPercentage of salt:\n$$\\frac{1}{8}\\times100 = 12.5\\%$$"
+      },
+      {
+        "id": 19,
+        "type": "text",
+        "prompt": "A speaks truth in 80% of the cases and B in 90% of the cases. Find the percentage when they contradict each other in describing the same facts.",
+        "options": [
+          "(A) 25%",
+          "(B) 26%",
+          "(C) 30%",
+          "(D) 35%",
+          "(E) None of these"
+        ],
+        "correctIndex": 1,
+        "explanation": "A tells the truth in **80%** of the cases.\nB tells the truth in **90%** of the cases.\n\nThey contradict each other when:\n* A tells the truth and B lies, or\n* A lies and B tells the truth.\n\nTherefore:\n$$= \\frac{8}{10}\\times\\frac{1}{10} + \\frac{9}{10}\\times\\frac{2}{10}$$\n$$= \\frac{8}{100} + \\frac{18}{100} = \\frac{26}{100} = 26\\%$$"
+      },
+      {
+        "id": 20,
+        "type": "text",
+        "prompt": "125% of 320 + ?% of 125 = 440",
+        "options": [
+          "(A) 46",
+          "(B) 42",
+          "(C) 50",
+          "(D) 32",
+          "(E) None of these"
+        ],
+        "correctIndex": 3,
+        "explanation": "Given:\n$$125\\% \\text{ of } 320 + ?\\% \\text{ of } 125 = 440$$\n$$\\frac{125}{100}\\times320 + \\frac{x}{100}\\times125 = 440$$\n$$400 + \\frac{125x}{100} = 440$$\n$$\\frac{125x}{100} = 40$$\n$$x=\\frac{40\\times100}{125} = 32$$"
+      },
+      {
+        "id": 21,
+        "type": "text",
+        "prompt": "In a class 70% of the students read Hindi, 40% of the students are boys and 20% of the girls do not read Hindi. Then what percentage of boys will read Hindi?",
+        "options": [
+          "(A) 16%",
+          "(B) 22%",
+          "(C) 55%",
+          "(D) 48%",
+          "(E) Can't be determined"
+        ],
+        "correctIndex": 2,
+        "explanation": "Students who do not read Hindi: $100 - 70 = 30$\nNumber of boys = **40**\nNumber of girls = **60**\n\nGirls who do not read Hindi: $20\\% \\text{ of } 60 = 12$\nTherefore, boys who do not read Hindi: $30 - 12 = 18$\nHence, boys who read Hindi: $40 - 18 = 22$\n\nRequired percentage:\n$$\\frac{22}{40}\\times100 = 55\\%$$"
+      },
+      {
+        "id": 22,
+        "type": "text",
+        "prompt": "If the height of a triangle is decreased by 40% and its base is increased by 30%, what will be the effect on the area?",
+        "options": [
+          "(A) Decrease by 22%",
+          "(B) Increase by 22%",
+          "(C) Decrease by 2%",
+          "(D) Increase by 2%",
+          "(E) None of these"
+        ],
+        "correctIndex": 0,
+        "explanation": "Height decreases by **40%**\nBase increases by **30%**\n\nNet percentage change in area:\n$$-40+30+\\frac{(-40)\\times30}{100}$$\n$$= -10-12 = -22\\%$$\n\nTherefore, the area **decreases by 22%** (option a)."
+      },
+      {
+        "id": 23,
+        "type": "text",
+        "prompt": "Evaluate 28% of 450 + 45% of 280.",
+        "options": [
+          "(A) 225",
+          "(B) 252",
+          "(C) 525",
+          "(D) 522"
+        ],
+        "correctIndex": 1,
+        "explanation": "$$28\\% \\text{ of } 450 + 45\\% \\text{ of } 280$$\n$$= \\frac{28}{100}\\times450 + \\frac{45}{100}\\times280$$\n$$= 126+126 = 252$$"
+      },
+      {
+        "id": 24,
+        "type": "text",
+        "prompt": "When the price of a product was decreased by 10%, the number sold increased by 30%. What was the effect on the total revenue?",
+        "options": [
+          "(A) 20%",
+          "(B) 18%",
+          "(C) 17%",
+          "(D) –10%"
+        ],
+        "correctIndex": 2,
+        "explanation": "Let the original price of the commodity be **₹x**.\nAfter a **10% decrease**, the new price is $0.9x$.\nThe selling quantity increases by **30%**.\n\nEffect on revenue:\n$$0.9\\times1.3 = 1.17$$\nThus, the revenue becomes **117%** of the original revenue.\nHence, the **increase in revenue is 17%** (option c).\n\n**Shortcut:**\n$$(-10+30)-\\frac{10\\times30}{100} = 20-3 = 17\\%$$"
+      },
+      {
+        "id": 25,
+        "type": "text",
+        "prompt": "The salary of a person was reduced by 10%. By what per cent should his reduced salary be raised so as to bring it at par with his original salary? [SSC]",
+        "options": [
+          "(A) 10%",
+          "(B) 9%",
+          "(C) 11.11%",
+          "(D) 9.99%"
+        ],
+        "correctIndex": 2,
+        "explanation": "Let **x%** be the percentage increase required after a **10% decrease**.\nFor the salary to return to its original value:\n$$-10+x-\\frac{10x}{100} = 0$$\n$$x-\\frac{x}{10} = 10$$\n$$\\frac{9x}{10} = 10$$\n$$x=\\frac{10\\times10}{9} = 11.11\\%$$"
+      },
+      {
+        "id": 26,
+        "type": "text",
+        "prompt": "During one year, the population of a town was increased by 5% and during the next year, the population decreased by 5%. If the total population is 9975 at the end of the second year, then what was the population size in the beginning of the first year? [Hotel Management]",
+        "options": [
+          "(A) 8500",
+          "(B) 9000",
+          "(C) 9500",
+          "(D) 10000"
+        ],
+        "correctIndex": 3,
+        "explanation": "Let the population at the beginning of the first year be **x**.\nAfter a **5% increase** followed by a **5% decrease**:\n$$x\\left(1+\\frac{5}{100}\\right)\\left(1-\\frac{5}{100}\\right) = 9975$$\n$$x\\times\\frac{105}{100}\\times\\frac{95}{100} = 9975$$\n$$x=\\frac{9975\\times100\\times100}{105\\times95} = 10000$$"
+      },
+      {
+        "id": 27,
+        "type": "text",
+        "prompt": "3.5 can be expressed in terms of percentage as: [SSC]",
+        "options": [
+          "(A) 0.35%",
+          "(B) 3.5%",
+          "(C) 35%",
+          "(D) 350%"
+        ],
+        "correctIndex": 3,
+        "explanation": "$$3.5 = \\frac{350}{100} = 350\\%$$"
+      },
+      {
+        "id": 28,
+        "type": "text",
+        "prompt": "88% of 370 + 24% of 210 - ? = 118. [Bank PO]",
+        "options": [
+          "(A) 256",
+          "(B) 258",
+          "(C) 268",
+          "(D) 358"
+        ],
+        "correctIndex": 1,
+        "explanation": "Given:\n$$88\\% \\text{ of } 370 + 24\\% \\text{ of } 210 - ? = 118$$\n$$?= 88\\% \\text{ of } 370 + 24\\% \\text{ of } 210 - 118$$\n$$= \\frac{88}{100}\\times370 + \\frac{24}{100}\\times210 - 118$$\n$$= 325.6 + 50.4 - 118 = 258$$"
+      },
+      {
+        "id": 29,
+        "type": "text",
+        "prompt": "860% of 50 + 50% of 860 = ? [RBI]",
+        "options": [
+          "(A) 430",
+          "(B) 516",
+          "(C) 860",
+          "(D) 960"
+        ],
+        "correctIndex": 0,
+        "explanation": "$$860\\% \\text{ of } 50 + 50\\% \\text{ of } 860$$\n$$= \\frac{860}{100}\\times50 + \\frac{50}{100}\\times 860$$\n$$= 430+430 = 860$$"
+      },
+      {
+        "id": 30,
+        "type": "text",
+        "prompt": "45% of 750 – 25% of 480 = ? [Bank PO]",
+        "options": [
+          "(A) 216",
+          "(B) 217.50",
+          "(C) 236.50",
+          "(D) 245"
+        ],
+        "correctIndex": 1,
+        "explanation": "$$45\\% \\text{ of } 750 - 25\\% \\text{ of } 480$$\n$$= \\frac{45}{100}\\times750 - \\frac{25}{100}\\times480$$\n$$= 337.50-120 = 217.50$$"
+      },
+      {
+        "id": 31,
+        "type": "text",
+        "prompt": "40% of 1640 + ? = 35% of 980 + 150% of 850. [SBI PO]",
+        "options": [
+          "(A) 372",
+          "(B) 842",
+          "(C) 962",
+          "(D) 1052"
+        ],
+        "correctIndex": 2,
+        "explanation": "Given:\n$$40\\% \\text{ of } 1640 + ? = 35\\% \\text{ of } 980 + 150\\% \\text{ of } 850$$\n$$?= 35\\% \\text{ of } 980 + 150\\% \\text{ of } 850 - 40\\% \\text{ of } 1640$$\n\nCalculating each term:\n* $35\\% \\text{ of } 980 = \\frac{35}{100}\\times980 = 343$\n* $150\\% \\text{ of } 850 = \\frac{150}{100}\\times850 = 1275$\n* $40\\% \\text{ of } 1640 = \\frac{40}{100}\\times1640 = 656$\n\nHence:\n$$?= 343 + 1275 - 656 = 962$$"
+      },
+      {
+        "id": 32,
+        "type": "text",
+        "prompt": "60% of 264 is the same as: [Hotel Management]",
+        "options": [
+          "(A) 10% of 44",
+          "(B) 15% of 1056",
+          "(C) 30% of 132",
+          "(D) None of these"
+        ],
+        "correctIndex": 1,
+        "explanation": "Calculate **60% of 264**:\n$$\\frac{60}{100}\\times264 = 158.4$$\n\nNow check the options:\n$$15\\% \\text{ of } 1056 = \\frac{15}{100}\\times1056 = 158.4$$\nTherefore, **60% of 264 = 15% of 1056** (option b)."
+      },
+      {
+        "id": 33,
+        "type": "text",
+        "prompt": "0.01 is what per cent of 0.1? [SSC]",
+        "options": [
+          "(A) 1/100",
+          "(B) 1/10",
+          "(C) 10",
+          "(D) 100"
+        ],
+        "correctIndex": 2,
+        "explanation": "Let the required percentage be **x**.\nGiven:\n$$0.01 = x\\% \\text{ of } 0.1$$\n$$0.01 = \\frac{x}{100}\\times0.1$$\n$$1 = 0.1x$$\n$$x=\\frac{1}{0.1} = 10$$"
+      },
+      {
+        "id": 34,
+        "type": "text",
+        "prompt": "What per cent of ₹2650 is ₹1987.50? [Hotel Management]",
+        "options": [
+          "(A) 60%",
+          "(B) 75%",
+          "(C) 80%",
+          "(D) 90%"
+        ],
+        "correctIndex": 1,
+        "explanation": "Let the required percentage be **x**.\nGiven:\n$$x\\% \\text{ of } 2650 = 1987.50$$\n$$\\frac{x}{100}\\times2650 = 1987.50$$\n$$x = \\frac{1987.50\\times100}{2650} = 75\\%$$"
+      },
+      {
+        "id": 35,
+        "type": "text",
+        "prompt": "Rajeev buys goods worth ₹6650. He gets a rebate of 6% on it. After getting the rebate, he pays sales tax @ 10%. Find the amount he will have to pay for the goods. [MAT]",
+        "options": [
+          "(A) ₹6876.10",
+          "(B) ₹6999.20",
+          "(C) ₹6654",
+          "(D) ₹7000"
+        ],
+        "correctIndex": 0,
+        "explanation": "Rajeev buys goods worth **₹6650**.\nA rebate of **6%** is allowed.\nNet price after rebate:\n$$6650\\times0.94 = \\text{₹}6251$$\n\nSales tax at **10%** on the net price:\n$$\\frac{10}{100}\\times6251 = \\text{₹}625.10$$\n\nTotal amount payable:\n$$6251 + 625.10 = \\text{₹}6876.10$$"
+      },
+      {
+        "id": 36,
+        "type": "text",
+        "prompt": "4598 is 95% of? [Bank PO]",
+        "options": [
+          "(A) 4800",
+          "(B) 4840",
+          "(C) 4850",
+          "(D) 4880"
+        ],
+        "correctIndex": 1,
+        "explanation": "The correct answer is option (b)."
+      },
+      {
+        "id": 37,
+        "type": "text",
+        "prompt": "?% of 360 = 129.6 [Bank PO]",
+        "options": [
+          "(A) 36",
+          "(B) 64",
+          "(C) 72",
+          "(D) 77"
+        ],
+        "correctIndex": 0,
+        "explanation": "The correct answer is option (a)."
+      },
+      {
+        "id": 38,
+        "type": "text",
+        "prompt": "65% of ? = 20% of 422.50 [Bank PO]",
+        "options": [
+          "(A) 84.5",
+          "(B) 130",
+          "(C) 139.425",
+          "(D) 200"
+        ],
+        "correctIndex": 1,
+        "explanation": "The correct answer is option (b)."
+      },
+      {
+        "id": 39,
+        "type": "text",
+        "prompt": "?% of 932 + 30 = 309.60 [Bank PO]",
+        "options": [
+          "(A) 25",
+          "(B) 30",
+          "(C) 35",
+          "(D) 40"
+        ],
+        "correctIndex": 1,
+        "explanation": "The correct answer is option (b)."
+      },
+      {
+        "id": 40,
+        "type": "text",
+        "prompt": "45% of 1500 + 35% of 1700 = ?% of 3175 [Bank PO]",
+        "options": [
+          "(A) 30",
+          "(B) 35",
+          "(C) 45",
+          "(D) None of these"
+        ],
+        "correctIndex": 3,
+        "explanation": "The correct answer is option (d)."
+      },
+      {
+        "id": 41,
+        "type": "text",
+        "prompt": "If ₹2800 is ( \frac{2}{7} ) per cent of the value of a house, the worth of the house (in ₹) is",
+        "options": [
+          "(A) ₹8,00,000",
+          "(B) ₹9,80,000",
+          "(C) ₹10,00,000",
+          "(D) ₹12,00,000"
+        ],
+        "correctIndex": 1,
+        "explanation": "The correct answer is option (b)."
+      },
+      {
+        "id": 42,
+        "type": "text",
+        "prompt": "If 20 is 20% of a number, then 120% of that number will be",
+        "options": [
+          "(A) 20",
+          "(B) 120",
+          "(C) 360",
+          "(D) 720"
+        ],
+        "correctIndex": 3,
+        "explanation": "The correct answer is option (d)."
+      },
+      {
+        "id": 43,
+        "type": "text",
+        "prompt": "Two-fifths of one-third of three-sevenths of a number is 15. What is 40 per cent of that number?",
+        "options": [
+          "(A) 72",
+          "(B) 84",
+          "(C) 136",
+          "(D) 140",
+          "(E) None of these"
+        ],
+        "correctIndex": 4,
+        "explanation": "The correct answer is option (e)."
+      },
+      {
+        "id": 44,
+        "type": "text",
+        "prompt": "If 35% of a number is 12 less than 50% of that number, then the number is",
+        "options": [
+          "(A) 40",
+          "(B) 50",
+          "(C) 60",
+          "(D) 80"
+        ],
+        "correctIndex": 3,
+        "explanation": "The correct answer is option (d)."
+      },
+      {
+        "id": 45,
+        "type": "text",
+        "prompt": "The number which exceeds 16% of it by 42 is:",
+        "options": [
+          "(A) 50",
+          "(B) 52",
+          "(C) 58",
+          "(D) 60"
+        ],
+        "correctIndex": 0,
+        "explanation": "The correct answer is option (a)."
+      },
+      {
+        "id": 46,
+        "type": "text",
+        "prompt": "If a number x is 10% less than another number y and y is 10% more than 125, then x is equal to",
+        "options": [
+          "(A) 123.75",
+          "(B) 140.55",
+          "(C) 143",
+          "(D) 150"
+        ],
+        "correctIndex": 0,
+        "explanation": "The correct answer is option (a)."
+      },
+      {
+        "id": 47,
+        "type": "text",
+        "prompt": "A number, when 35 is subtracted from it, reduces to its 80 per cent. What is four-fifths of that number?",
+        "options": [
+          "(A) 70",
+          "(B) 90",
+          "(C) 120",
+          "(D) 140"
+        ],
+        "correctIndex": 3,
+        "explanation": "The correct answer is option (d)."
+      },
+      {
+        "id": 48,
+        "type": "text",
+        "prompt": "The sum of two numbers is 2490. If 6.5% of one number is equal to 8.5% of the other, then the numbers are",
+        "options": [
+          "(A) 989, 1501",
+          "(B) 1011, 1479",
+          "(C) 1401, 1089",
+          "(D) 1411, 1079"
+        ],
+        "correctIndex": 3,
+        "explanation": "The correct answer is option (d)."
+      },
+      {
+        "id": 49,
+        "type": "text",
+        "prompt": "A student multiplied a number by 3/5 instead of 5/3. What is the percentage error in the calculation?",
+        "options": [
+          "(A) 34%",
+          "(B) 44%",
+          "(C) 54%",
+          "(D) 64%"
+        ],
+        "correctIndex": 3,
+        "explanation": "The correct answer is option (d)."
+      },
+      {
+        "id": 50,
+        "type": "text",
+        "prompt": "The population of a town increased from 1,75,000 to 2,62,500 in a decade. The average per cent increase of population per year is",
+        "options": [
+          "(A) 4.37%",
+          "(B) 5%",
+          "(C) 6%",
+          "(D) 8.75%"
+        ],
+        "correctIndex": 1,
+        "explanation": "The correct answer is option (b)."
+      },
+      {
+        "id": 51,
+        "type": "text",
+        "prompt": "Two numbers A and B are such that the sum of 5% of A and 4% of B is two-third of the sum of 6% of A and 8% of B. Find the ratio of A : B.",
+        "options": [
+          "(A) 2 : 3",
+          "(B) 1 : 1",
+          "(C) 3 : 4",
+          "(D) 4 : 3"
+        ],
+        "correctIndex": 3,
+        "explanation": "The correct answer is option (d)."
+      },
+      {
+        "id": 52,
+        "type": "text",
+        "prompt": "The difference of two numbers is 20% of the larger number. If the smaller number is 20, then the larger number is",
+        "options": [
+          "(A) 25",
+          "(B) 45",
+          "(C) 50",
+          "(D) 80"
+        ],
+        "correctIndex": 0,
+        "explanation": "The correct answer is option (a)."
+      },
+      {
+        "id": 53,
+        "type": "text",
+        "prompt": "8% of the people eligible to vote are between 18 and 21 years of age. In an election, 85% of those eligible to vote, who were between 18 and 21, actually voted. In that election, the number of persons between 18 and 21, who actually voted, was what per cent of those eligible to vote?",
+        "options": [
+          "(A) 4.2",
+          "(B) 6.4",
+          "(C) 6.8",
+          "(D) 8"
+        ],
+        "correctIndex": 2,
+        "explanation": "The correct answer is option (c)."
+      },
+      {
+        "id": 54,
+        "type": "text",
+        "prompt": "In a certain school, 20% of students are below 8 years of age. The number of students above 8 years of age is 2/3 of the number of students of 8 years age, which is 48. What is the total number of students in the school?",
+        "options": [
+          "(A) 72",
+          "(B) 80",
+          "(C) 120",
+          "(D) 150",
+          "(E) None of these"
+        ],
+        "correctIndex": 4,
+        "explanation": "The correct answer is option (e)."
+      },
+      {
+        "id": 55,
+        "type": "text",
+        "prompt": "Two tailors X and Y are paid a total of ₹550 per week by their employer. If X is paid 120 per cent of the sum paid to Y, how much is Y paid per week?",
+        "options": [
+          "(A) ₹200",
+          "(B) ₹250",
+          "(C) ₹300",
+          "(D) None of these"
+        ],
+        "correctIndex": 1,
+        "explanation": "The correct answer is option (b)."
+      },
+      {
+        "id": 56,
+        "type": "text",
+        "prompt": "If x% of y is 100 and y% of z is 200, then find a relation between x and z.",
+        "options": [
+          "(A) (z = rac{x}{2})",
+          "(B) (z = 2x)",
+          "(C) (z = rac{x}{4})",
+          "(D) (z = 4x)"
+        ],
+        "correctIndex": 1,
+        "explanation": "The correct answer is option (b)."
+      },
+      {
+        "id": 57,
+        "type": "text",
+        "prompt": "If (A = x%) of (y) and (B = y%) of (x), then which of the following is true?",
+        "options": [
+          "(A) A is smaller than B",
+          "(B) A is greater than B",
+          "(C) Relationship between A and B cannot be determined",
+          "(D) If (x) is smaller than (y), then A is greater than B",
+          "(E) None of these"
+        ],
+        "correctIndex": 4,
+        "explanation": "The correct answer is option (e)."
+      },
+      {
+        "id": 58,
+        "type": "text",
+        "prompt": "If (x) is 80% of (y), then what per cent of (2x) is (y)?",
+        "options": [
+          "(A) 40%",
+          "(B) 62½%",
+          "(C) 66⅔%",
+          "(D) 80%"
+        ],
+        "correctIndex": 1,
+        "explanation": "The correct answer is option (b)."
+      },
+      {
+        "id": 59,
+        "type": "text",
+        "prompt": "If (x) is 90% of (y), then what per cent of (x) is (y)?",
+        "options": [
+          "(A) 90%",
+          "(B) 101 ( rac{1}{9} )%",
+          "(C) 111 ( rac{1}{9} )%",
+          "(D) 190%"
+        ],
+        "correctIndex": 2,
+        "explanation": "The correct answer is option (c)."
+      },
+      {
+        "id": 60,
+        "type": "text",
+        "prompt": "A student secures 90%, 60% and 54% marks in test papers with 100, 150 and 200 respectively as maximum marks. The percentage of his aggregate is",
+        "options": [
+          "(A) 64",
+          "(B) 68",
+          "(C) 70",
+          "(D) None of these"
+        ],
+        "correctIndex": 0,
+        "explanation": "The correct answer is option (a)."
+      },
+      {
+        "id": 61,
+        "type": "text",
+        "prompt": "In an examination, 5% of the applicants were found ineligible and 85% of the eligible candidates belonged to the general category. If 4275 eligible candidates belonged to other categories, then how many candidates applied for the examination?",
+        "options": [
+          "(A) 30000",
+          "(B) 35000",
+          "(C) 37000",
+          "(D) None of these"
+        ],
+        "correctIndex": 0,
+        "explanation": "The correct answer is option (a)."
+      },
+      {
+        "id": 62,
+        "type": "text",
+        "prompt": "405 sweets were distributed equally among children in such a way that the number of sweets received by each child is 20% of the total number of children. How many sweets did each child receive?",
+        "options": [
+          "(A) 9",
+          "(B) 15",
+          "(C) 18",
+          "(D) 45"
+        ],
+        "correctIndex": 3,
+        "explanation": "The correct answer is option (d)."
+      },
+      {
+        "id": 63,
+        "type": "text",
+        "prompt": "From the salary of an officer, 10% is deducted as house rent, 20% of the rest he spends on conveyance, 20% of the rest he pays as income tax and 10% of the balance, he spends on clothes. Then, he is left with ₹15552. Find his total salary.",
+        "options": [
+          "(A) ₹25000",
+          "(B) ₹30000",
+          "(C) ₹35000",
+          "(D) ₹40000"
+        ],
+        "correctIndex": 1,
+        "explanation": "The correct answer is option (b)."
+      },
+      {
+        "id": 64,
+        "type": "text",
+        "prompt": "Sameer spends 24% of his monthly income on food and 15% on the education of his children. Of the remaining salary, he spends 25% on entertainment and 20% on conveyance. He is now left with ₹10736. What is the monthly salary of Sameer?",
+        "options": [
+          "(A) ₹27600",
+          "(B) ₹28000",
+          "(C) ₹31200",
+          "(D) ₹32000"
+        ],
+        "correctIndex": 3,
+        "explanation": "The correct answer is option (d)."
+      },
+      {
+        "id": 65,
+        "type": "text",
+        "prompt": "Rohit spends 40% of his salary on food, 20% on house rent, 10% on entertainment and 10% on conveyance. If his savings at the end of a month are ₹1500, then his monthly salary is",
+        "options": [
+          "(A) ₹6000",
+          "(B) ₹7500",
+          "(C) ₹8000",
+          "(D) ₹10000"
+        ],
+        "correctIndex": 1,
+        "explanation": "The correct answer is option (b)."
+      },
+      {
+        "id": 66,
+        "type": "text",
+        "prompt": "Peter could save 10% of his income. But two years later when his income was increased by 20%, he could save the same amount only as before. By how much per cent has his expenditure increased?",
+        "options": [
+          "(A) 22%",
+          "(B) 22 ( rac{2}{9} )%",
+          "(C) 23 ( rac{1}{3} )%",
+          "(D) 24%"
+        ],
+        "correctIndex": 1,
+        "explanation": "The correct answer is option (b)."
+      },
+      {
+        "id": 67,
+        "type": "text",
+        "prompt": "The price of an article was increased by (r%). Later the new price was decreased by (r%). If the latest price was ₹1, then the original price was",
+        "options": [
+          "(A) ₹1",
+          "(B) ₹(dfrac{1-r^2}{100})",
+          "(C) ₹(dfrac{sqrt{1-r^2}}{100})",
+          "(D) ₹(dfrac{10000}{10000-r^2})"
+        ],
+        "correctIndex": 3,
+        "explanation": "The correct answer is option (d)."
+      },
+      {
+        "id": 68,
+        "type": "text",
+        "prompt": "A number is decreased by 10% and then increased by 10%. The number so obtained is 10 less than the original number. What was the original number?",
+        "options": [
+          "(A) 1000",
+          "(B) 1050",
+          "(C) 1500",
+          "(D) 2000"
+        ],
+        "correctIndex": 0,
+        "explanation": "The correct answer is option (a)."
+      },
+      {
+        "id": 69,
+        "type": "text",
+        "prompt": "If the price of a book is first decreased by 25% and then increased by 20%, then the net change in the price will be",
+        "options": [
+          "(A) No change",
+          "(B) 5% increase",
+          "(C) 5% decrease",
+          "(D) 10% decrease"
+        ],
+        "correctIndex": 3,
+        "explanation": "The correct answer is option (d)."
+      },
+      {
+        "id": 70,
+        "type": "text",
+        "prompt": "37½% of the candidates in an examination were girls, 75% of the boys and 62½% of the girls passed and 342 girls failed. The number of boys failed was",
+        "options": [
+          "(A) 350",
+          "(B) 360",
+          "(C) 370",
+          "(D) 380"
+        ],
+        "correctIndex": 3,
+        "explanation": "The correct answer is option (d)."
+      },
+      {
+        "id": 71,
+        "type": "text",
+        "prompt": "The price of a shirt is increased by 15% and then reduced by 15%. The final price of the shirt",
+        "options": [
+          "(A) does not change",
+          "(B) increases by 2.25%",
+          "(C) decreases by 2.25%",
+          "(D) None of these"
+        ],
+        "correctIndex": 2,
+        "explanation": "The correct answer is option (c)."
+      },
+      {
+        "id": 72,
+        "type": "text",
+        "prompt": "The weight of a container alone is 25% of the container filled with a certain fluid. When some fluid is removed, the weight of the container and remaining fluid is 50% of the original total weight. What fractional part of the liquid has been removed?",
+        "options": [
+          "(A) ( rac{1}{3} )",
+          "(B) ( rac{1}{2} )",
+          "(C) ( rac{2}{3} )",
+          "(D) ( rac{3}{4} )"
+        ],
+        "correctIndex": 2,
+        "explanation": "The correct answer is option (c)."
+      },
+      {
+        "id": 73,
+        "type": "text",
+        "prompt": "One type of liquid contains 20% water and the second type of liquid contains 35% water. A glass is filled with 10 parts of the first liquid and 4 parts of the second liquid. The percentage of water in the new mixture in the glass is",
+        "options": [
+          "(A) 20%",
+          "(B) 24 2/7%",
+          "(C) 37%",
+          "(D) 40%"
+        ],
+        "correctIndex": 1,
+        "explanation": "The correct answer is option (b)."
+      },
+      {
+        "id": 74,
+        "type": "text",
+        "prompt": "Milk contains 5% water. What quantity of pure milk should be added to 10 litres of milk to reduce this to 2%?",
+        "options": [
+          "(A) 5 litres",
+          "(B) 7 litres",
+          "(C) 15 litres",
+          "(D) Cannot be determined"
+        ],
+        "correctIndex": 2,
+        "explanation": "The correct answer is option (c)."
+      },
+      {
+        "id": 75,
+        "type": "text",
+        "prompt": "How much pure alcohol has to be added to 400 ml of a solution containing 15% alcohol to change the concentration of alcohol in the mixture to 32%?",
+        "options": [
+          "(A) 60 ml",
+          "(B) 68 ml",
+          "(C) 100 ml",
+          "(D) 128 ml"
+        ],
+        "correctIndex": 2,
+        "explanation": "The correct answer is option (c)."
+      },
+      {
+        "id": 76,
+        "type": "text",
+        "prompt": "Fresh fruits contain 68% water and dry fruits contain 20% water. How much dry fruit can be obtained from 100 kg of fresh fruits?",
+        "options": [
+          "(A) 32 kg",
+          "(B) 40 kg",
+          "(C) 52 kg",
+          "(D) 80 kg"
+        ],
+        "correctIndex": 2,
+        "explanation": "The correct answer is option (c)."
+      },
+      {
+        "id": 77,
+        "type": "text",
+        "prompt": "In an examination, the percentage of students qualified to the number of students appeared from School A is 70%. In School B, the number of students appeared is 20% more than the students appeared from School A and the number of students qualified from School B is 50% more than the students qualified from School A. What is the percentage of students qualified to the number of students appeared from School B?",
+        "options": [
+          "(A) 30%",
+          "(B) 70%",
+          "(C) 78.5%",
+          "(D) 87.5%"
+        ],
+        "correctIndex": 3,
+        "explanation": "The correct answer is option (d)."
+      },
+      {
+        "id": 78,
+        "type": "text",
+        "prompt": "In an examination, 65% students passed in Civics and 60% in History, while 40% passed in both of these subjects. If 90 students failed in History and Civics both, then what is the total number of students?",
+        "options": [
+          "(A) 600",
+          "(B) 650",
+          "(C) 700",
+          "(D) 750"
+        ],
+        "correctIndex": 0,
+        "explanation": "The correct answer is option (a)."
+      },
+      {
+        "id": 79,
+        "type": "text",
+        "prompt": "In a hotel, 60% had vegetarian lunch while 30% had non-vegetarian lunch and 15% had both types of lunch. If 96 people were present, how many did not eat either type of lunch?",
+        "options": [
+          "(A) 20",
+          "(B) 24",
+          "(C) 26",
+          "(D) 28"
+        ],
+        "correctIndex": 1,
+        "explanation": "The correct answer is option (b)."
+      },
+      {
+        "id": 80,
+        "type": "text",
+        "prompt": "In an examination, 34% of students failed in Mathematics and 42% failed in English. If 20% of the students failed in both the subjects, then the percentage of students who passed in both the subjects was",
+        "options": [
+          "(A) 44%",
+          "(B) 50%",
+          "(C) 54%",
+          "(D) 56%"
+        ],
+        "correctIndex": 0,
+        "explanation": "The correct answer is option (a)."
+      },
+      {
+        "id": 81,
+        "type": "text",
+        "prompt": "In an examination where the full marks were 800, A gets 20% more than B, B gets 20% more than C, and C gets 15% less than D. If A got 576, what percentage of the full marks did D get (approximately)?",
+        "options": [
+          "(A) 45.7%",
+          "(B) 51.2%",
+          "(C) 58.8%",
+          "(D) 61.7%"
+        ],
+        "correctIndex": 2,
+        "explanation": "The correct answer is option (c)."
+      },
+      {
+        "id": 82,
+        "type": "text",
+        "prompt": "Amit's monthly income is 30% more than that of Raunaq. Raunaq's monthly income is 20% less than that of Deepak. If the difference between the monthly incomes of Amit and Deepak is ₹800, what is the monthly income of Raunaq?",
+        "options": [
+          "(A) ₹12,00,000",
+          "(B) ₹16,00,000",
+          "(C) ₹20,00,000",
+          "(D) Data inadequate"
+        ],
+        "correctIndex": 1,
+        "explanation": "The correct answer is option (b)."
+      },
+      {
+        "id": 83,
+        "type": "text",
+        "prompt": "Out of 450 students of a school, 325 play football, 175 play cricket and 50 neither play football nor cricket. How many students play both football and cricket?",
+        "options": [
+          "(A) 50",
+          "(B) 75",
+          "(C) 100",
+          "(D) 225"
+        ],
+        "correctIndex": 2,
+        "explanation": "The correct answer is option (c)."
+      },
+      {
+        "id": 84,
+        "type": "text",
+        "prompt": "The price of rice is reduced by 2%. How many kilograms of rice can now be bought for the money which was sufficient to buy 49 kg of rice earlier?",
+        "options": [
+          "(A) 48 kg",
+          "(B) 49 kg",
+          "(C) 50 kg",
+          "(D) 51 kg"
+        ],
+        "correctIndex": 2,
+        "explanation": "The correct answer is option (c)."
+      },
+      {
+        "id": 85,
+        "type": "text",
+        "prompt": "An empty fuel tank of a car was filled with A-type petrol. When the tank was half-empty, it was filled with B-type petrol. Again, when the tank was half-empty, it was filled with A-type petrol. When the tank was half-empty again, it was filled with B-type petrol. What is the percentage of A-type petrol in the tank at present?",
+        "options": [
+          "(A) 33.5%",
+          "(B) 37.5%",
+          "(C) 40%",
+          "(D) 50%"
+        ],
+        "correctIndex": 1,
+        "explanation": "The correct answer is option (b)."
+      },
+      {
+        "id": 86,
+        "type": "text",
+        "prompt": "From a container having pure milk, 20% is replaced by water and the process is repeated thrice. At the end of the third operation, the milk is",
+        "options": [
+          "(A) 40% pure",
+          "(B) 50% pure",
+          "(C) 51.2% pure",
+          "(D) 58.8% pure"
+        ],
+        "correctIndex": 2,
+        "explanation": "The correct answer is option (c)."
+      },
+      {
+        "id": 87,
+        "type": "text",
+        "prompt": "Due to an increase of 30% in the price of eggs, 3 fewer eggs are available for ₹7.80. The present rate of 4 eggs is",
+        "options": [
+          "(A) ₹8.64",
+          "(B) ₹8.88",
+          "(C) ₹9.36",
+          "(D) ₹10.40"
+        ],
+        "correctIndex": 2,
+        "explanation": "The correct answer is option (c)."
+      },
+      {
+        "id": 88,
+        "type": "text",
+        "prompt": "The ratio 5 : 4 expressed as a percentage is",
+        "options": [
+          "(A) 12.5%",
+          "(B) 40%",
+          "(C) 80%",
+          "(D) 125%"
+        ],
+        "correctIndex": 3,
+        "explanation": "The correct answer is option (d)."
+      },
+      {
+        "id": 89,
+        "type": "text",
+        "prompt": "Half of 1 per cent written as a decimal is",
+        "options": [
+          "(A) 0.005",
+          "(B) 0.05",
+          "(C) 0.02",
+          "(D) 0.2"
+        ],
+        "correctIndex": 0,
+        "explanation": "The correct answer is option (a)."
+      },
+      {
+        "id": 90,
+        "type": "text",
+        "prompt": "What is 15 per cent of ₹34?",
+        "options": [
+          "(A) ₹3.40",
+          "(B) ₹3.75",
+          "(C) ₹4.50",
+          "(D) ₹5.10"
+        ],
+        "correctIndex": 3,
+        "explanation": "The correct answer is option (d)."
+      },
+      {
+        "id": 91,
+        "type": "text",
+        "prompt": "What per cent of 7.2 kg is 18 gm?",
+        "options": [
+          "(A) 0.025%",
+          "(B) 0.25%",
+          "(C) 2.5%",
+          "(D) 25%"
+        ],
+        "correctIndex": 3,
+        "explanation": "The correct answer is option (d)."
+      },
+      {
+        "id": 92,
+        "type": "text",
+        "prompt": "What per cent of a day is 3 hours?",
+        "options": [
+          "(A) 12½%",
+          "(B) 16⅔%",
+          "(C) 18⅔%",
+          "(D) 22½%"
+        ],
+        "correctIndex": 0,
+        "explanation": "The correct answer is option (a)."
+      },
+      {
+        "id": 93,
+        "type": "text",
+        "prompt": "A housewife saved ₹2.50 in buying an item on sale. If she spent ₹25 for the item, approximately how much per cent she saved in the transaction?",
+        "options": [
+          "(A) 8%",
+          "(B) 9%",
+          "(C) 10%",
+          "(D) 11%"
+        ],
+        "correctIndex": 2,
+        "explanation": "The correct answer is option (c)."
+      },
+      {
+        "id": 94,
+        "type": "text",
+        "prompt": "5% of ₹(1600) is",
+        "options": [
+          "(A) ₹5",
+          "(B) ₹17.50",
+          "(C) ₹20",
+          "(D) ₹25"
+        ],
+        "correctIndex": 2,
+        "explanation": "The correct answer is option (c)."
+      },
+      {
+        "id": 95,
+        "type": "text",
+        "prompt": "0.15% of 33⅓% of ₹10000 is",
+        "options": [
+          "(A) ₹0.05",
+          "(B) ₹5",
+          "(C) ₹105",
+          "(D) ₹150"
+        ],
+        "correctIndex": 1,
+        "explanation": "The correct answer is option (b)."
+      },
+      {
+        "id": 96,
+        "type": "text",
+        "prompt": "The difference between a number and its two-fifths is 510. What is 10% of that number?",
+        "options": [
+          "(A) 12.75",
+          "(B) 85",
+          "(C) 204",
+          "(D) None of these"
+        ],
+        "correctIndex": 3,
+        "explanation": "The correct answer is option (d)."
+      },
+      {
+        "id": 97,
+        "type": "text",
+        "prompt": "What percentage of numbers from 1 to 70 has squares that end in the digit 1?",
+        "options": [
+          "(A) 14",
+          "(B) 18",
+          "(C) 20",
+          "(D) 21"
+        ],
+        "correctIndex": 2,
+        "explanation": "The correct answer is option (c)."
+      },
+      {
+        "id": 98,
+        "type": "text",
+        "prompt": "The sum of two numbers is ( \frac{28}{25} ) of the first number. The second number is what per cent of the first?",
+        "options": [
+          "(A) 12%",
+          "(B) 14%",
+          "(C) 16%",
+          "(D) 18%"
+        ],
+        "correctIndex": 0,
+        "explanation": "The correct answer is option (a)."
+      },
+      {
+        "id": 99,
+        "type": "text",
+        "prompt": "In a competitive examination in State A, 6% candidates got selected from the total appeared candidates. State B had an equal number of candidates appeared and 7% candidates got selected with 80 more candidates got selected than A. What was the number of candidates appeared from each state?",
+        "options": [
+          "(A) 7600",
+          "(B) 8000",
+          "(C) 8400",
+          "(D) Data inadequate"
+        ],
+        "correctIndex": 1,
+        "explanation": "The correct answer is option (b)."
+      },
+      {
+        "id": 100,
+        "type": "text",
+        "prompt": "The price of a car is ₹325000. It was insured to 85% of its price. The car was damaged completely in an accident and the insurance company paid 90% of the insurance. What was the difference between the price of the car and the amount received?",
+        "options": [
+          "(A) ₹32500",
+          "(B) ₹48750",
+          "(C) ₹76375",
+          "(D) ₹81250"
+        ],
+        "correctIndex": 2,
+        "explanation": "The correct answer is option (c)."
+      },
+      {
+        "id": 101,
+        "type": "text",
+        "prompt": "Three candidates contested an election and received 1136, 7636 and 11628 votes respectively. What percentage of the total votes did the winning candidate get?",
+        "options": [
+          "(A) 57%",
+          "(B) 60%",
+          "(C) 65%",
+          "(D) 90%"
+        ],
+        "correctIndex": 0,
+        "explanation": "The correct answer is option (a)."
+      },
+      {
+        "id": 102,
+        "type": "text",
+        "prompt": "If one number is 80% of the other and 4 times the sum of their squares is 656, then the numbers are",
+        "options": [
+          "(A) 4, 5",
+          "(B) 8, 10",
+          "(C) 16, 20",
+          "(D) None of these"
+        ],
+        "correctIndex": 1,
+        "explanation": "The correct answer is option (b)."
+      },
+      {
+        "id": 103,
+        "type": "text",
+        "prompt": "When any number is divided by 12, then the dividend becomes 1/4th of the other number. By how much per cent first number is greater than the second number?",
+        "options": [
+          "(A) 150",
+          "(B) 200",
+          "(C) 300",
+          "(D) Data inadequate"
+        ],
+        "correctIndex": 1,
+        "explanation": "The correct answer is option (b)."
+      },
+      {
+        "id": 104,
+        "type": "text",
+        "prompt": "If 25% of a number is subtracted from a second number, the second number reduces to its five-sixths. What is the ratio of the first number to the second number?",
+        "options": [
+          "(A) 1 : 3",
+          "(B) 2 : 3",
+          "(C) 3 : 2",
+          "(D) Data inadequate"
+        ],
+        "correctIndex": 1,
+        "explanation": "The correct answer is option (b)."
+      },
+      {
+        "id": 105,
+        "type": "text",
+        "prompt": "Gauri went to the stationeries and bought things worth ₹25, out of which ₹30 paise went on sales tax on taxable purchases. If the tax rate was 6%, then what was the cost of the tax-free items?",
+        "options": [
+          "(A) ₹15",
+          "(B) ₹15.70",
+          "(C) ₹19.70",
+          "(D) ₹20"
+        ],
+        "correctIndex": 2,
+        "explanation": "The correct answer is option (c)."
+      },
+      {
+        "id": 106,
+        "type": "text",
+        "prompt": "A batsman scored 110 runs which included 3 boundaries and 8 sixes. What per cent of his total score did he make by running between the wickets?",
+        "options": [
+          "(A) 45%",
+          "(B) 45 ( rac{5}{11} )%",
+          "(C) 54 ( rac{6}{11} )%",
+          "(D) 55%"
+        ],
+        "correctIndex": 1,
+        "explanation": "The correct answer is option (b)."
+      },
+      {
+        "id": 107,
+        "type": "text",
+        "prompt": "A fruit seller had some apples. He sells 40% apples and still has 420 apples. Originally, he had",
+        "options": [
+          "(A) 588 apples",
+          "(B) 600 apples",
+          "(C) 672 apples",
+          "(D) 700 apples"
+        ],
+        "correctIndex": 3,
+        "explanation": "The correct answer is option (d)."
+      },
+      {
+        "id": 108,
+        "type": "text",
+        "prompt": "A student has to obtain 33% of the total marks to pass. He got 125 marks and failed by 40 marks. The maximum marks are",
+        "options": [
+          "(A) 300",
+          "(B) 500",
+          "(C) 800",
+          "(D) 1000"
+        ],
+        "correctIndex": 1,
+        "explanation": "The correct answer is option (b)."
+      },
+      {
+        "id": 109,
+        "type": "text",
+        "prompt": "10% of the voters did not cast their vote in an election between two candidates. 10% of the votes polled were found invalid. The successful candidate got 54% of the valid votes and won by a majority of 1620 votes. The number of voters enrolled on the voter's list was",
+        "options": [
+          "(A) 25000",
+          "(B) 33000",
+          "(C) 35000",
+          "(D) 40000"
+        ],
+        "correctIndex": 0,
+        "explanation": "The correct answer is option (a)."
+      },
+      {
+        "id": 110,
+        "type": "text",
+        "prompt": "In an election between two candidates, one got 55% of the total valid votes, 20% of the votes were invalid. If the total number of votes was 7500, the number of valid votes that the other candidate got was",
+        "options": [
+          "(A) 2700",
+          "(B) 2900",
+          "(C) 3000",
+          "(D) 3100"
+        ],
+        "correctIndex": 0,
+        "explanation": "The correct answer is option (a)."
+      },
+      {
+        "id": 111,
+        "type": "text",
+        "prompt": "In an examination, 35% of the students passed and 455 failed. How many students appeared for the examination?",
+        "options": [
+          "(A) 490",
+          "(B) 700",
+          "(C) 845",
+          "(D) 1300"
+        ],
+        "correctIndex": 1,
+        "explanation": "The correct answer is option (b)."
+      },
+      {
+        "id": 112,
+        "type": "text",
+        "prompt": "A person who spends 66⅔% of his income is able to save ₹1200 per month. His monthly expenses (in ₹) are",
+        "options": [
+          "(A) ₹1200",
+          "(B) ₹2400",
+          "(C) ₹3000",
+          "(D) ₹3200"
+        ],
+        "correctIndex": 1,
+        "explanation": "The correct answer is option (b)."
+      },
+      {
+        "id": 113,
+        "type": "text",
+        "prompt": "In an election a candidate who gets 84% of the votes is elected by a majority of 476 votes. What is the total number of votes polled?",
+        "options": [
+          "(A) 672",
+          "(B) 700",
+          "(C) 749",
+          "(D) 848"
+        ],
+        "correctIndex": 1,
+        "explanation": "The correct answer is option (b)."
+      },
+      {
+        "id": 114,
+        "type": "text",
+        "prompt": "If (P%) of (P) is 36, then (P) is equal to",
+        "options": [
+          "(A) 15",
+          "(B) 60",
+          "(C) 600",
+          "(D) 3600"
+        ],
+        "correctIndex": 1,
+        "explanation": "The correct answer is option (b)."
+      },
+      {
+        "id": 115,
+        "type": "text",
+        "prompt": "If (x%) of (y) is equal to (z), what per cent of (z) is (x)?",
+        "options": [
+          "(A) ( rac{y^2}{100})",
+          "(B) ( rac{y}{100^2})",
+          "(C) ( rac{100}{y})",
+          "(D) ( rac{100^2}{y})"
+        ],
+        "correctIndex": 3,
+        "explanation": "The correct answer is option (d)."
+      },
+      {
+        "id": 116,
+        "type": "text",
+        "prompt": "Aman gave 40% of the amount he had to Rohan. Rohan in turn gave one-fourth of what he received from Aman to Sahil. After paying ₹200 to the taxi driver out of the amount he got from Rohan, Sahil now has ₹600 left with him. How much amount did Aman have?",
+        "options": [
+          "(A) ₹4000",
+          "(B) ₹8000",
+          "(C) ₹12000",
+          "(D) Data inadequate"
+        ],
+        "correctIndex": 1,
+        "explanation": "The correct answer is option (b)."
+      },
+      {
+        "id": 117,
+        "type": "text",
+        "prompt": "A spider climbed 62½% of the height of the pole in one hour and in the next hour it covered 12½% of the remaining height. If the height of the pole is 192 m, then the distance climbed in the second hour is",
+        "options": [
+          "(A) 3 m",
+          "(B) 5 m",
+          "(C) 7 m",
+          "(D) 9 m"
+        ],
+        "correctIndex": 3,
+        "explanation": "The correct answer is option (d)."
+      },
+      {
+        "id": 118,
+        "type": "text",
+        "prompt": "Of the 1000 inhabitants of a town, 60% are males of whom 20% are literate. If, of all the inhabitants, 25% are literate, then what per cent of the females of the town are literate?",
+        "options": [
+          "(A) 22.5",
+          "(B) 27.5",
+          "(C) 32.5",
+          "(D) 37.5"
+        ],
+        "correctIndex": 2,
+        "explanation": "The correct answer is option (c)."
+      },
+      {
+        "id": 119,
+        "type": "text",
+        "prompt": "In a recent survey, 40% houses contained two or more people. Of those houses containing only one person, 25% were having only a male. What is the percentage of all houses, which contain exactly one female and no males?",
+        "options": [
+          "(A) 15",
+          "(B) 40",
+          "(C) 75",
+          "(D) Cannot be determined",
+          "(E) None of these"
+        ],
+        "correctIndex": 4,
+        "explanation": "The correct answer is option (e)."
+      },
+      {
+        "id": 120,
+        "type": "text",
+        "prompt": "A scored 30% marks and failed by 15 marks. B scored 40% marks and obtained 35 marks more than that required to pass. The pass percentage is",
+        "options": [
+          "(A) 33%",
+          "(B) 38%",
+          "(C) 43%",
+          "(D) 46%"
+        ],
+        "correctIndex": 0,
+        "explanation": "The correct answer is option (a)."
+      },
+      {
+        "id": 121,
+        "type": "text",
+        "prompt": "In a History examination, the average for the entire class was 80 marks. If 10% of the students scored 95 marks and 20% scored 90 marks, what was the average marks of the remaining students of the class?",
+        "options": [
+          "(A) 65.5",
+          "(B) 72.5",
+          "(C) 75",
+          "(D) 85"
+        ],
+        "correctIndex": 2,
+        "explanation": "The correct answer is option (c)."
+      },
+      {
+        "id": 122,
+        "type": "text",
+        "prompt": "In an examination, there are three papers and a candidate has to get 35% of the total to pass. In one paper, he gets 62 out of 150 and in the second 35 out of 150. How much must he get, out of 180, in the third paper to just qualify for a pass?",
+        "options": [
+          "(A) 60.5",
+          "(B) 68",
+          "(C) 70",
+          "(D) 71"
+        ],
+        "correctIndex": 3,
+        "explanation": "The correct answer is option (d)."
+      },
+      {
+        "id": 123,
+        "type": "text",
+        "prompt": "The sum of the number of boys and girls in a school is 150. If the number of boys is (x), then the number of girls becomes (x%) of the total number of students. The number of boys is",
+        "options": [
+          "(A) 40",
+          "(B) 50",
+          "(C) 60",
+          "(D) 90"
+        ],
+        "correctIndex": 2,
+        "explanation": "The correct answer is option (c)."
+      },
+      {
+        "id": 124,
+        "type": "text",
+        "prompt": "A salesman is allowed 5½% discount on the total sales made by him plus a bonus of ½% on the sales over ₹10000. If his total earnings were ₹1990, then his total sales (in ₹) were",
+        "options": [
+          "(A) 30000",
+          "(B) 32000",
+          "(C) 34000",
+          "(D) 35000"
+        ],
+        "correctIndex": 2,
+        "explanation": "The correct answer is option (c)."
+      },
+      {
+        "id": 125,
+        "type": "text",
+        "prompt": "Peter earned 40% more money than Albert. Albert earned 20% less than Michael. Peter earned more than Michael by",
+        "options": [
+          "(A) 10%",
+          "(B) 12%",
+          "(C) 20%",
+          "(D) 25%"
+        ],
+        "correctIndex": 1,
+        "explanation": "The correct answer is option (b)."
+      },
+      {
+        "id": 126,
+        "type": "text",
+        "prompt": "A's salary is 40% of B's salary which is 25% of C's salary. What percentage of C's salary is A's salary?",
+        "options": [
+          "(A) 5%",
+          "(B) 10%",
+          "(C) 15%",
+          "(D) 20%"
+        ],
+        "correctIndex": 1,
+        "explanation": "The correct answer is option (b)."
+      },
+      {
+        "id": 127,
+        "type": "text",
+        "prompt": "In some quantity of ghee, 60% is pure ghee and 40% is vanaspati. If 10 kg of pure ghee is added, then the strength of vanaspati ghee becomes 20%. The original quantity was",
+        "options": [
+          "(A) 10 kg",
+          "(B) 15 kg",
+          "(C) 20 kg",
+          "(D) 25 kg"
+        ],
+        "correctIndex": 0,
+        "explanation": "The correct answer is option (a)."
+      },
+      {
+        "id": 128,
+        "type": "text",
+        "prompt": "Two numbers are respectively 12½% and 25% more than a third number. The first number as a percentage of the second number is",
+        "options": [
+          "(A) 50",
+          "(B) 60",
+          "(C) 75",
+          "(D) 90"
+        ],
+        "correctIndex": 0,
+        "explanation": "The correct answer is option (a)."
+      },
+      {
+        "id": 129,
+        "type": "text",
+        "prompt": "Two numbers are less than a third number by 30% and 37% respectively. How much per cent is the second number less than the first?",
+        "options": [
+          "(A) 3%",
+          "(B) 4%",
+          "(C) 7%",
+          "(D) 10%"
+        ],
+        "correctIndex": 3,
+        "explanation": "The correct answer is option (d)."
+      },
+      {
+        "id": 130,
+        "type": "text",
+        "prompt": "If A's height is 40% less than that of B, how much per cent is B's height more than that of A?",
+        "options": [
+          "(A) 33⅓%",
+          "(B) 40%",
+          "(C) 60%",
+          "(D) 66⅔%"
+        ],
+        "correctIndex": 3,
+        "explanation": "The correct answer is option (d)."
+      },
+      {
+        "id": 131,
+        "type": "text",
+        "prompt": "A's salary is 50% more than B's. How much per cent is B's salary less than A's?",
+        "options": [
+          "(A) 33%",
+          "(B) 33¼%",
+          "(C) 33⅓%",
+          "(D) 33½%"
+        ],
+        "correctIndex": 2,
+        "explanation": "The correct answer is option (c)."
+      },
+      {
+        "id": 132,
+        "type": "text",
+        "prompt": "The population of a town increases 4% annually but is decreased by emigration annually to the extent of 1½%. What will be the increase per cent in 3 years?",
+        "options": [
+          "(A) 9.8",
+          "(B) 10",
+          "(C) 10.5",
+          "(D) 10.8"
+        ],
+        "correctIndex": 3,
+        "explanation": "The correct answer is option (d)."
+      },
+      {
+        "id": 133,
+        "type": "text",
+        "prompt": "The total population of a village is 5000. The number of males and females increases by 10% and 15% respectively and consequently the population of the village becomes 5600. What was the number of males in the village?",
+        "options": [
+          "(A) 2000",
+          "(B) 2500",
+          "(C) 3000",
+          "(D) 4000"
+        ],
+        "correctIndex": 2,
+        "explanation": "The correct answer is option (c)."
+      },
+      {
+        "id": 134,
+        "type": "text",
+        "prompt": "Depreciation applicable to an equipment is 20%. The value of the equipment 3 years from now will be less by",
+        "options": [
+          "(A) 45%",
+          "(B) 48.8%",
+          "(C) 51.2%",
+          "(D) 60%"
+        ],
+        "correctIndex": 1,
+        "explanation": "The correct answer is option (b)."
+      },
+      {
+        "id": 135,
+        "type": "text",
+        "prompt": "The population of a town 2 years ago was 62500. Due to migration to big cities, it decreases every year at the rate of 4%. Present population of the town is",
+        "options": [
+          "(A) 56700",
+          "(B) 57600",
+          "(C) 58800",
+          "(D) 60000"
+        ],
+        "correctIndex": 1,
+        "explanation": "The correct answer is option (b)."
+      },
+      {
+        "id": 136,
+        "type": "text",
+        "prompt": "A district has 64000 inhabitants. If the population increases at the rate of 2½% per annum, then the number of inhabitants at the end of 3 years will be",
+        "options": [
+          "(A) 68911",
+          "(B) 68921",
+          "(C) 69200",
+          "(D) 70000"
+        ],
+        "correctIndex": 1,
+        "explanation": "The correct answer is option (b)."
+      },
+      {
+        "id": 137,
+        "type": "text",
+        "prompt": "The value of a machine depreciates at the rate of 10% every year. It was purchased 3 years ago. If its present value is ₹8748, its purchase price was",
+        "options": [
+          "(A) ₹10000",
+          "(B) ₹11372",
+          "(C) ₹12000",
+          "(D) ₹12500"
+        ],
+        "correctIndex": 2,
+        "explanation": "The correct answer is option (c)."
+      },
+      {
+        "id": 138,
+        "type": "text",
+        "prompt": "If inflation increases at a rate of 8% p.a., what will a ₹20 article cost at the end of two years?",
+        "options": [
+          "(A) Between ₹20 and ₹21",
+          "(B) Between ₹21 and ₹22",
+          "(C) Between ₹22 and ₹23",
+          "(D) Between ₹23 and ₹24"
+        ],
+        "correctIndex": 3,
+        "explanation": "The correct answer is option (d)."
+      },
+      {
+        "id": 139,
+        "type": "text",
+        "prompt": "The population of a town was 160000 three years ago. If it was increased by 3%, 2.5% and 5% respectively in the last three years, then the present population is",
+        "options": [
+          "(A) 177000",
+          "(B) 177366",
+          "(C) 177461",
+          "(D) 177596"
+        ],
+        "correctIndex": 1,
+        "explanation": "The correct answer is option (b)."
+      },
+      {
+        "id": 140,
+        "type": "text",
+        "prompt": "The population of a town increases by 5% annually. If its population in 2001 was 138915, what was it in 1998?",
+        "options": [
+          "(A) 100000",
+          "(B) 108000",
+          "(C) 110000",
+          "(D) 120000"
+        ],
+        "correctIndex": 3,
+        "explanation": "The correct answer is option (d)."
+      },
+      {
+        "id": 141,
+        "type": "text",
+        "prompt": "The production of a company has ups and downs every year. The production increases for two consecutive years consistently by 15% and in the third year it decreases by 10%. Again in the next two years it increases by 15% each year and decreases by 10% in the third year. If we start counting from the year 1998, approximately what will be the effect on production of the company in 2002?",
+        "options": [
+          "(A) 27% increase",
+          "(B) 32% increase",
+          "(C) 37% increase",
+          "(D) 42% increase",
+          "(E) 52% increase"
+        ],
+        "correctIndex": 2,
+        "explanation": "The correct answer is option (c)."
+      },
+      {
+        "id": 142,
+        "type": "text",
+        "prompt": "In the month of January, the Railway Police caught 4,000 ticketless travellers. In February, the number rose by 5%. However, due to constant vigil by the Police and the Railway staff, the number reduced by 5% and in April it further reduced by 10%. The total number of ticketless travellers caught in the month of April was",
+        "options": [
+          "(A) 3125",
+          "(B) 3255",
+          "(C) 3575",
+          "(D) 3591"
+        ],
+        "correctIndex": 3,
+        "explanation": "The correct answer is option (d)."
+      },
+      {
+        "id": 143,
+        "type": "text",
+        "prompt": "The population of a variety of tiny bushes in an experimental field increased by 10% in the first year, increased by 8% in the second year but decreased by 10% in the third year. If the present number of bushes in the experimental field is 26730, then the number of bushes in the beginning was",
+        "options": [
+          "(A) 25000",
+          "(B) 27000",
+          "(C) 28000",
+          "(D) 24600"
+        ],
+        "correctIndex": 0,
+        "explanation": "The correct answer is option (a)."
+      },
+      {
+        "id": 144,
+        "type": "text",
+        "prompt": "The quantity of water needed to reduce 9 ml shaving lotion containing 50% alcohol to a lotion containing 30% alcohol is",
+        "options": [
+          "(A) 4 ml",
+          "(B) 5 ml",
+          "(C) 6 ml",
+          "(D) 7 ml"
+        ],
+        "correctIndex": 2,
+        "explanation": "The correct answer is option (c)."
+      },
+      {
+        "id": 145,
+        "type": "text",
+        "prompt": "A bag contains 600 coins of 25 paise, 1200 coins of 50 paise. If 12% of 25p coins and 24% of 50p coins are removed, the percentage of money removed from the bag is nearly",
+        "options": [
+          "(A) 15.6%",
+          "(B) 17.8%",
+          "(C) 21.6%",
+          "(D) 30%"
+        ],
+        "correctIndex": 2,
+        "explanation": "The correct answer is option (c)."
       }
     ]
   }

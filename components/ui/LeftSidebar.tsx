@@ -31,11 +31,10 @@ export default function LeftSidebar() {
             <Link
               key={item.name}
               href={item.href}
-              className={`flex items-center gap-4 px-4 py-3 rounded-2xl border-2 transition-colors ${
-                isActive
+              className={`flex items-center gap-4 px-4 py-3 rounded-2xl border-2 transition-colors ${isActive
                   ? "bg-duo-green-light border-sky-blue text-sky-blue"
                   : "border-transparent text-charcoal hover:bg-duo-green-light hover:border-cloud-gray"
-              }`}
+                }`}
             >
               <div className="w-13 h-13 relative shrink-0">
                 <Image
