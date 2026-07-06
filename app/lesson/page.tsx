@@ -441,6 +441,66 @@ function LessonContent() {
             </button>
           </div>
         </div>
+
+        {showExitModal && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center z-50 p-4 animate-[fadeIn_0.2s_ease-out]">
+            <div className="bg-white border-2 border-cloud-gray border-b-8 rounded-[24px] w-full max-w-[460px] p-6 md:p-8 flex flex-col gap-6 md:gap-8 shadow-none animate-[scaleIn_0.2s_ease-out] relative">
+              
+              {/* Mascot & Dialogue */}
+              <div className="flex flex-col items-center text-center gap-5">
+                <div className="w-[96px] h-[96px] relative shrink-0">
+                  <Image 
+                    src="/emoji/wahhh.png" 
+                    alt="Sad Mascot" 
+                    fill 
+                    className="object-contain drop-shadow-md"
+                    unoptimized
+                  />
+                </div>
+                <div className="flex flex-col gap-3 font-din-round">
+                  <h3 className="font-feather text-2xl md:text-[28px] text-charcoal font-bold leading-tight tracking-wide">
+                    Wait, don't go!
+                  </h3>
+                  <p className="text-graphite text-body leading-relaxed max-w-[360px] mx-auto tracking-wide">
+                    You're in the middle of a test. If you quit now, you will lose your progress on this attempt!
+                  </p>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex flex-col sm:flex-row items-center gap-3 w-full mt-2">
+                <button
+                  onClick={() => {
+                    localStorage.removeItem(`quiz_state_${testId}`);
+                    router.push("/dashboard");
+                  }}
+                  className="w-full sm:flex-1 bg-white text-[#ff4b4b] border-2 border-cloud-gray font-bold py-3 px-6 rounded-2xl shadow-[0_4px_0_var(--color-cloud-gray)] active:translate-y-[4px] active:shadow-none hover:bg-gray-50 transition-all text-body text-center cursor-pointer font-din-round"
+                >
+                  QUIT TEST
+                </button>
+                <button
+                  onClick={() => setShowExitModal(false)}
+                  className="w-full sm:flex-1 bg-duo-green text-white font-bold py-3 px-6 rounded-2xl shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none hover:brightness-105 transition-all text-body text-center cursor-pointer font-din-round"
+                >
+                  KEEP LEARNING
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <style dangerouslySetInnerHTML={{
+          __html: `
+            @keyframes fadeIn {
+              from { opacity: 0; }
+              to { opacity: 1; }
+            }
+            @keyframes scaleIn {
+              from { opacity: 0; transform: scale(0.95); }
+              to { opacity: 1; transform: scale(1); }
+            }
+          `
+        }} />
       </div>
     );
   }

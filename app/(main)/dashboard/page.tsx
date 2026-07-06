@@ -341,7 +341,7 @@ export default function DashboardPage() {
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-2xl">📈</span>
                       <span className="bg-duo-green/10 text-duo-green text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
-                        Ready (5 Chapters)
+                        Ready (7 Chapters)
                       </span>
                     </div>
                     <h4 className="font-feather text-base md:text-lg font-bold text-charcoal">
@@ -531,6 +531,8 @@ export default function DashboardPage() {
                     else if (testNum === 3) testTitle = "Chapter 3: Probability";
                     else if (testNum === 4) testTitle = "Chapter 4: Ratio and Proportion";
                     else if (testNum === 5) testTitle = "Chapter 5: Percentage";
+                    else if (testNum === 6) testTitle = "Chapter 6: Average";
+                    else if (testNum === 7) testTitle = "Chapter 7: Problems on Ages";
                     else testTitle = `Chapter ${testNum}`;
                   }
                   const testId = `${formattedTopic}_test${testNum}`;
