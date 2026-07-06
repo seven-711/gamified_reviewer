@@ -22,7 +22,13 @@ export default function ProfilePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [timerDuration, setTimerDuration] = useState<number>(5);
+  const [timerDuration, setTimerDuration] = useState<number>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("timer_duration");
+      if (saved) return parseInt(saved, 10);
+    }
+    return 5;
+  });
   const [savingTimer, setSavingTimer] = useState(false);
   const { user, isLoaded, isSignedIn } = useUser();
 
@@ -89,19 +95,7 @@ export default function ProfilePage() {
     }
   };
 
-  if (loading || !isLoaded) {
-    return (
-      <main className="flex-1 w-full max-w-[600px] mx-auto pb-24">
-        <div className="flex h-[50vh] items-center justify-center font-din-round">
-          <div className="flex flex-col items-center gap-4">
-            <div className="h-12 w-12 animate-spin rounded-full border-4 border-cloud-gray border-t-duo-green"></div>
-          </div>
-        </div>
-      </main>
-    );
-  }
-
-  if (!isSignedIn || !user) {
+  if (isLoaded && (!isSignedIn || !user)) {
     return (
       <main className="flex-1 w-full max-w-[600px] mx-auto pb-24 pt-12 flex flex-col items-center text-center px-6">
         <div className="w-32 h-32 relative mb-6 opacity-80">
@@ -123,14 +117,32 @@ export default function ProfilePage() {
         {/* Profile Header section */}
         <div className="flex flex-col md:flex-row items-center md:items-start gap-6 border-b-2 border-cloud-gray pb-8 mb-8">
           <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-2 border-cloud-gray relative bg-duo-green-light shrink-0">
-            <img src="/emoji/profile.png" alt="Avatar" className="object-cover w-full h-full rounded-full scale-[1.7] translate-y-1" />
+            {(!isLoaded || !user) ? (
+              <div className="w-full h-full bg-cloud-gray/20 animate-pulse rounded-full" />
+            ) : (
+              <img src="/emoji/profile.png" alt="Avatar" className="object-cover w-full h-full rounded-full scale-[1.7] translate-y-1" />
+            )}
           </div>
           <div className="flex flex-col flex-1 items-center md:items-start text-center md:text-left gap-2 w-full font-din-round">
-            <h1 className="font-feather text-2xl md:text-3xl font-bold text-white mb-1">{user.fullName || "Learner"}</h1>
-            <p className="text-silver font-medium text-sm md:text-body">{user.primaryEmailAddress?.emailAddress}</p>
-            <p className="text-sky-blue font-bold text-sm md:text-body tracking-wide uppercase mt-1">
-               {profile?.exam_category} • {profile?.study_style}
-            </p>
+            {(!isLoaded || !user) ? (
+              <div className="flex flex-col gap-2.5 w-full items-center md:items-start">
+                <div className="h-7 bg-cloud-gray/20 rounded w-1/2 animate-pulse animate-[fadeIn_0.3s_ease-out]" />
+                <div className="h-4 bg-cloud-gray/10 rounded w-1/3 animate-pulse animate-[fadeIn_0.3s_ease-out]" />
+                <div className="h-4 bg-cloud-gray/10 rounded w-1/4 animate-pulse mt-1 animate-[fadeIn_0.3s_ease-out]" />
+              </div>
+            ) : (
+              <>
+                <h1 className="font-feather text-2xl md:text-3xl font-bold text-white mb-1 animate-[fadeIn_0.3s_ease-out]">{user.fullName || "Learner"}</h1>
+                <p className="text-silver font-medium text-sm md:text-body animate-[fadeIn_0.3s_ease-out]">{user.primaryEmailAddress?.emailAddress}</p>
+                {loading || !profile ? (
+                  <div className="h-4 bg-cloud-gray/10 rounded w-1/4 animate-pulse mt-1 animate-[fadeIn_0.3s_ease-out]" />
+                ) : (
+                  <p className="text-sky-blue font-bold text-sm md:text-body tracking-wide uppercase mt-1 animate-[fadeIn_0.3s_ease-out]">
+                     {profile.exam_category} • {profile.study_style}
+                  </p>
+                )}
+              </>
+            )}
           </div>
            <div className="flex flex-col items-center gap-3 shrink-0">
               <button onClick={() => router.push("/onboarding")} className="w-full bg-transparent border-2 border-cloud-gray text-sky-blue font-bold px-6 py-2.5 rounded-2xl hover:bg-duo-green-light transition-colors uppercase tracking-widest text-caption">
@@ -139,7 +151,7 @@ export default function ProfilePage() {
               <SignOutButton>
                 <div className="flex items-center justify-center gap-3 bg-transparent border-2 border-red-500/50 px-4 py-2.5 rounded-2xl cursor-pointer hover:bg-red-500/10 transition-colors w-full mt-2">
                   <div className="w-6 h-6 rounded-full overflow-hidden bg-duo-green-light shrink-0 border border-red-500/30">
-                    <img src={user.hasImage ? user.imageUrl : "/emoji/profile.png"} alt="Profile" className={`object-cover w-full h-full scale-[1.3] ${!user.hasImage && 'rounded-full translate-y-[2px]'}`} />
+                    <img src={(user && user.hasImage) ? user.imageUrl : "/emoji/profile.png"} alt="Profile" className={`object-cover w-full h-full scale-[1.3] ${(user && !user.hasImage) && 'rounded-full translate-y-[2px]'}`} />
                   </div>
                   <span className="text-red-500 font-bold uppercase tracking-widest text-caption">
                     Sign Out
@@ -155,14 +167,22 @@ export default function ProfilePage() {
           <div className="border-2 border-cloud-gray rounded-2xl p-4 flex items-center gap-4">
              <div className="text-3xl">🔥</div>
              <div className="flex flex-col">
-               <span className="font-bold text-xl text-white">{profile?.streak || 0}</span>
+               {loading || !profile ? (
+                 <div className="h-6 w-12 bg-cloud-gray/20 rounded animate-pulse" />
+               ) : (
+                 <span className="font-bold text-xl text-white animate-[fadeIn_0.3s_ease-out]">{profile.streak || 0}</span>
+               )}
                <span className="text-silver font-medium text-caption uppercase tracking-wide">Day Streak</span>
              </div>
           </div>
           <div className="border-2 border-cloud-gray rounded-2xl p-4 flex items-center gap-4">
              <div className="text-3xl">⚡</div>
              <div className="flex flex-col">
-               <span className="font-bold text-xl text-white">{profile?.total_score || 0}</span>
+               {loading || !profile ? (
+                 <div className="h-6 w-12 bg-cloud-gray/20 rounded animate-pulse" />
+               ) : (
+                 <span className="font-bold text-xl text-white animate-[fadeIn_0.3s_ease-out]">{profile.total_score || 0}</span>
+               )}
                <span className="text-silver font-medium text-caption uppercase tracking-wide">Total XP</span>
              </div>
           </div>

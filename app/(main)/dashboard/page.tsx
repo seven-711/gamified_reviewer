@@ -22,7 +22,27 @@ interface UserProfile {
 export default function DashboardPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(() => {
+    if (typeof window !== "undefined") {
+      const pendingPrefs = localStorage.getItem("onboarding_prefs");
+      if (pendingPrefs) {
+        try {
+          const prefs = JSON.parse(pendingPrefs);
+          return {
+            id: "guest",
+            email: "",
+            exam_category: prefs.category,
+            sub_topic: prefs.subTopic,
+            study_style: prefs.studyStyle,
+            difficulty: prefs.difficulty,
+            total_score: 0,
+            streak: 0
+          };
+        } catch (e) {}
+      }
+    }
+    return null;
+  });
   const { user, isLoaded, isSignedIn } = useUser();
 
   const [scores, setScores] = useState<Record<string, {score: number, total: number, previousBest?: number, lastScore?: number, attempts?: number}>>({});
@@ -30,7 +50,13 @@ export default function DashboardPage() {
   const [testCount, setTestCount] = useState<number>(0);
 
   const [selectedTestForTimer, setSelectedTestForTimer] = useState<{ testId: string; testTitle: string } | null>(null);
-  const [modalTimerDuration, setModalTimerDuration] = useState<number>(5);
+  const [modalTimerDuration, setModalTimerDuration] = useState<number>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("timer_duration");
+      if (saved) return parseInt(saved, 10);
+    }
+    return 5;
+  });
   const [savingTimer, setSavingTimer] = useState(false);
   const [quantSection, setQuantSection] = useState<string | null>(null);
 
@@ -214,24 +240,6 @@ export default function DashboardPage() {
     setSavingTimer(false);
   };
 
-  if (loading) {
-    return (
-      <>
-        <main className="flex-1 w-full max-w-[600px] mx-auto pb-24">
-          <div className="flex h-[50vh] items-center justify-center font-din-round">
-            <div className="flex flex-col items-center gap-4">
-              <div className="h-12 w-12 animate-spin rounded-full border-4 border-cloud-gray border-t-duo-green"></div>
-              <p className="text-graphite font-bold">Loading path...</p>
-            </div>
-          </div>
-        </main>
-        <aside className="hidden lg:block w-[368px] shrink-0">
-          <RightSidebar />
-        </aside>
-      </>
-    );
-  }
-
   // Determine active index based on scores
   const rawSubTopic = profile?.sub_topic || "General Review";
   const fullTopic = rawSubTopic;
@@ -267,7 +275,11 @@ export default function DashboardPage() {
                 </span>
               </div>
               <h2 className="font-feather text-lg md:text-2xl font-bold tracking-wide">
-                {profile?.exam_category} {fullTopic ? `- ${fullTopic}` : "- Fundamentals"}
+                {profile ? (
+                  `${profile.exam_category} ${topicName ? `- ${topicName}` : ""}`
+                ) : (
+                  <div className="h-6 w-48 bg-white/20 rounded animate-pulse mt-1" />
+                )}
               </h2>
             </div>
             <button className="flex items-center w-35 justify-center gap-2 bg-white/20 hover:bg-white/30 text-white font-bold px-4 py-2.5 rounded-2xl transition-colors shadow-[0_2px_0_rgba(255,255,255,0.2)]">
@@ -520,7 +532,21 @@ export default function DashboardPage() {
 
               {/* Topic Cards */}
               <div className="flex flex-col w-full gap-4 md:gap-5 pb-24 px-4 md:px-0">
-                {Array.from({ length: testCount }, (_, i) => i + 1).map((testNum, index) => {
+                {loading ? (
+                  /* Shimmering Skeleton Loader Cards representing progressive loading */
+                  [...Array(4)].map((_, i) => (
+                    <div key={i} className="w-full relative animate-pulse">
+                      <div className="w-full flex items-center justify-between p-5 md:p-6 rounded-2xl border-2 border-cloud-gray/70 bg-cloud-gray/10 shadow-[0_6px_0_rgba(229,229,229,0.3)]">
+                        <div className="flex flex-col gap-2.5 w-2/3">
+                          <div className="h-5 bg-cloud-gray/20 rounded w-5/6" />
+                          <div className="h-3.5 bg-cloud-gray/15 rounded w-1/2" />
+                        </div>
+                        <div className="w-10 h-10 rounded-full bg-cloud-gray/20 shrink-0" />
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  Array.from({ length: testCount }, (_, i) => i + 1).map((testNum, index) => {
                   const isActive = index === activeIndex;
                   const isLocked = !unlockAll && index > activeIndex;
                   
@@ -603,7 +629,8 @@ export default function DashboardPage() {
                   </button>
                 </div>
               );
-            })}
+            })
+            )}
 
             {/* Chest reward node mock */}
             <div className="relative w-full mt-2">
