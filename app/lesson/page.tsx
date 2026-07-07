@@ -259,6 +259,13 @@ function LessonContent() {
           keyTimeoutRef.current = setTimeout(() => {
             keyBufferRef.current = "";
           }, 400); // 400ms window for multi-digit numbers
+        } else if (/^[a-zA-Z]$/.test(e.key)) {
+          const char = e.key.toUpperCase();
+          const charCode = char.charCodeAt(0) - 65; // A=0, B=1, C=2, D=3, E=4...
+          if (charCode >= 0 && charCode < question.options.length) {
+            setSelectedOption(charCode);
+            setStatus("selected");
+          }
         }
       }
 
@@ -345,7 +352,7 @@ function LessonContent() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-white font-din-round text-almost-black px-6 text-center">
         <div className="w-48 h-48 relative mb-4">
-          <Image src="/emoji/wahhh.png" alt="Error face" fill className="object-contain drop-shadow-lg mx-auto" />
+          <Image src="/emoji/wahhh.webp" alt="Error face" fill className="object-contain drop-shadow-lg mx-auto" />
         </div>
         <h1 className="font-feather text-3xl mb-4 text-[#ea2b2b]">Content Under Construction</h1>
         <p className="text-[17px] text-graphite mb-4 max-w-md">
@@ -450,7 +457,7 @@ function LessonContent() {
               <div className="flex flex-col items-center text-center gap-5">
                 <div className="w-[96px] h-[96px] relative shrink-0">
                   <Image 
-                    src="/emoji/wahhh.png" 
+                    src="/emoji/wahhh.webp" 
                     alt="Sad Mascot" 
                     fill 
                     className="object-contain drop-shadow-md"
@@ -525,15 +532,15 @@ function LessonContent() {
     const isTimeUp = timeLeft === 0;
     const percentage = (correctAnswers / questions.length) * 100;
     
-    let emojiSrc = "/emoji/naysu.png";
+    let emojiSrc = "/emoji/naysu.webp";
     if (percentage === 100) {
-      emojiSrc = "/emoji/awow.png";
+      emojiSrc = "/emoji/awow.webp";
     } else if (percentage >= 80) {
-      emojiSrc = "/emoji/naysu.png";
+      emojiSrc = "/emoji/naysu.webp";
     } else if (percentage >= 50) {
-      emojiSrc = "/emoji/hmm.png";
+      emojiSrc = "/emoji/hmm.webp";
     } else {
-      emojiSrc = "/emoji/wahhh.png";
+      emojiSrc = "/emoji/wahhh.webp";
     }
     
     return (
@@ -713,7 +720,7 @@ function LessonContent() {
             <div className="flex flex-col items-center text-center gap-5">
               <div className="w-[96px] h-[96px] relative shrink-0">
                 <Image 
-                  src="/emoji/wahhh.png" 
+                  src="/emoji/wahhh.webp" 
                   alt="Sad Mascot" 
                   fill 
                   className="object-contain drop-shadow-md"

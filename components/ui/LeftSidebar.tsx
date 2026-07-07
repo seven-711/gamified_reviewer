@@ -6,11 +6,11 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 
 const NAV_ITEMS = [
-  { name: "LEARN", href: "/dashboard", icon: "/emoji/learn.png" },
-  { name: "LEADERBOARDS", href: "/leaderboard", icon: "/emoji/leaderboard.png" },
-  { name: "QUESTS", href: "#", icon: "/emoji/quest.png" },
-  { name: "SHOP", href: "#", icon: "/emoji/shop.png" },
-  { name: "PROFILE", href: "/profile", icon: "/emoji/profile.png" },
+  { name: "LEARN", href: "/dashboard", icon: "/emoji/learn.webp" },
+  { name: "LEADERBOARDS", href: "/leaderboard", icon: "/emoji/leaderboard.webp" },
+  { name: "QUESTS", href: "#", icon: "/emoji/quest.webp" },
+  { name: "SHOP", href: "#", icon: "/emoji/shop.webp" },
+  { name: "PROFILE", href: "/profile", icon: "/emoji/profile.webp" },
 ];
 
 export default function LeftSidebar() {

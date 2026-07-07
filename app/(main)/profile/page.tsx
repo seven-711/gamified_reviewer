@@ -99,7 +99,7 @@ export default function ProfilePage() {
     return (
       <main className="flex-1 w-full max-w-[600px] mx-auto pb-24 pt-12 flex flex-col items-center text-center px-6">
         <div className="w-32 h-32 relative mb-6 opacity-80">
-          <Image src="/emoji/profile.png" alt="Profile" fill className="object-contain" unoptimized />
+          <Image src="/emoji/profile.webp" alt="Profile" fill className="object-contain" unoptimized />
         </div>
         <h2 className="font-feather text-3xl font-bold text-duo-green mb-4">Create a Profile!</h2>
         <p className="text-silver font-din-round text-[17px] mb-8 max-w-[400px]">Sign up to track your streak, earn XP, and compete on the leaderboards.</p>
@@ -120,7 +120,7 @@ export default function ProfilePage() {
             {(!isLoaded || !user) ? (
               <div className="w-full h-full bg-cloud-gray/20 animate-pulse rounded-full" />
             ) : (
-              <img src="/emoji/profile.png" alt="Avatar" className="object-cover w-full h-full rounded-full scale-[1.7] translate-y-1" />
+              <img src="/emoji/profile.webp" alt="Avatar" className="object-cover w-full h-full rounded-full scale-[1.7] translate-y-1" />
             )}
           </div>
           <div className="flex flex-col flex-1 items-center md:items-start text-center md:text-left gap-2 w-full font-din-round">
@@ -151,7 +151,7 @@ export default function ProfilePage() {
               <SignOutButton>
                 <div className="flex items-center justify-center gap-3 bg-transparent border-2 border-red-500/50 px-4 py-2.5 rounded-2xl cursor-pointer hover:bg-red-500/10 transition-colors w-full mt-2">
                   <div className="w-6 h-6 rounded-full overflow-hidden bg-duo-green-light shrink-0 border border-red-500/30">
-                    <img src={(user && user.hasImage) ? user.imageUrl : "/emoji/profile.png"} alt="Profile" className={`object-cover w-full h-full scale-[1.3] ${(user && !user.hasImage) && 'rounded-full translate-y-[2px]'}`} />
+                    <img src={(user && user.hasImage) ? user.imageUrl : "/emoji/profile.webp"} alt="Profile" className={`object-cover w-full h-full scale-[1.3] ${(user && !user.hasImage) && 'rounded-full translate-y-[2px]'}`} />
                   </div>
                   <span className="text-red-500 font-bold uppercase tracking-widest text-caption">
                     Sign Out
@@ -238,7 +238,7 @@ export default function ProfilePage() {
         <h2 className="font-feather text-xl md:text-2xl font-bold text-white mb-4">Achievements</h2>
         <div className="border-2 border-cloud-gray rounded-2xl p-6 flex items-center justify-between opacity-50">
            <div className="flex items-center gap-4">
-              <Image src="/emoji/quest.png" alt="Quest" width={48} height={48} className="grayscale w-auto h-auto" unoptimized />
+              <Image src="/emoji/quest.webp" alt="Quest" width={48} height={48} className="grayscale w-auto h-auto" unoptimized />
               <div className="flex flex-col gap-1">
                  <h3 className="font-bold text-lg text-white">First Steps</h3>
                  <p className="text-silver text-body font-medium">Complete your first lesson</p>
@@ -261,7 +261,7 @@ export default function ProfilePage() {
           </button>
           <div className="w-full flex justify-center mt-4">
             <div className="w-32 h-32 relative">
-              <Image src="/emoji/hmm.png" alt="Friends" fill className="object-contain" unoptimized />
+              <Image src="/emoji/hmm.webp" alt="Friends" fill className="object-contain" unoptimized />
             </div>
           </div>
         </div>

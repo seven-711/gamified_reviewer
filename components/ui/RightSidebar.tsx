@@ -60,7 +60,7 @@ export default function RightSidebar() {
         </div>
         <div className="flex items-center gap-4 mt-2">
           <div className="w-20 h-20 relative shrink-0">
-            <Image src="/emoji/unlockleaderboard.png" alt="Leaderboard Locked" fill className="object-contain" unoptimized />
+            <Image src="/emoji/unlockleaderboard.webp" alt="Leaderboard Locked" fill className="object-contain" unoptimized />
           </div>
           <p className="text-silver text-body font-medium leading-tight">
             Complete 1 more lesson to start competing
@@ -77,7 +77,7 @@ export default function RightSidebar() {
         
         <div className="flex items-center gap-4 mt-4">
           <div className="w-20 h-20 relative shrink-0">
-            <Image src="/emoji/quest.png" alt="Quest" fill className="object-contain" unoptimized />
+            <Image src="/emoji/quest.webp" alt="Quest" fill className="object-contain" unoptimized />
           </div>
           <div className="flex flex-col w-full gap-2">
             <span className="font-bold text-body text-charcoal">Earn 10 XP</span>

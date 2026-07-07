@@ -11,7 +11,7 @@ export default function LeaderboardPage() {
       <main className="flex-1 w-full max-w-[600px] mx-auto pb-24 flex flex-col items-center pt-10 md:pt-20 px-4">
         <div className="w-full flex justify-center mb-6 relative">
            <div className="w-48 h-48 relative">
-             <Image src="/emoji/unlockleaderboard.png" alt="Unlock Leaderboard" fill className="object-contain" unoptimized />
+             <Image src="/emoji/unlockleaderboard.webp" alt="Unlock Leaderboard" fill className="object-contain" unoptimized />
            </div>
         </div>
         
@@ -27,7 +27,7 @@ export default function LeaderboardPage() {
         >
           Start a Lesson
         </Link>
-
+ 
         {/* Mock Leaderboard list */}
         <div className="w-full max-w-[400px] mt-16 flex flex-col gap-6 opacity-40 pointer-events-none">
            {[...Array(5)].map((_, i) => (
@@ -38,7 +38,7 @@ export default function LeaderboardPage() {
            ))}
         </div>
       </main>
-
+ 
       {/* Right Sidebar */}
       <aside className="hidden lg:block w-[368px] shrink-0 pt-8">
         <div className="border-2 border-cloud-gray rounded-2xl p-6 flex flex-col gap-5">
@@ -51,7 +51,7 @@ export default function LeaderboardPage() {
           </p>
           <div className="w-full flex justify-end mt-4">
             <div className="w-36 h-36 relative mt-2">
-              <Image src="/emoji/hmm.png" alt="Mascot" fill className="object-contain" unoptimized />
+              <Image src="/emoji/hmm.webp" alt="Mascot" fill className="object-contain" unoptimized />
             </div>
           </div>
         </div>

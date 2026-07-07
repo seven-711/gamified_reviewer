@@ -362,7 +362,7 @@ export default function OnboardingPage() {
         <div className="flex gap-4 items-center mb-8 animate-[fadeIn_0.4s_ease-out]">
           <div className="w-28 h-28 md:w-36 md:h-36 rounded-full overflow-hidden border-2 border-cloud-gray relative bg-duo-green-light shrink-0">
             <Image 
-              src="/emoji/profile.png" 
+              src="/emoji/profile.webp" 
               alt="Mascot Profile" 
               fill 
               className="object-cover scale-[1.7] translate-y-1"

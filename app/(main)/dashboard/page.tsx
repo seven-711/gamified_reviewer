@@ -283,7 +283,7 @@ export default function DashboardPage() {
               </h2>
             </div>
             <button className="flex items-center w-35 justify-center gap-2 bg-white/20 hover:bg-white/30 text-white font-bold px-4 py-2.5 rounded-2xl transition-colors shadow-[0_2px_0_rgba(255,255,255,0.2)]">
-              <Image src="/emoji/guidebook.png" alt="Guidebook" width={24} height={24} className="brightness-0 invert w-auto h-auto" />
+              <Image src="/emoji/guidebook.webp" alt="Guidebook" width={24} height={24} className="brightness-0 invert w-auto h-auto" />
               <span className="hidden sm:inline text-sm">GUIDEBOOK</span>
             </button>
           </div>
@@ -322,7 +322,7 @@ export default function DashboardPage() {
               <div className="flex gap-4 items-center bg-sky-blue/5 border-2 border-sky-blue/20 rounded-2xl p-4 md:p-5 shadow-sm text-left">
                 <div className="w-20 h-20 relative shrink-0">
                   <Image 
-                    src="/emoji/suspicious.png" 
+                    src="/emoji/suspicious.webp" 
                     alt="Thinking Mascot" 
                     fill 
                     className="object-contain drop-shadow-md"
@@ -457,7 +457,7 @@ export default function DashboardPage() {
                 {/* Floating Mascot with shadow */}
                 <div className="w-28 h-28 relative shrink-0 animate-[float_3s_infinite] drop-shadow-[0_6px_12px_rgba(0,0,0,0.1)]">
                   <Image 
-                    src="/emoji/hmm.png" 
+                    src="/emoji/hmm.webp" 
                     alt="Thinking Mascot" 
                     fill 
                     className="object-contain"
@@ -575,7 +575,7 @@ export default function DashboardPage() {
                 titleClass = "text-white";
                 subtitleClass = "text-white/80";
                 badgeClass = "bg-white shadow-[0_4px_0_#e5e5e5]";
-                badgeContent = <Image src="/emoji/star.png" alt="Start" width={22} height={22} className="object-contain drop-shadow-md" unoptimized />;
+                badgeContent = <Image src="/emoji/star.webp" alt="Start" width={22} height={22} className="object-contain drop-shadow-md" unoptimized />;
               } else if (isLocked) {
                 cardClass = "bg-snow-white border-2 border-cloud-gray shadow-[0_6px_0_var(--color-cloud-gray)] opacity-50 cursor-not-allowed text-silver";
                 titleClass = "text-silver";
@@ -595,7 +595,7 @@ export default function DashboardPage() {
                   {/* Mascot near active node */}
                   {isActive && (
                     <div className="absolute -top-12 -right-2 md:-right-6 w-[70px] h-[70px] animate-[bounce_2.5s_infinite] z-20">
-                      <Image src="/emoji/awow.png" alt="Mascot" fill className="object-contain drop-shadow-lg" sizes="(max-width: 768px) 100vw, 50vw" />
+                      <Image src="/emoji/awow.webp" alt="Mascot" fill className="object-contain drop-shadow-lg" sizes="(max-width: 768px) 100vw, 50vw" />
                     </div>
                   )}
                   
@@ -645,7 +645,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="flex-shrink-0 ml-4">
                   <div className="w-10 h-10 bg-cloud-gray/20 border border-cloud-gray rounded-full flex items-center justify-center">
-                    <Image src="/emoji/quest.png" alt="Reward Chest" width={24} height={24} className="grayscale opacity-50 w-auto h-auto" unoptimized />
+                    <Image src="/emoji/quest.webp" alt="Reward Chest" width={24} height={24} className="grayscale opacity-50 w-auto h-auto" unoptimized />
                   </div>
                 </div>
               </button>
@@ -689,7 +689,7 @@ export default function DashboardPage() {
             <div className="flex gap-3 md:gap-4 items-center mb-1">
               <div className="w-[56px] h-[56px] md:w-[72px] md:h-[72px] relative shrink-0">
                 <Image 
-                  src="/emoji/suspicious.png" 
+                  src="/emoji/suspicious.webp" 
                   alt="Thinking Mascot" 
                   fill 
                   className="object-contain drop-shadow-md"

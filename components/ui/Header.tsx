@@ -106,7 +106,7 @@ export function Header() {
                 <div className="relative w-9 h-9 sm:w-10 sm:h-10 cursor-pointer">
                   {/* Custom gamified avatar */}
                   <div className="absolute inset-0 rounded-full overflow-hidden border-2 border-cloud-gray hover:border-sky-blue transition-colors bg-duo-green-light p-0.5 flex items-center justify-center">
-                    <img src={user.hasImage ? user.imageUrl : "/emoji/profile.png"} alt="Profile" className={`object-cover w-full h-full ${!user.hasImage && 'rounded-full'}`} />
+                    <img src={user.hasImage ? user.imageUrl : "/emoji/profile.webp"} alt="Profile" className={`object-cover w-full h-full ${!user.hasImage && 'rounded-full'}`} />
                   </div>
                   {/* Invisible Clerk UserButton overlay to capture clicks and show the dropdown popup */}
                   <div className="absolute inset-0 opacity-0 z-10">
