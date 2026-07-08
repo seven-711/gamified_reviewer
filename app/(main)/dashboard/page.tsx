@@ -835,8 +835,8 @@ export default function DashboardPage() {
                   </span>
                 </div>
 
-                <label className="flex items-center cursor-pointer gap-3 opacity-70 hover:opacity-100 transition-opacity">
-                  <span className="text-silver font-bold text-xs uppercase tracking-wide">Unlock All</span>
+                <label className="flex items-center cursor-pointer gap-3 opacity-70 hover:opacity-100 transition-opacity shrink-0">
+                  <span className="text-silver font-bold text-xs uppercase tracking-wide whitespace-nowrap">Unlock All</span>
                   <div className="relative">
                     <input type="checkbox" className="sr-only" checked={unlockAll} onChange={() => setUnlockAll(!unlockAll)} />
                     <div className={`block w-10 h-6 rounded-full transition-colors ${unlockAll ? 'bg-duo-green' : 'bg-[#29353c]'}`}></div>
