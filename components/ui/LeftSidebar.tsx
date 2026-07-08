@@ -8,8 +8,8 @@ import { usePathname } from "next/navigation";
 const NAV_ITEMS = [
   { name: "LEARN", href: "/dashboard", icon: "/emoji/learn.webp" },
   { name: "LEADERBOARDS", href: "/leaderboard", icon: "/emoji/leaderboard.webp" },
-  { name: "QUESTS", href: "#", icon: "/emoji/quest.webp" },
-  { name: "SHOP", href: "#", icon: "/emoji/shop.webp" },
+  { name: "QUESTS", href: "/quests", icon: "/emoji/quest.webp" },
+  { name: "SHOP", href: "/shop", icon: "/emoji/shop.webp" },
   { name: "PROFILE", href: "/profile", icon: "/emoji/profile.webp" },
 ];
 

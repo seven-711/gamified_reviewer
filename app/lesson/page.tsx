@@ -7,6 +7,9 @@ import { QuizFooter } from "@/components/ui/QuizFooter";
 // Data fetched via API to improve client bundle performance
 import Image from "next/image";
 import { parseMathText } from "@/lib/mathUtils";
+import { useUser } from "@clerk/nextjs";
+import { getOrCreateGuestSessionId, updateProfileStats, refillHeartsInDb } from "@/lib/session";
+import { supabase } from "@/lib/supabase";
 
 type QuizStatus = "none" | "selected" | "correct" | "wrong" | "completed";
 
@@ -28,6 +31,8 @@ function LessonContent() {
   const searchParams = useSearchParams();
   const testId = searchParams.get("testId") || "abstract_reasoning_test1";
   
+  const { user, isSignedIn } = useUser();
+  
   const [questions, setQuestions] = useState<any[]>([]);
   const [shuffledIndices, setShuffledIndices] = useState<number[]>([]);
   const [testExamples, setTestExamples] = useState<any[]>([]);
@@ -48,6 +53,36 @@ function LessonContent() {
   const keyBufferRef = React.useRef<string>("");
   const keyTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const scoreSavedRef = React.useRef<boolean>(false);
+  const [xpBreakdown, setXpBreakdown] = useState<{ base: number; speed: number; duration: number; total: number; } | null>(null);
+  const [hearts, setHearts] = useState<number>(5);
+  const [showOutOfHeartsModal, setShowOutOfHeartsModal] = useState<boolean>(false);
+  const [profileXp, setProfileXp] = useState<number>(0);
+  const [profileGems, setProfileGems] = useState<number>(50);
+  const [refilling, setRefilling] = useState<boolean>(false);
+  const [gemsEarnedSummary, setGemsEarnedSummary] = useState<{
+    lesson: number;
+    pass: number;
+    perfect: number;
+    streakBonus: number;
+    total: number;
+  } | null>(null);
+
+  const handleRefillHearts = async () => {
+    if (profileGems < 50) return;
+    setRefilling(true);
+    const profileId = isSignedIn && user ? user.id : getOrCreateGuestSessionId();
+    if (profileId) {
+      const res = await refillHeartsInDb(profileId);
+      if (res.success) {
+        setHearts(5);
+        setProfileGems((prev) => Math.max(0, prev - 50));
+        setShowOutOfHeartsModal(false);
+      } else {
+        alert("Refill failed: " + res.error);
+      }
+    }
+    setRefilling(false);
+  };
 
   // Confirmation on window reload/close
   useEffect(() => {
@@ -125,6 +160,24 @@ function LessonContent() {
           const savedDuration = localStorage.getItem("timer_duration");
           setTimeLeft((savedDuration ? parseInt(savedDuration, 10) : 5) * 60);
         }
+        const profileId = isSignedIn && user ? user.id : getOrCreateGuestSessionId();
+        if (profileId) {
+          try {
+            const { data: dbProfile } = await supabase
+              .from("profiles")
+              .select("hearts, total_score, gems")
+              .eq("id", profileId)
+              .single();
+            if (dbProfile) {
+              setHearts(dbProfile.hearts !== undefined && dbProfile.hearts !== null ? dbProfile.hearts : 5);
+              setProfileXp(dbProfile.total_score || 0);
+              setProfileGems(dbProfile.gems !== undefined && dbProfile.gems !== null ? dbProfile.gems : 50);
+            }
+          } catch (dbErr) {
+            console.error("Failed to fetch hearts from Supabase", dbErr);
+          }
+        }
+
         setIsLoaded(true);
       } catch (err: any) {
         console.error("Failed to initialize test", err);
@@ -134,7 +187,7 @@ function LessonContent() {
       }
     }
     init();
-  }, [testId]);
+  }, [testId, isSignedIn, user]);
 
   // Save state to localStorage whenever it changes
   useEffect(() => {
@@ -210,8 +263,69 @@ function LessonContent() {
         attempts: attempts,
         total: questions.length
       }));
+
+      // Calculate new cumulative XP formula
+      const savedDurationStr = localStorage.getItem("timer_duration");
+      const timerDurationMinutes = savedDurationStr ? parseInt(savedDurationStr, 10) : 5;
+      const totalSeconds = timerDurationMinutes * 60;
+      const baseScoreXp = correctAnswers * 15;
+      const speedFactor = totalSeconds > 0 ? (timeLeft / totalSeconds) : 0;
+      const speedBonus = Math.floor(speedFactor * timerDurationMinutes * 8);
+      const durationBaseXp = timerDurationMinutes * 5;
+      const totalXp = baseScoreXp + speedBonus + durationBaseXp;
+
+      setXpBreakdown({
+        base: baseScoreXp,
+        speed: speedBonus,
+        duration: durationBaseXp,
+        total: totalXp
+      });
+
+      // Update database profile stats (XP and completed lessons count)
+      const profileId = isSignedIn && user ? user.id : getOrCreateGuestSessionId();
+      if (profileId) {
+        // Reset daily stats if date changed
+        const todayStr = new Date().toLocaleDateString("en-CA");
+        const lastResetDate = localStorage.getItem("last_quest_reset_date");
+        if (lastResetDate !== todayStr) {
+          localStorage.setItem("last_quest_reset_date", todayStr);
+          localStorage.setItem("daily_xp_earned", "0");
+          localStorage.setItem("daily_lessons_completed", "0");
+          localStorage.setItem("daily_passed_completed", "0");
+          localStorage.setItem("quest_1_claimed", "false");
+          localStorage.setItem("quest_2_claimed", "false");
+          localStorage.setItem("quest_3_claimed", "false");
+        }
+
+        const xpEarned = totalXp;
+        const currentDailyXp = parseInt(localStorage.getItem("daily_xp_earned") || "0", 10);
+        const currentDailyLessons = parseInt(localStorage.getItem("daily_lessons_completed") || "0", 10);
+        const currentDailyPassed = parseInt(localStorage.getItem("daily_passed_completed") || "0", 10);
+
+        const isPassed = (correctAnswers / questions.length) >= 0.8;
+
+        localStorage.setItem("daily_xp_earned", (currentDailyXp + xpEarned).toString());
+        localStorage.setItem("daily_lessons_completed", (currentDailyLessons + 1).toString());
+        if (isPassed) {
+          localStorage.setItem("daily_passed_completed", (currentDailyPassed + 1).toString());
+        }
+
+        const saveStats = async () => {
+          const res = await updateProfileStats(profileId, correctAnswers, timeLeft, timerDurationMinutes, hearts, questions.length);
+          if (res) {
+            setGemsEarnedSummary({
+              lesson: 5,
+              pass: isPassed ? 10 : 0,
+              perfect: correctAnswers === questions.length ? 5 : 0,
+              streakBonus: (res.gemsEarned - 5 - (isPassed ? 10 : 0) - (correctAnswers === questions.length ? 5 : 0)),
+              total: res.gemsEarned
+            });
+          }
+        };
+        saveStats();
+      }
     }
-  }, [status, correctAnswers, questions.length, testId]);
+  }, [status, correctAnswers, questions.length, testId, isSignedIn, user, timeLeft, hearts]);
 
   console.log('Quiz Render Diagnostics:', { 
     phase, 
@@ -286,6 +400,13 @@ function LessonContent() {
             setCorrectAnswers((prev) => prev + 1);
           } else {
             setStatus("wrong");
+            setHearts((prev) => {
+              const nextHearts = Math.max(0, prev - 1);
+              if (nextHearts === 0) {
+                setShowOutOfHeartsModal(true);
+              }
+              return nextHearts;
+            });
           }
         } else if (status === "correct" || status === "wrong") {
           // Equivalent to handleContinue logic
@@ -320,6 +441,13 @@ function LessonContent() {
       setCorrectAnswers((prev) => prev + 1);
     } else {
       setStatus("wrong");
+      setHearts((prev) => {
+        const nextHearts = Math.max(0, prev - 1);
+        if (nextHearts === 0) {
+          setShowOutOfHeartsModal(true);
+        }
+        return nextHearts;
+      });
     }
   };
 
@@ -352,7 +480,7 @@ function LessonContent() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-white font-din-round text-almost-black px-6 text-center">
         <div className="w-48 h-48 relative mb-4">
-          <Image src="/emoji/wahhh.webp" alt="Error face" fill className="object-contain drop-shadow-lg mx-auto" />
+          <Image src="/emoji/wahhh.webp" alt="Error face" fill sizes="192px" className="object-contain drop-shadow-lg mx-auto" />
         </div>
         <h1 className="font-feather text-3xl mb-4 text-[#ea2b2b]">Content Under Construction</h1>
         <p className="text-[17px] text-graphite mb-4 max-w-md">
@@ -460,16 +588,17 @@ function LessonContent() {
                     src="/emoji/wahhh.webp" 
                     alt="Sad Mascot" 
                     fill 
+                    sizes="96px"
                     className="object-contain drop-shadow-md"
                     unoptimized
                   />
                 </div>
                 <div className="flex flex-col gap-3 font-din-round">
                   <h3 className="font-feather text-2xl md:text-[28px] text-charcoal font-bold leading-tight tracking-wide">
-                    Wait, don't go!
+                    Wait, don&apos;t go!
                   </h3>
                   <p className="text-graphite text-body leading-relaxed max-w-[360px] mx-auto tracking-wide">
-                    You're in the middle of a test. If you quit now, you will lose your progress on this attempt!
+                    You&apos;re in the middle of a test. If you quit now, you will lose your progress on this attempt!
                   </p>
                 </div>
               </div>
@@ -529,6 +658,7 @@ function LessonContent() {
 
   if (status === "completed" || phase === "completed") {
     const isPerfect = correctAnswers === questions.length;
+    const isPassed = (correctAnswers / questions.length) >= 0.8;
     const isTimeUp = timeLeft === 0;
     const percentage = (correctAnswers / questions.length) * 100;
     
@@ -553,17 +683,71 @@ function LessonContent() {
           {isTimeUp ? "Time's Up!" : "Lesson Complete!"}
         </h1>
         
-        <div className="bg-cloud-gray/20 rounded-2xl p-6 mb-8 w-full max-w-sm">
-          <p className="text-graphite font-bold text-lg mb-2">Your Score</p>
-          <p className={`text-5xl font-feather ${isPerfect ? "text-duo-green" : "text-sky-blue"}`}>
-            {correctAnswers} <span className="text-3xl text-graphite/50">/ {questions.length}</span>
-          </p>
+        <div className="bg-cloud-gray/10 border-2 border-cloud-gray/20 rounded-3xl p-6 mb-6 w-full max-w-sm flex flex-col gap-4">
+          <div>
+            <p className="text-graphite font-bold text-base mb-1 uppercase tracking-wide opacity-70">Your Score</p>
+            <p className={`text-5xl font-feather ${isPassed ? "text-duo-green" : "text-sky-blue"}`}>
+              {correctAnswers} <span className="text-3xl text-graphite/50 font-din-round">/ {questions.length}</span>
+            </p>
+          </div>
+          
+          {xpBreakdown && (
+            <div className="border-t-2 border-cloud-gray/30 pt-4 mt-2 flex flex-col gap-2 text-left text-xs md:text-sm font-din-round font-bold text-graphite">
+              <div className="flex justify-between items-center">
+                <span className="opacity-70">Base Score XP (+15/correct):</span>
+                <span>+{xpBreakdown.base} XP</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="opacity-70">Speed Bonus (time remaining):</span>
+                <span>+{xpBreakdown.speed} XP</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="opacity-70">Duration Bonus (timer weight):</span>
+                <span>+{xpBreakdown.duration} XP</span>
+              </div>
+              <div className="flex justify-between items-center border-t border-dashed border-cloud-gray/50 pt-2 mt-1 text-sm">
+                <span className="text-almost-black">Total XP Earned:</span>
+                <span className="text-amber-500 font-black text-base md:text-lg">🏆 +{xpBreakdown.total} XP</span>
+              </div>
+            </div>
+          )}
+
+          {gemsEarnedSummary && (
+            <div className="border-t-2 border-cloud-gray/30 pt-4 mt-2 flex flex-col gap-2 text-left text-xs md:text-sm font-din-round font-bold text-graphite">
+              <div className="flex justify-between items-center">
+                <span className="opacity-70">Lesson Completion:</span>
+                <span>+{gemsEarnedSummary.lesson} Gems</span>
+              </div>
+              {gemsEarnedSummary.pass > 0 && (
+                <div className="flex justify-between items-center">
+                  <span className="opacity-70">Pass Bonus (≥80%):</span>
+                  <span>+{gemsEarnedSummary.pass} Gems</span>
+                </div>
+              )}
+              {gemsEarnedSummary.perfect > 0 && (
+                <div className="flex justify-between items-center">
+                  <span className="opacity-70">Perfect Score Bonus:</span>
+                  <span>+{gemsEarnedSummary.perfect} Gems</span>
+                </div>
+              )}
+              {gemsEarnedSummary.streakBonus > 0 && (
+                <div className="flex justify-between items-center">
+                  <span className="opacity-70">7-Day Streak Milestone:</span>
+                  <span>+{gemsEarnedSummary.streakBonus} Gems</span>
+                </div>
+              )}
+              <div className="flex justify-between items-center border-t border-dashed border-cloud-gray/50 pt-2 mt-1 text-sm">
+                <span className="text-almost-black">Total Gems Earned:</span>
+                <span className="text-blue-500 font-black text-base md:text-lg">💎 +{gemsEarnedSummary.total} Gems</span>
+              </div>
+            </div>
+          )}
         </div>
         
         <p className="text-[17px] text-graphite mb-8 max-w-md">
-          {isPerfect 
-            ? "Perfect score! You've successfully finished this practice set and unlocked the next one." 
-            : "Great effort! However, you need a perfect score to unlock the next test."}
+          {isPassed 
+            ? (isPerfect ? "Perfect score! You've successfully finished this practice set and unlocked the next one." : "Great job! You've successfully finished this practice set and unlocked the next one.")
+            : `Great effort! However, you need to score at least 80% (${Math.ceil(questions.length * 0.8)}/${questions.length}) to unlock the next test.`}
         </p>
         
         <div className="flex flex-col gap-4 w-full max-w-xs">
@@ -602,11 +786,20 @@ function LessonContent() {
             <ProgressBar progress={progress} />
           </div>
 
-          <div className={`flex items-center gap-1.5 font-bold shrink-0 bg-cloud-gray/20 px-3 py-1.5 rounded-xl border-2 border-cloud-gray/40 transition-colors ${timeLeft < 60 ? 'text-[#ea2b2b] animate-pulse border-[#ea2b2b]/40 bg-[#ea2b2b]/10' : 'text-graphite'}`}>
-            <span className="text-lg">⏱️</span>
-            <span className="text-[17px] font-mono">
-              {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
-            </span>
+          <div className="flex items-center gap-2 select-none">
+            {/* Hearts Indicator */}
+            <div className="flex items-center gap-1.5 font-bold shrink-0 bg-cloud-gray/20 px-3 py-1.5 rounded-xl border-2 border-cloud-gray/40 text-red-500">
+              <span className="text-lg">❤️</span>
+              <span className="text-[17px]">{hearts}</span>
+            </div>
+
+            {/* Timer */}
+            <div className={`flex items-center gap-1.5 font-bold shrink-0 bg-cloud-gray/20 px-3 py-1.5 rounded-xl border-2 border-cloud-gray/40 transition-colors ${timeLeft < 60 ? 'text-[#ea2b2b] animate-pulse border-[#ea2b2b]/40 bg-[#ea2b2b]/10' : 'text-graphite'}`}>
+              <span className="text-lg">⏱️</span>
+              <span className="text-[17px] font-mono">
+                {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
+              </span>
+            </div>
           </div>
         </div>
       </header>
@@ -723,16 +916,17 @@ function LessonContent() {
                   src="/emoji/wahhh.webp" 
                   alt="Sad Mascot" 
                   fill 
+                  sizes="96px"
                   className="object-contain drop-shadow-md"
                   unoptimized
                 />
               </div>
               <div className="flex flex-col gap-3 font-din-round">
                 <h3 className="font-feather text-2xl md:text-[28px] text-charcoal font-bold leading-tight tracking-wide">
-                  Wait, don't go!
+                  Wait, don&apos;t go!
                 </h3>
                 <p className="text-graphite text-body leading-relaxed max-w-[360px] mx-auto tracking-wide">
-                  You're in the middle of a test. If you quit now, you will lose your progress on this attempt!
+                  You&apos;re in the middle of a test. If you quit now, you will lose your progress on this attempt!
                 </p>
               </div>
             </div>
@@ -753,6 +947,60 @@ function LessonContent() {
                 className="w-full sm:flex-1 bg-duo-green text-white font-bold py-3 px-6 rounded-2xl shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none hover:brightness-105 transition-all text-body text-center cursor-pointer font-din-round"
               >
                 KEEP LEARNING
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showOutOfHeartsModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center z-50 p-4 animate-[fadeIn_0.2s_ease-out]">
+          <div className="bg-snow-white border-2 border-cloud-gray border-b-8 rounded-[24px] w-full max-w-[460px] p-6 md:p-8 flex flex-col gap-6 md:gap-8 shadow-none animate-[scaleIn_0.2s_ease-out] relative">
+            
+            {/* Broken Heart Icon & Message */}
+            <div className="flex flex-col items-center text-center gap-5">
+              <div className="w-[110px] h-[110px] bg-red-100 rounded-full flex items-center justify-center text-5xl relative shrink-0 shadow-inner">
+                💔
+              </div>
+              <div className="flex flex-col gap-3 font-din-round">
+                <h3 className="font-feather text-2xl md:text-[28px] text-charcoal font-bold leading-tight tracking-wide">
+                  Out of Hearts!
+                </h3>
+                <p className="text-graphite text-body leading-relaxed max-w-[360px] mx-auto tracking-wide">
+                  You made too many mistakes in this session. Refill to continue practicing, or exit back to the dashboard!
+                </p>
+                <div className="text-xs md:text-sm font-extrabold text-[#1cb0f6] mt-1">
+                  💎 Current Balance: {profileGems} Gems
+                </div>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex flex-col items-center gap-3 w-full mt-2 font-din-round">
+              <button
+                disabled={profileGems < 50 || refilling}
+                onClick={handleRefillHearts}
+                className={`w-full bg-[#1cb0f6] text-white font-bold py-3 px-6 rounded-2xl shadow-[0_4px_0_#189edc] active:translate-y-[4px] active:shadow-none hover:brightness-105 transition-all text-body text-center cursor-pointer ${
+                  (profileGems < 50 || refilling) ? "opacity-50 cursor-not-allowed shadow-none active:translate-y-0" : ""
+                }`}
+              >
+                {refilling ? "REFILLING..." : `REFILL (💎 50)`}
+              </button>
+              
+              {profileGems < 50 && (
+                <span className="text-[11px] text-red-500 font-bold -mt-1 leading-none text-center">
+                  You need 50 Gems to refill. Try again once you earn more XP!
+                </span>
+              )}
+
+              <button
+                onClick={() => {
+                  localStorage.removeItem(`quiz_state_${testId}`);
+                  router.push("/dashboard");
+                }}
+                className="w-full bg-white text-silver border-2 border-cloud-gray hover:bg-gray-50 hover:text-graphite font-bold py-3 px-6 rounded-2xl shadow-[0_4px_0_var(--color-cloud-gray)] active:translate-y-[4px] active:shadow-none transition-all text-body text-center cursor-pointer"
+              >
+                EXIT QUIZ
               </button>
             </div>
           </div>

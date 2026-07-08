@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import Image from "next/image";
@@ -23,9 +23,10 @@ export default function LandingPage() {
             {/* Left Column: Illustration */}
             <div className="flex justify-center md:justify-end items-center relative h-[220px] sm:h-[300px] md:h-[400px] w-full">
               <Image
-                src="/hero_img.png"
+                src="/hero_img.webp"
                 alt="Playful floating characters"
                 fill
+                sizes="(max-width: 768px) 100vw, 500px"
                 className="object-contain"
                 priority
               />
@@ -47,13 +48,13 @@ export default function LandingPage() {
               ) : isLoaded ? (
                 <>
                   <Link href="/onboarding" className="w-full">
-                    <Button variant="primary" fullWidth className="text-body h-[50px] shadow-[0_4px_0_#3f8f01]">
+                    <Button variant="primary" fullWidth className="text-body h-[50px] tracking-normal shadow-[0_4px_0_#3f8f01]">
                       GET STARTED
                     </Button>
                   </Link>
 
                   <Link href="/login" className="w-full pb-6">
-                    <Button variant="secondary" fullWidth className="text-body h-[50px] border-2 border-cloud-gray text-sky-blue shadow-[0_4px_0_var(--color-cloud-gray)]">
+                    <Button variant="secondary" fullWidth className="text-body h-[50px] border-2 tracking-normal border-cloud-gray text-sky-blue shadow-[0_4px_0_var(--color-cloud-gray)]">
                       I ALREADY HAVE AN ACCOUNT
                     </Button>
                   </Link>
@@ -75,27 +76,46 @@ export default function LandingPage() {
           {/* Subject Items */}
           <div className="flex items-center gap-8 md:gap-12">
             <div className="flex items-center gap-2 cursor-pointer opacity-70 hover:opacity-100 transition-opacity">
-              <span className="text-2xl">🇺🇸</span>
+              <Image
+                src="/img/gen_imgs/language.webp"
+                alt="English Icon"
+                width={28}
+                height={28}
+                className="object-contain"
+              />
               <span className="font-din-round font-bold text-graphite uppercase tracking-wide text-sm">ENGLISH</span>
             </div>
 
             <div className="flex items-center gap-2 cursor-pointer opacity-70 hover:opacity-100 transition-opacity">
-              <span className="text-2xl">➗</span>
+              <Image
+                src="/img/gen_imgs/math.webp"
+                alt="Math Icon"
+                width={28}
+                height={28}
+                className="object-contain"
+              />
               <span className="font-din-round font-bold text-graphite uppercase tracking-wide text-sm">MATH</span>
             </div>
 
             <div className="flex items-center gap-2 cursor-pointer opacity-70 hover:opacity-100 transition-opacity">
-              <span className="text-2xl">🧠</span>
+              <Image
+                src="/img/gen_imgs/logical.webp"
+                alt="Logic Icon"
+                width={28}
+                height={28}
+                className="object-contain"
+              />
               <span className="font-din-round font-bold text-graphite uppercase tracking-wide text-sm">LOGIC</span>
             </div>
 
             <div className="flex items-center gap-2 cursor-pointer opacity-70 hover:opacity-100 transition-opacity">
-              <span className="text-2xl">📁</span>
-              <span className="font-din-round font-bold text-graphite uppercase tracking-wide text-sm">CLERICAL</span>
-            </div>
-
-            <div className="flex items-center gap-2 cursor-pointer opacity-70 hover:opacity-100 transition-opacity">
-              <span className="text-2xl">🌍</span>
+              <Image
+                src="/img/gen_imgs/gen_info.webp"
+                alt="General Info Icon"
+                width={28}
+                height={28}
+                className="object-contain"
+              />
               <span className="font-din-round font-bold text-graphite uppercase tracking-wide text-sm">GEN INFO</span>
             </div>
           </div>
@@ -159,13 +179,14 @@ export default function LandingPage() {
           
           {/* Left Illustration Column */}
           <div className="flex justify-center items-center order-1 relative h-[300px] md:h-[400px] w-full">
-            <Image
-              src="/trusted_users.png"
-              alt="Trusted by users illustration"
-              fill
-              className="object-contain"
-            />
-          </div>
+              <Image
+                src="/trusted_users.webp"
+                alt="Trusted by users illustration"
+                fill
+                sizes="(max-width: 768px) 100vw, 500px"
+                className="object-contain"
+              />
+            </div>
 
           {/* Right Text Column */}
           <div className="flex flex-col text-center md:text-left order-2 max-w-[540px] mx-auto md:mx-0">
@@ -173,7 +194,7 @@ export default function LandingPage() {
               trusted by users
             </h2>
             <p className="font-din-round text-[17px] text-graphite leading-relaxed">
-              Join thousands of aspiring professionals who are building real knowledge and mastering their exams with our engaging, community-loved content! Whether you're preparing for the Civil Service, AFPSAT, CET, or NAPOLCOM, we've got you covered.
+              Join thousands of aspiring professionals who are building real knowledge and mastering their exams with our engaging, community-loved content! Whether you&apos;re preparing for the Civil Service, AFPSAT, CET, or NAPOLCOM, we&apos;ve got you covered.
             </p>
           </div>
 
@@ -183,7 +204,7 @@ export default function LandingPage() {
       {/* "Study Now" Final CTA Section */}
       <section className="w-full mt-30 md:pt-32 mb-30 flex flex-col items-center justify-center text-center overflow-hidden relative">
         <h2 className="font-feather text-heading sm:text-heading-lg md:text-display text-duo-green leading-[1.1] tracking-wide mb-8 z-10 px-6">
-          Study now with<br/>All In One Reviewer
+          Study now with<br/>REVIEWQO
         </h2>
         
         <Link href={isSignedIn ? "/dashboard" : "/signup"} className="z-10 mt-16 mb-8 w-[90%] max-w-[400px] sm:w-auto">

@@ -10,19 +10,50 @@ export default function RightSidebar() {
   const { user, isLoaded, isSignedIn } = useUser();
   const [streak, setStreak] = useState(0);
   const [xp, setXp] = useState(0);
+  const [hearts, setHearts] = useState(5);
+  const [gems, setGems] = useState(50);
 
   useEffect(() => {
     async function loadStats() {
-      if (!isLoaded || !user) return;
+      if (!isLoaded) return;
+      
+      let profileId: string | null = null;
+      if (user) {
+        profileId = user.id;
+      } else if (typeof window !== "undefined") {
+        profileId = localStorage.getItem("guest_session_id");
+      }
+
+      if (!profileId) {
+        setStreak(0);
+        setXp(0);
+        setHearts(5);
+        setGems(50);
+        return;
+      }
+
       const { data } = await supabase
         .from("profiles")
-        .select("streak, total_score")
-        .eq("id", user.id)
+        .select("streak, total_score, hearts, last_heart_lost_at, gems")
+        .eq("id", profileId)
         .single();
-      
+
       if (data) {
         setStreak(data.streak || 0);
         setXp(data.total_score || 0);
+        setGems(data.gems !== undefined && data.gems !== null ? data.gems : 50);
+        
+        let h = data.hearts !== undefined && data.hearts !== null ? data.hearts : 5;
+        if (h < 5 && data.last_heart_lost_at) {
+          const now = new Date().getTime();
+          const lastLost = new Date(data.last_heart_lost_at).getTime();
+          const hoursPassed = (now - lastLost) / (1000 * 60 * 60);
+          const regenerated = Math.floor(hoursPassed / 4);
+          if (regenerated > 0) {
+            h = Math.min(5, h + regenerated);
+          }
+        }
+        setHearts(h);
       }
     }
     loadStats();
@@ -42,14 +73,14 @@ export default function RightSidebar() {
           <span>{streak}</span>
         </div>
         {/* XP / Gems */}
-        <div className="flex items-center gap-2 text-blue-400 cursor-pointer hover:bg-duo-green-light p-2 rounded-xl transition-colors">
+        <div className="flex items-center gap-2 text-blue-400 cursor-pointer hover:bg-duo-green-light p-2 rounded-xl transition-colors" title="Gems">
           <span className="text-xl">💎</span>
-          <span>{xp}</span>
+          <span>{gems}</span>
         </div>
         {/* Hearts */}
         <div className="flex items-center gap-2 text-red-500 cursor-pointer hover:bg-duo-green-light p-2 rounded-xl transition-colors">
           <span className="text-xl">❤️</span>
-          <span>5</span>
+          <span>{hearts}</span>
         </div>
       </div>
 
@@ -74,7 +105,7 @@ export default function RightSidebar() {
           <h3 className="font-bold text-[17px] text-charcoal">Daily Quests</h3>
           <span className="text-sky-blue font-bold text-xs uppercase tracking-wider cursor-pointer hover:text-blue-400">View All</span>
         </div>
-        
+
         <div className="flex items-center gap-4 mt-4">
           <div className="w-20 h-20 relative shrink-0">
             <Image src="/emoji/quest.webp" alt="Quest" fill className="object-contain" unoptimized />

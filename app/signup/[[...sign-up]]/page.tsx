@@ -10,7 +10,7 @@ export default function SignupPage() {
         {/* Logo/Title */}
         <Link href="/" className="mb-8 flex items-center gap-2 transition-transform hover:scale-105">
           <h1 className="font-feather text-3xl font-bold text-duo-green tracking-wide">
-            ALL IN ONE
+            REVIEWQO
           </h1>
         </Link>
         

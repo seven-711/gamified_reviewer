@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { useUser } from "@clerk/nextjs";
 import { supabase } from "@/lib/supabase";
+import { getOrCreateGuestSessionId } from "@/lib/session";
 interface StepOption {
   id: string;
   label: string;
@@ -143,7 +144,11 @@ export default function OnboardingPage() {
         .eq("id", user.id)
         .single();
 
-      // Let user do onboarding again if they manually navigate here
+      if (profile && profile.exam_category) {
+        router.replace("/dashboard");
+        return;
+      }
+      
       setCheckingSession(false);
     }
     checkSession();
@@ -185,14 +190,21 @@ export default function OnboardingPage() {
           .from("profiles")
           .upsert({
             id: userId,
+            name: user?.fullName || user?.username || null,
             exam_category: category,
             sub_topic: subTopic,
             timer_duration: timerDuration,
+            study_style: "Flashcards",
+            difficulty: "Beginner",
+            total_score: 0,
+            current_level: 1,
+            lessons_completed: 0,
+            streak: 0,
           });
 
         if (error) {
-          console.error("Error updating profile during onboarding", error);
-          alert("Failed to save preferences. Please try again.");
+          console.error("Error updating profile during onboarding:", error.message, error.details, error.hint);
+          alert(`Failed to save preferences: ${error.message || "Unknown error"}. Please try again.`);
           setLoading(false);
           return;
         }
@@ -204,11 +216,34 @@ export default function OnboardingPage() {
         setLoading(false);
       }
     } else {
+      try {
+        const guestSessionId = getOrCreateGuestSessionId();
+        await supabase
+          .from("profiles")
+          .upsert({
+            id: guestSessionId,
+            name: "Guest",
+            exam_category: category,
+            sub_topic: subTopic,
+            timer_duration: timerDuration,
+            study_style: "Flashcards",
+            difficulty: "Beginner",
+            total_score: 0,
+            current_level: 1,
+            lessons_completed: 0,
+            streak: 0,
+          });
+      } catch (dbErr) {
+        console.error("Failed to create guest profile in database:", dbErr);
+      }
+
       localStorage.setItem("timer_duration", timerDuration.toString());
       localStorage.setItem("onboarding_prefs", JSON.stringify({
         category,
         subTopic,
-        timerDuration
+        timerDuration,
+        studyStyle: "Flashcards",
+        difficulty: "Beginner",
       }));
       router.push("/dashboard");
     }

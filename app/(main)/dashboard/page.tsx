@@ -6,6 +6,7 @@ import Image from "next/image";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@clerk/nextjs";
 import RightSidebar from "@/components/ui/RightSidebar";
+import { getOrCreateGuestSessionId, refillHeartsInDb } from "@/lib/session";
 // Data metadata fetched via API
 
 interface UserProfile {
@@ -17,6 +18,152 @@ interface UserProfile {
   difficulty: string;
   total_score: number;
   streak: number;
+  hearts: number;
+  gems: number;
+}
+
+async function checkDailyStreakValidation(dbProfile: any): Promise<{ streak: number; last_lesson_date: string | null }> {
+  const profileId = dbProfile.id;
+  const currentStreak = dbProfile.streak || 0;
+  const lastLessonDateStr = dbProfile.last_lesson_date || null;
+  
+  // Make sure we have a local streak freeze initialized in localStorage
+  if (typeof window !== "undefined") {
+    const localFreeze = localStorage.getItem("streak_freeze_count");
+    if (localFreeze === null) {
+      const dbFreeze = dbProfile.streak_freeze_count !== undefined && dbProfile.streak_freeze_count !== null ? dbProfile.streak_freeze_count : 1;
+      localStorage.setItem("streak_freeze_count", dbFreeze.toString());
+      await supabase.from("profiles").update({ streak_freeze_count: dbFreeze }).eq("id", profileId);
+    }
+  }
+
+  if (!lastLessonDateStr) {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toLocaleDateString("en-CA");
+    if (typeof window !== "undefined") {
+      localStorage.setItem("last_lesson_completed_date", yesterdayStr);
+    }
+    return { streak: currentStreak, last_lesson_date: yesterdayStr };
+  }
+
+  const todayStr = new Date().toLocaleDateString("en-CA");
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const lastDate = new Date(lastLessonDateStr + "T00:00:00");
+  const diffTime = today.getTime() - lastDate.getTime();
+  const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+  if (typeof window !== "undefined") {
+    localStorage.setItem("last_lesson_completed_date", lastLessonDateStr);
+  }
+
+  if (diffDays <= 1) {
+    return { streak: currentStreak, last_lesson_date: lastLessonDateStr };
+  }
+
+  // diffDays > 1: they missed a day
+  let freezes = 0;
+  if (typeof window !== "undefined") {
+    freezes = parseInt(localStorage.getItem("streak_freeze_count") || "0", 10);
+  } else {
+    freezes = dbProfile.streak_freeze_count || 0;
+  }
+
+  if (freezes > 0) {
+    const newFreezes = freezes - 1;
+    if (typeof window !== "undefined") {
+      localStorage.setItem("streak_freeze_count", newFreezes.toString());
+    }
+    
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toLocaleDateString("en-CA");
+    
+    if (typeof window !== "undefined") {
+      localStorage.setItem("last_lesson_completed_date", yesterdayStr);
+    }
+
+    await supabase
+      .from("profiles")
+      .update({ 
+        streak_freeze_count: newFreezes,
+        last_lesson_date: yesterdayStr
+      })
+      .eq("id", profileId);
+
+    alert("❄️ Streak Freeze used! Your daily streak was saved from resetting.");
+    return { streak: currentStreak, last_lesson_date: yesterdayStr };
+  } else {
+    await supabase
+      .from("profiles")
+      .update({ 
+        streak: 0,
+        streak_freeze_count: 0
+      })
+      .eq("id", profileId);
+
+    alert("😢 Oh no! You missed a day and your streak reset to 0.");
+    return { streak: 0, last_lesson_date: lastLessonDateStr };
+  }
+}
+
+async function checkDailyLoginReward(profileId: string, currentGems: number): Promise<number> {
+  if (typeof window === "undefined") return currentGems;
+  const todayStr = new Date().toLocaleDateString("en-CA");
+  const lastLoginRewardDate = localStorage.getItem("last_login_reward_date");
+  if (lastLoginRewardDate !== todayStr) {
+    const newGems = currentGems + 10;
+    try {
+      await supabase
+        .from("profiles")
+        .update({ gems: newGems })
+        .eq("id", profileId);
+      localStorage.setItem("last_login_reward_date", todayStr);
+      alert("🌅 Daily Login Reward! You received 💎 10 Gems.");
+      return newGems;
+    } catch (e) {
+      console.error("Failed to update daily login gems reward", e);
+    }
+  }
+  return currentGems;
+}
+
+async function checkHeartsRegeneration(dbProfile: any): Promise<{ hearts: number; last_heart_lost_at: string | null }> {
+  const profileId = dbProfile.id;
+  let currentHearts = dbProfile.hearts !== undefined && dbProfile.hearts !== null ? dbProfile.hearts : 5;
+  let lastHeartLostAt = dbProfile.last_heart_lost_at || null;
+
+  if (currentHearts < 5 && lastHeartLostAt) {
+    const now = new Date().getTime();
+    const lastLost = new Date(lastHeartLostAt).getTime();
+    const hoursPassed = (now - lastLost) / (1000 * 60 * 60);
+    const regenerated = Math.floor(hoursPassed / 4);
+
+    if (regenerated > 0) {
+      const newHearts = Math.min(5, currentHearts + regenerated);
+      let newLastHeartLostAt = lastHeartLostAt;
+
+      if (newHearts === 5) {
+        newLastHeartLostAt = null;
+      } else {
+        newLastHeartLostAt = new Date(lastLost + regenerated * 4 * 60 * 60 * 1000).toISOString();
+      }
+
+      await supabase
+        .from("profiles")
+        .update({
+          hearts: newHearts,
+          last_heart_lost_at: newLastHeartLostAt
+        })
+        .eq("id", profileId);
+
+      return { hearts: newHearts, last_heart_lost_at: newLastHeartLostAt };
+    }
+  }
+
+  return { hearts: currentHearts, last_heart_lost_at: lastHeartLostAt };
 }
 
 export default function DashboardPage() {
@@ -36,7 +183,9 @@ export default function DashboardPage() {
             study_style: prefs.studyStyle,
             difficulty: prefs.difficulty,
             total_score: 0,
-            streak: 0
+            streak: 0,
+            hearts: 5,
+            gems: 50
           };
         } catch (e) {}
       }
@@ -58,16 +207,14 @@ export default function DashboardPage() {
     return 5;
   });
   const [savingTimer, setSavingTimer] = useState(false);
-  const [quantSection, setQuantSection] = useState<string | null>(null);
-
-  useEffect(() => {
+  const [quantSection, setQuantSection] = useState<string | null>(() => {
     if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("quant_reasoning_section");
-      if (saved) {
-        setQuantSection(saved);
-      }
+      return localStorage.getItem("quant_reasoning_section");
     }
-  }, []);
+    return null;
+  });
+  const [showHeartsBlocker, setShowHeartsBlocker] = useState(false);
+  const [refillingHearts, setRefillingHearts] = useState(false);
 
   useEffect(() => {
     async function loadData() {
@@ -75,20 +222,52 @@ export default function DashboardPage() {
       
       try {
         const pendingPrefs = localStorage.getItem("onboarding_prefs");
-        let activeProfile: any = null;
-
+        let activeProfile: UserProfile | null = null;
         if (!isSignedIn || !user) {
-          if (pendingPrefs) {
+          const guestSessionId = getOrCreateGuestSessionId();
+          // Query the guest profile from Supabase profiles
+          const { data: guestDbProfile } = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("id", guestSessionId)
+            .single();
+
+          if (guestDbProfile) {
+            const streakInfo = await checkDailyStreakValidation(guestDbProfile);
+            const heartsInfo = await checkHeartsRegeneration(guestDbProfile);
+            
+            let gGems = guestDbProfile.gems !== undefined && guestDbProfile.gems !== null ? guestDbProfile.gems : 50;
+            gGems = await checkDailyLoginReward(guestSessionId, gGems);
+
+            activeProfile = {
+              id: guestSessionId,
+              email: "",
+              exam_category: guestDbProfile.exam_category,
+              sub_topic: guestDbProfile.sub_topic,
+              study_style: guestDbProfile.study_style,
+              difficulty: guestDbProfile.difficulty,
+              total_score: guestDbProfile.total_score || 0,
+              streak: streakInfo.streak,
+              hearts: heartsInfo.hearts,
+              gems: gGems
+            };
+            setProfile(activeProfile);
+            if (guestDbProfile.timer_duration) {
+              localStorage.setItem("timer_duration", guestDbProfile.timer_duration.toString());
+            }
+          } else if (pendingPrefs) {
             const prefs = JSON.parse(pendingPrefs);
             activeProfile = {
-              id: "guest",
+              id: guestSessionId,
               email: "",
               exam_category: prefs.category,
               sub_topic: prefs.subTopic,
               study_style: prefs.studyStyle,
               difficulty: prefs.difficulty,
               total_score: 0,
-              streak: 0
+              streak: 0,
+              hearts: 5,
+              gems: 50
             };
             setProfile(activeProfile);
             if (prefs.timerDuration) {
@@ -99,16 +278,89 @@ export default function DashboardPage() {
             return;
           }
         } else {
-          // Check for pending onboarding preferences from pre-signup flow
-          if (pendingPrefs) {
+          // Check if there is a guest session to merge
+          const guestSessionId = localStorage.getItem("guest_session_id");
+          if (guestSessionId) {
+            try {
+              // 1. Fetch guest profile stats from Supabase
+              const { data: guestProfile } = await supabase
+                .from("profiles")
+                .select("*")
+                .eq("id", guestSessionId)
+                .single();
+
+              // 2. Fetch registered user profile if it already exists
+              const { data: userProfile } = await supabase
+                .from("profiles")
+                .select("*")
+                .eq("id", user.id)
+                .single();
+
+              const mergedXp = (userProfile?.total_score || 0) + (guestProfile?.total_score || 0);
+              const mergedLessons = (userProfile?.lessons_completed || 0) + (guestProfile?.lessons_completed || 0);
+              const mergedStreak = Math.max(userProfile?.streak || 0, guestProfile?.streak || 0);
+              const mergedGems = (userProfile?.gems || 50) + (guestProfile?.gems || 0);
+
+              const category = userProfile?.exam_category || guestProfile?.exam_category || (pendingPrefs ? JSON.parse(pendingPrefs).category : null);
+              const subTopic = userProfile?.sub_topic || guestProfile?.sub_topic || (pendingPrefs ? JSON.parse(pendingPrefs).subTopic : null);
+              const timerDuration = userProfile?.timer_duration || guestProfile?.timer_duration || (pendingPrefs ? JSON.parse(pendingPrefs).timerDuration : 5);
+
+              // Merge last_lesson_date (use the newer one)
+              let mergedLastLessonDate = userProfile?.last_lesson_date || guestProfile?.last_lesson_date || null;
+              if (userProfile?.last_lesson_date && guestProfile?.last_lesson_date) {
+                const userDate = new Date(userProfile.last_lesson_date);
+                const guestDate = new Date(guestProfile.last_lesson_date);
+                mergedLastLessonDate = userDate.getTime() > guestDate.getTime() ? userProfile.last_lesson_date : guestProfile.last_lesson_date;
+              }
+
+              // Merge streak freezes (max or sum up to 2)
+              const mergedFreezes = Math.min(
+                Math.max(userProfile?.streak_freeze_count ?? 1, guestProfile?.streak_freeze_count ?? 1),
+                2
+              );
+
+              if (category) {
+                await supabase.from("profiles").upsert({
+                  id: user.id,
+                  name: user.fullName || user.username || null,
+                  exam_category: category,
+                  sub_topic: subTopic,
+                  timer_duration: timerDuration,
+                  study_style: "Flashcards",
+                  difficulty: "Beginner",
+                  total_score: mergedXp,
+                  lessons_completed: mergedLessons,
+                  streak: mergedStreak,
+                  last_lesson_date: mergedLastLessonDate,
+                  streak_freeze_count: mergedFreezes,
+                  gems: mergedGems
+                });
+                
+                // Update local storage freeze count
+                localStorage.setItem("streak_freeze_count", mergedFreezes.toString());
+              }
+
+              // Cleanup guest session
+              localStorage.removeItem("guest_session_id");
+              localStorage.removeItem("onboarding_prefs");
+              
+              // Delete guest profile from Supabase to keep DB clean
+              await supabase.from("profiles").delete().eq("id", guestSessionId);
+            } catch (mergeErr) {
+              console.error("Failed to merge guest session into registered account:", mergeErr);
+            }
+          } else if (pendingPrefs) {
+            // Check for pending onboarding preferences from pre-signup flow (fallback if guestSessionId was missing)
             try {
               const prefs = JSON.parse(pendingPrefs);
               await supabase.from("profiles").upsert({
                 id: user.id,
+                name: user.fullName || user.username || null,
                 exam_category: prefs.category,
                 sub_topic: prefs.subTopic,
-                study_style: prefs.studyStyle,
-                difficulty: prefs.difficulty,
+                study_style: prefs.studyStyle || "Flashcards",
+                difficulty: prefs.difficulty || "Beginner",
+                timer_duration: prefs.timerDuration || 5,
               });
               localStorage.removeItem("onboarding_prefs");
             } catch (e) {
@@ -127,13 +379,29 @@ export default function DashboardPage() {
             return;
           }
 
-          activeProfile = userProfile;
-          setProfile(userProfile);
+          const streakInfo = await checkDailyStreakValidation(userProfile);
+          const heartsInfo = await checkHeartsRegeneration(userProfile);
+          
+          let uGems = userProfile.gems !== undefined && userProfile.gems !== null ? userProfile.gems : 50;
+          uGems = await checkDailyLoginReward(userProfile.id, uGems);
+
+          activeProfile = {
+            id: userProfile.id,
+            email: "",
+            exam_category: userProfile.exam_category,
+            sub_topic: userProfile.sub_topic,
+            study_style: userProfile.study_style,
+            difficulty: userProfile.difficulty,
+            total_score: userProfile.total_score || 0,
+            streak: streakInfo.streak,
+            hearts: heartsInfo.hearts,
+            gems: uGems
+          };
+          setProfile(activeProfile);
           if (userProfile?.timer_duration) {
             localStorage.setItem("timer_duration", userProfile.timer_duration.toString());
           }
         }
-
         // Fetch metadata for activeProfile (guest or signed-in)
         if (activeProfile) {
           try {
@@ -191,12 +459,18 @@ export default function DashboardPage() {
           } catch(e){}
         }
       }
-      setScores(loadedScores);
+      setTimeout(() => {
+        setScores(loadedScores);
+      }, 0);
     }
   }, [profile, testCount]);
 
   const handleTopicClick = (topicName: string, testId?: string) => {
     if (testId) {
+      if (profile && profile.hearts === 0) {
+        setShowHeartsBlocker(true);
+        return;
+      }
       const saved = localStorage.getItem("timer_duration");
       if (saved) {
         // Clear in-progress saved state so they start fresh with the new/existing timer
@@ -213,6 +487,10 @@ export default function DashboardPage() {
 
   const startTestWithTimer = async () => {
     if (!selectedTestForTimer) return;
+    if (profile && profile.hearts === 0) {
+      setShowHeartsBlocker(true);
+      return;
+    }
     setSavingTimer(true);
     
     // Save to local storage
@@ -240,6 +518,25 @@ export default function DashboardPage() {
     setSavingTimer(false);
   };
 
+  const handleRefillHeartsDashboard = async () => {
+    if (!profile || profile.gems < 50) return;
+    setRefillingHearts(true);
+    const res = await refillHeartsInDb(profile.id);
+    if (res.success) {
+      setProfile((prev) => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          gems: Math.max(0, prev.gems - 50),
+          hearts: 5
+        };
+      });
+      setShowHeartsBlocker(false);
+    } else {
+      alert("Refill failed: " + res.error);
+    }
+    setRefillingHearts(false);
+  };
   // Determine active index based on scores
   const rawSubTopic = profile?.sub_topic || "General Review";
   const fullTopic = rawSubTopic;
@@ -249,14 +546,14 @@ export default function DashboardPage() {
   let activeIndex = 0;
   for (let i = 1; i <= testCount; i++) {
     const tId = `${formattedTopic}_test${i}`;
-    if (scores[tId] && scores[tId].score === scores[tId].total) {
-      activeIndex = i; // Move active to the next test ONLY if perfect
+    // Unlock next test if previous test exists and score is >= 80% of total
+    if (scores[tId] && scores[tId].total > 0 && (scores[tId].score / scores[tId].total) >= 0.8) {
+      activeIndex = i; // Move active to the next test
     } else {
-      break; // Found an uncompleted or imperfect test
+      break; // Found an uncompleted or failed (<80%) test
     }
   }
   if (activeIndex >= testCount) activeIndex = testCount - 1; // Cap at the last test if all are completed
-
   const isQuantTopic = formattedTopic === "quantitative_reasoning";
   const showSubOnboarding = isQuantTopic && !quantSection;
   const showComingSoon = isQuantTopic && quantSection && quantSection !== "part1";
@@ -471,7 +768,7 @@ export default function DashboardPage() {
                     Coming Soon!
                   </h3>
                   <p className="text-xs md:text-sm text-graphite leading-relaxed font-semibold">
-                    We're still curating the database for this section. You can practice <span className="text-sky-blue font-black">Part 1</span> in the meantime!
+                    We&apos;re still curating the database for this section. You can practice <span className="text-sky-blue font-black">Part 1</span> in the meantime!
                   </p>
                 </div>
               </div>
@@ -751,6 +1048,60 @@ export default function DashboardPage() {
                 {savingTimer 
                   ? (selectedTestForTimer.testId === "settings" ? "SAVING..." : "STARTING...") 
                   : (selectedTestForTimer.testId === "settings" ? "SAVE SETTING" : "START TEST")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showHeartsBlocker && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center z-50 p-4 animate-[fadeIn_0.2s_ease-out]">
+          <div className="bg-snow-white border-2 border-cloud-gray border-b-8 rounded-[24px] w-full max-w-[440px] p-6 md:p-8 flex flex-col gap-6 md:gap-8 shadow-none animate-[scaleIn_0.2s_ease-out] relative">
+            
+            {/* Mascot / Broken Heart */}
+            <div className="flex flex-col items-center text-center gap-5">
+              <div className="w-[100px] h-[100px] bg-red-50 rounded-full flex items-center justify-center text-5xl relative shrink-0 shadow-inner">
+                💔
+              </div>
+              
+              <div className="flex flex-col gap-3 font-din-round">
+                <h3 className="font-feather text-2xl md:text-[28px] text-charcoal font-bold leading-tight tracking-wide">
+                  Need Hearts to Practice!
+                </h3>
+                <p className="text-graphite text-body leading-relaxed max-w-[340px] mx-auto tracking-wide">
+                  You have 0 hearts. Wait for regeneration (1 heart every 4 hours), or refill instantly using Gems!
+                </p>
+                {profile && (
+                  <div className="text-xs md:text-sm font-extrabold text-[#1cb0f6] mt-1">
+                    💎 Current Balance: {profile.gems} Gems
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="flex flex-col gap-3 mt-1 font-din-round">
+              <button
+                disabled={!profile || profile.gems < 50 || refillingHearts}
+                onClick={handleRefillHeartsDashboard}
+                className={`w-full bg-[#1cb0f6] text-white font-bold py-3 rounded-2xl shadow-[0_4px_0_#189edc] active:translate-y-[4px] active:shadow-none hover:brightness-105 transition-all text-sm uppercase tracking-wide cursor-pointer ${
+                  (!profile || profile.gems < 50 || refillingHearts) ? "opacity-50 cursor-not-allowed shadow-none active:translate-y-0" : ""
+                }`}
+              >
+                {refillingHearts ? "Refilling..." : "Refill to 5 Hearts (💎 50)"}
+              </button>
+              
+              {profile && profile.gems < 50 && (
+                <span className="text-[11px] text-[#ff4b4b] font-bold text-center -mt-1 leading-normal">
+                  Requires 50 Gems. Practice lessons later as hearts regenerate automatically!
+                </span>
+              )}
+
+              <button
+                onClick={() => setShowHeartsBlocker(false)}
+                className="w-full bg-snow-white text-[#1cb0f6] border-2 border-cloud-gray font-bold py-3 rounded-2xl shadow-[0_4px_0_var(--color-cloud-gray)] active:translate-y-[4px] active:shadow-none hover:bg-cloud-gray/25 transition-all text-sm uppercase tracking-wide cursor-pointer"
+              >
+                Cancel
               </button>
             </div>
           </div>

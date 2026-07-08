@@ -16,7 +16,7 @@ const nunito = Nunito({
 });
 
 export const metadata: Metadata = {
-  title: "Civil Service Exam Reviewer",
+  title: "REVIEWQO",
   description: "A playful, gamified reviewer for the Civil Service Exam",
 };
 
