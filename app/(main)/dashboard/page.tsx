@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabase";
 import { useUser } from "@clerk/nextjs";
 import RightSidebar from "@/components/ui/RightSidebar";
 import { getOrCreateGuestSessionId, refillHeartsInDb } from "@/lib/session";
+import { useAlert } from "@/components/ui/AlertContext";
 // Data metadata fetched via API
 
 interface UserProfile {
@@ -22,7 +23,10 @@ interface UserProfile {
   gems: number;
 }
 
-async function checkDailyStreakValidation(dbProfile: any): Promise<{ streak: number; last_lesson_date: string | null }> {
+async function checkDailyStreakValidation(
+  dbProfile: any,
+  showAlert: (msg: string) => Promise<void>
+): Promise<{ streak: number; last_lesson_date: string | null }> {
   const profileId = dbProfile.id;
   const currentStreak = dbProfile.streak || 0;
   const lastLessonDateStr = dbProfile.last_lesson_date || null;
@@ -93,7 +97,7 @@ async function checkDailyStreakValidation(dbProfile: any): Promise<{ streak: num
       })
       .eq("id", profileId);
 
-    alert("❄️ Streak Freeze used! Your daily streak was saved from resetting.");
+    await showAlert("❄️ Streak Freeze used! Your daily streak was saved from resetting.");
     return { streak: currentStreak, last_lesson_date: yesterdayStr };
   } else {
     await supabase
@@ -104,12 +108,16 @@ async function checkDailyStreakValidation(dbProfile: any): Promise<{ streak: num
       })
       .eq("id", profileId);
 
-    alert("😢 Oh no! You missed a day and your streak reset to 0.");
+    await showAlert("😢 Oh no! You missed a day and your streak reset to 0.");
     return { streak: 0, last_lesson_date: lastLessonDateStr };
   }
 }
 
-async function checkDailyLoginReward(profileId: string, currentGems: number): Promise<number> {
+async function checkDailyLoginReward(
+  profileId: string,
+  currentGems: number,
+  showAlert: (msg: string) => Promise<void>
+): Promise<number> {
   if (typeof window === "undefined") return currentGems;
   const todayStr = new Date().toLocaleDateString("en-CA");
   const lastLoginRewardDate = localStorage.getItem("last_login_reward_date");
@@ -121,7 +129,7 @@ async function checkDailyLoginReward(profileId: string, currentGems: number): Pr
         .update({ gems: newGems })
         .eq("id", profileId);
       localStorage.setItem("last_login_reward_date", todayStr);
-      alert("🌅 Daily Login Reward! You received 💎 10 Gems.");
+      await showAlert("🌅 Daily Login Reward! You received 💎 10 Gems.");
       return newGems;
     } catch (e) {
       console.error("Failed to update daily login gems reward", e);
@@ -167,6 +175,7 @@ async function checkHeartsRegeneration(dbProfile: any): Promise<{ hearts: number
 }
 
 export default function DashboardPage() {
+  const { showAlert } = useAlert();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<UserProfile | null>(() => {
@@ -233,11 +242,11 @@ export default function DashboardPage() {
             .single();
 
           if (guestDbProfile) {
-            const streakInfo = await checkDailyStreakValidation(guestDbProfile);
+            const streakInfo = await checkDailyStreakValidation(guestDbProfile, showAlert);
             const heartsInfo = await checkHeartsRegeneration(guestDbProfile);
             
             let gGems = guestDbProfile.gems !== undefined && guestDbProfile.gems !== null ? guestDbProfile.gems : 50;
-            gGems = await checkDailyLoginReward(guestSessionId, gGems);
+            gGems = await checkDailyLoginReward(guestSessionId, gGems, showAlert);
 
             activeProfile = {
               id: guestSessionId,
@@ -319,6 +328,13 @@ export default function DashboardPage() {
                 2
               );
 
+              const guestHearts = guestProfile?.hearts !== undefined && guestProfile?.hearts !== null ? guestProfile.hearts : null;
+              const guestLastHeartLostAt = guestProfile?.last_heart_lost_at || null;
+
+              // Merge hearts (prioritize guest hearts since they represent the active quiz state, falling back to registered user's)
+              const mergedHearts = guestHearts !== null ? guestHearts : (userProfile?.hearts ?? 5);
+              const mergedLastHeartLostAt = guestHearts !== null ? guestLastHeartLostAt : (userProfile?.last_heart_lost_at || null);
+
               if (category) {
                 await supabase.from("profiles").upsert({
                   id: user.id,
@@ -333,7 +349,9 @@ export default function DashboardPage() {
                   streak: mergedStreak,
                   last_lesson_date: mergedLastLessonDate,
                   streak_freeze_count: mergedFreezes,
-                  gems: mergedGems
+                  gems: mergedGems,
+                  hearts: mergedHearts,
+                  last_heart_lost_at: mergedLastHeartLostAt
                 });
                 
                 // Update local storage freeze count
@@ -379,11 +397,11 @@ export default function DashboardPage() {
             return;
           }
 
-          const streakInfo = await checkDailyStreakValidation(userProfile);
+          const streakInfo = await checkDailyStreakValidation(userProfile, showAlert);
           const heartsInfo = await checkHeartsRegeneration(userProfile);
           
           let uGems = userProfile.gems !== undefined && userProfile.gems !== null ? userProfile.gems : 50;
-          uGems = await checkDailyLoginReward(userProfile.id, uGems);
+          uGems = await checkDailyLoginReward(userProfile.id, uGems, showAlert);
 
           activeProfile = {
             id: userProfile.id,
@@ -533,7 +551,7 @@ export default function DashboardPage() {
       });
       setShowHeartsBlocker(false);
     } else {
-      alert("Refill failed: " + res.error);
+      await showAlert("❌ Refill failed: " + res.error);
     }
     setRefillingHearts(false);
   };
@@ -563,15 +581,15 @@ export default function DashboardPage() {
       <main className="flex-1 w-full max-w-[600px] mx-auto pb-24">
         <div className="flex flex-col gap-6 pt-2 items-center w-full">
           {/* Section Header */}
-          <div className="w-full bg-duo-green rounded-2xl p-4 md:p-5 flex items-center justify-between shadow-[0_4px_0_#3f8f01]">
-            <div className="flex flex-col text-white">
-              <div className="flex items-center gap-2 mb-1">
-                <span onClick={() => router.push("/onboarding")} className="text-xl font-bold cursor-pointer hover:opacity-80 transition-opacity">←</span>
-                <span className="font-bold text-sm md:text-body tracking-widest uppercase">
+          <div className="w-full bg-duo-green rounded-2xl p-3 md:p-5 flex items-center justify-between shadow-[0_4px_0_#3f8f01]">
+            <div className="flex flex-col text-white min-w-0 pr-2">
+              <div className="flex items-center gap-2 mb-0.5">
+                <span onClick={() => router.push("/onboarding")} className="text-lg font-bold cursor-pointer hover:opacity-80 transition-opacity">←</span>
+                <span className="font-bold text-[10px] md:text-sm tracking-widest uppercase">
                   Section 1, Unit 1
                 </span>
               </div>
-              <h2 className="font-feather text-lg md:text-2xl font-bold tracking-wide">
+              <h2 className="font-feather text-base md:text-2xl font-bold tracking-wide leading-tight truncate">
                 {profile ? (
                   `${profile.exam_category} ${topicName ? `- ${topicName}` : ""}`
                 ) : (
@@ -579,7 +597,7 @@ export default function DashboardPage() {
                 )}
               </h2>
             </div>
-            <button className="flex items-center w-35 justify-center gap-2 bg-white/20 hover:bg-white/30 text-white font-bold px-4 py-2.5 rounded-2xl transition-colors shadow-[0_2px_0_rgba(255,255,255,0.2)]">
+            <button className="flex items-center justify-center gap-2 bg-white/20 hover:bg-white/30 text-white font-bold p-2.5 sm:px-4 sm:py-2.5 rounded-2xl transition-colors shadow-[0_2px_0_rgba(255,255,255,0.2)] shrink-0">
               <Image src="/emoji/guidebook.webp" alt="Guidebook" width={24} height={24} className="brightness-0 invert w-auto h-auto" />
               <span className="hidden sm:inline text-sm">GUIDEBOOK</span>
             </button>

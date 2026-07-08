@@ -6,8 +6,10 @@ import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
 import { supabase } from "@/lib/supabase";
 import { refillHeartsInDb } from "@/lib/session";
+import { useAlert } from "@/components/ui/AlertContext";
 
 export default function ShopPage() {
+  const { showAlert } = useAlert();
   const { user, isLoaded, isSignedIn } = useUser();
   const [streak, setStreak] = useState(1);
   const [xp, setXp] = useState(0);
@@ -68,11 +70,11 @@ export default function ShopPage() {
 
   const handleBuyHeart = async () => {
     if (gems < 50) {
-      alert("❌ Not enough Gems! You need 50 Gems to refill hearts.");
+      await showAlert("❌ Not enough Gems! You need 50 Gems to refill hearts.");
       return;
     }
     if (hearts === 5) {
-      alert("❤️ Your hearts are already full!");
+      await showAlert("❤️ Your hearts are already full!");
       return;
     }
     
@@ -87,9 +89,9 @@ export default function ShopPage() {
       if (res.success) {
         setGems(prev => Math.max(0, prev - 50));
         setHearts(5);
-        alert("❤️ Hearts refilled successfully!");
+        await showAlert("❤️ Hearts refilled successfully!");
       } else {
-        alert("Purchase failed: " + res.error);
+        await showAlert("❌ Purchase failed: " + res.error);
       }
     }
     setPurchasingHeart(false);
@@ -97,11 +99,11 @@ export default function ShopPage() {
 
   const handleBuyFreeze = async () => {
     if (gems < 200) {
-      alert("❌ Not enough Gems! You need 200 Gems to buy a Streak Freeze.");
+      await showAlert("❌ Not enough Gems! You need 200 Gems to buy a Streak Freeze.");
       return;
     }
     if (streakFreezeCount >= 2) {
-      alert("❄️ You can only equip a maximum of 2 Streak Freezes!");
+      await showAlert("❄️ You can only equip a maximum of 2 Streak Freezes!");
       return;
     }
     
@@ -127,12 +129,12 @@ export default function ShopPage() {
           setGems(nextGems);
           setStreakFreezeCount(nextFreeze);
           localStorage.setItem("streak_freeze_count", nextFreeze.toString());
-          alert("❄️ Streak Freeze purchased! Equipped.");
+          await showAlert("❄️ Streak Freeze purchased! Equipped.");
         } else {
-          alert("Purchase failed: " + error.message);
+          await showAlert("❌ Purchase failed: " + error.message);
         }
       } catch (err: any) {
-        alert("An error occurred: " + err.message);
+        await showAlert("❌ An error occurred: " + err.message);
       }
     }
     setPurchasingFreeze(false);
@@ -152,13 +154,13 @@ export default function ShopPage() {
               Hearts
             </h2>
             
-            <div className="flex items-center justify-between p-4 rounded-2xl border-2 border-cloud-gray bg-snow-white">
-              <div className="flex items-center gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl border-2 border-cloud-gray bg-snow-white gap-4">
+              <div className="flex items-center gap-4 min-w-0">
                 <div className="w-14 h-14 rounded-2xl bg-red-500/10 flex items-center justify-center text-3xl shadow-sm shrink-0">
                   ❤️
                 </div>
-                <div className="flex flex-col gap-1">
-                  <span className="font-bold text-lg text-almost-black">Refill Hearts</span>
+                <div className="flex flex-col gap-1 min-w-0">
+                  <span className="font-bold text-lg text-almost-black leading-tight">Refill Hearts</span>
                   <span className="text-silver text-xs font-semibold leading-normal max-w-[320px]">
                     Get full hearts so you can worry less about making mistakes.
                   </span>
@@ -167,7 +169,7 @@ export default function ShopPage() {
               <button
                 disabled={purchasingHeart}
                 onClick={handleBuyHeart}
-                className="bg-transparent text-blue-400 hover:bg-blue-50 border-2 border-cloud-gray font-extrabold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider shrink-0 cursor-pointer active:scale-95 transition-all disabled:opacity-50"
+                className="w-full sm:w-auto bg-transparent text-blue-400 hover:bg-blue-50 border-2 border-cloud-gray font-extrabold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider shrink-0 cursor-pointer active:scale-95 transition-all disabled:opacity-50"
               >
                 {hearts === 5 ? "FULL" : purchasingHeart ? "BUYING..." : "GET FOR 💎 50"}
               </button>
@@ -180,16 +182,16 @@ export default function ShopPage() {
               Power-Ups
             </h2>
             
-            <div className="flex items-center justify-between p-4 rounded-2xl border-2 border-cloud-gray bg-snow-white">
-              <div className="flex items-center gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl border-2 border-cloud-gray bg-snow-white gap-4">
+              <div className="flex items-center gap-4 min-w-0">
                 {/* Frozen blue fire crystal badge */}
                 <div className="w-14 h-14 rounded-2xl bg-sky-blue/15 border-2 border-sky-blue/30 flex items-center justify-center shrink-0 shadow-sm relative">
                   <span className="text-3xl filter drop-shadow-[0_2px_4px_rgba(28,176,246,0.3)]">❄️</span>
                 </div>
-                <div className="flex flex-col gap-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-lg text-almost-black">Streak Freeze</span>
-                    <span className="bg-duo-green/10 text-duo-green text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
+                <div className="flex flex-col gap-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-bold text-lg text-almost-black leading-tight">Streak Freeze</span>
+                    <span className="bg-duo-green/10 text-duo-green text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider shrink-0">
                       {streakFreezeCount} / 2 EQUIPPED
                     </span>
                   </div>
@@ -201,7 +203,7 @@ export default function ShopPage() {
               <button
                 disabled={streakFreezeCount >= 2 || purchasingFreeze}
                 onClick={handleBuyFreeze}
-                className="border-2 border-cloud-gray hover:bg-gray-50 text-almost-black font-extrabold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider shrink-0 cursor-pointer active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full sm:w-auto border-2 border-cloud-gray hover:bg-gray-50 text-almost-black font-extrabold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider shrink-0 cursor-pointer active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {streakFreezeCount >= 2 ? "EQUIPPED" : purchasingFreeze ? "BUYING..." : "GET FOR 💎 200"}
               </button>

@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { ClerkProvider } from '@clerk/nextjs'
 import { Fredoka, Nunito } from "next/font/google";
 import "./globals.css";
+
+import { AlertProvider } from "@/components/ui/AlertContext";
 
 const fredoka = Fredoka({
   variable: "--font-fredoka",
@@ -31,7 +34,20 @@ export default function RootLayout({
         lang="en"
         className={`${fredoka.variable} ${nunito.variable} h-full antialiased`}
       >
-        <body className="min-h-full flex flex-col">{children}</body>
+      <head>
+        {process.env.NODE_ENV === "development" && (
+          <Script
+            src="//unpkg.com/react-grab/dist/index.global.js"
+            crossOrigin="anonymous"
+            strategy="beforeInteractive"
+          />
+        )}
+      </head>
+        <body className="min-h-full flex flex-col">
+          <AlertProvider>
+            {children}
+          </AlertProvider>
+        </body>
       </html>
     </ClerkProvider>
   );

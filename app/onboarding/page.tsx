@@ -8,6 +8,7 @@ import { ProgressBar } from "@/components/ui/ProgressBar";
 import { useUser } from "@clerk/nextjs";
 import { supabase } from "@/lib/supabase";
 import { getOrCreateGuestSessionId } from "@/lib/session";
+import { useAlert } from "@/components/ui/AlertContext";
 interface StepOption {
   id: string;
   label: string;
@@ -15,6 +16,7 @@ interface StepOption {
 }
 
 export default function OnboardingPage() {
+  const { showAlert } = useAlert();
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -204,7 +206,7 @@ export default function OnboardingPage() {
 
         if (error) {
           console.error("Error updating profile during onboarding:", error.message, error.details, error.hint);
-          alert(`Failed to save preferences: ${error.message || "Unknown error"}. Please try again.`);
+          await showAlert(`❌ Failed to save preferences: ${error.message || "Unknown error"}. Please try again.`);
           setLoading(false);
           return;
         }

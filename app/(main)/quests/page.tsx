@@ -5,8 +5,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
 import { supabase } from "@/lib/supabase";
+import { useAlert } from "@/components/ui/AlertContext";
 
 export default function QuestsPage() {
+  const { showAlert } = useAlert();
   const { user, isLoaded } = useUser();
   const [streak, setStreak] = useState(1);
   const [xp, setXp] = useState(0);
@@ -115,9 +117,9 @@ export default function QuestsPage() {
           if (questNum === 1) setQuest1Claimed(true);
           if (questNum === 2) setQuest2Claimed(true);
           if (questNum === 3) setQuest3Claimed(true);
-          alert(`🎉 Quest completed! You received 💎 ${gemReward} Gems.`);
+          await showAlert(`🎉 Quest completed! You received 💎 ${gemReward} Gems.`);
         } else {
-          alert("Claim failed: " + error.message);
+          await showAlert("❌ Claim failed: " + error.message);
         }
       } catch (err) {
         console.error(err);

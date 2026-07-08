@@ -10,6 +10,7 @@ import { parseMathText } from "@/lib/mathUtils";
 import { useUser } from "@clerk/nextjs";
 import { getOrCreateGuestSessionId, updateProfileStats, refillHeartsInDb } from "@/lib/session";
 import { supabase } from "@/lib/supabase";
+import { useAlert } from "@/components/ui/AlertContext";
 
 type QuizStatus = "none" | "selected" | "correct" | "wrong" | "completed";
 
@@ -27,6 +28,7 @@ function generateShuffledIndices(length: number): number[] {
 }
 
 function LessonContent() {
+  const { showAlert } = useAlert();
   const router = useRouter();
   const searchParams = useSearchParams();
   const testId = searchParams.get("testId") || "abstract_reasoning_test1";
@@ -55,6 +57,7 @@ function LessonContent() {
   const scoreSavedRef = React.useRef<boolean>(false);
   const [xpBreakdown, setXpBreakdown] = useState<{ base: number; speed: number; duration: number; total: number; } | null>(null);
   const [hearts, setHearts] = useState<number>(5);
+  const [isHeartsInitialized, setIsHeartsInitialized] = useState<boolean>(false);
   const [showOutOfHeartsModal, setShowOutOfHeartsModal] = useState<boolean>(false);
   const [profileXp, setProfileXp] = useState<number>(0);
   const [profileGems, setProfileGems] = useState<number>(50);
@@ -78,7 +81,7 @@ function LessonContent() {
         setProfileGems((prev) => Math.max(0, prev - 50));
         setShowOutOfHeartsModal(false);
       } else {
-        alert("Refill failed: " + res.error);
+        await showAlert("❌ Refill failed: " + res.error);
       }
     }
     setRefilling(false);
@@ -169,12 +172,38 @@ function LessonContent() {
               .eq("id", profileId)
               .single();
             if (dbProfile) {
-              setHearts(dbProfile.hearts !== undefined && dbProfile.hearts !== null ? dbProfile.hearts : 5);
+              const currentHearts = dbProfile.hearts !== undefined && dbProfile.hearts !== null ? dbProfile.hearts : 5;
+              setHearts(currentHearts);
               setProfileXp(dbProfile.total_score || 0);
               setProfileGems(dbProfile.gems !== undefined && dbProfile.gems !== null ? dbProfile.gems : 50);
+              setIsHeartsInitialized(true);
+              if (currentHearts === 0) {
+                setShowOutOfHeartsModal(true);
+              }
+            } else {
+              if (!isSignedIn) {
+                // Create guest profile if it does not exist in Supabase
+                await supabase.from("profiles").upsert({
+                  id: profileId,
+                  name: "Guest",
+                  exam_category: "General Review",
+                  study_style: "Flashcards",
+                  difficulty: "Beginner",
+                  total_score: 0,
+                  lessons_completed: 0,
+                  streak: 0,
+                  hearts: 5,
+                  gems: 50
+                });
+              }
+              setHearts(5);
+              setIsHeartsInitialized(true);
             }
           } catch (dbErr) {
             console.error("Failed to fetch hearts from Supabase", dbErr);
+            // Fallback initialization to not break the page if supabase throws
+            setHearts(5);
+            setIsHeartsInitialized(true);
           }
         }
 
@@ -188,6 +217,31 @@ function LessonContent() {
     }
     init();
   }, [testId, isSignedIn, user]);
+
+  // Synchronize hearts changes during the quiz back to Supabase
+  useEffect(() => {
+    if (!isLoaded || !isHeartsInitialized) return;
+
+    const profileId = isSignedIn && user ? user.id : getOrCreateGuestSessionId();
+    if (!profileId) return;
+
+    const syncHearts = async () => {
+      try {
+        const lastHeartLostAt = hearts < 5 ? new Date().toISOString() : null;
+        await supabase
+          .from("profiles")
+          .update({
+            hearts,
+            last_heart_lost_at: lastHeartLostAt
+          })
+          .eq("id", profileId);
+      } catch (err) {
+        console.error("Failed to sync hearts to Supabase:", err);
+      }
+    };
+
+    syncHearts();
+  }, [hearts, isLoaded, isHeartsInitialized, isSignedIn, user]);
 
   // Save state to localStorage whenever it changes
   useEffect(() => {
@@ -207,9 +261,8 @@ function LessonContent() {
   }, [phase, currentExampleIndex, currentIndex, selectedOption, status, timeLeft, correctAnswers, showHowToAnswer, isLoaded, testId, shuffledIndices]);
 
   // Timer logic
-  // Timer logic
   useEffect(() => {
-    if (!isLoaded || status === "completed" || phase !== "quiz") return;
+    if (!isLoaded || status === "completed" || phase !== "quiz" || showOutOfHeartsModal || hearts === 0) return;
     
     const interval = setInterval(() => {
       setTimeLeft(prev => {
@@ -223,7 +276,7 @@ function LessonContent() {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [isLoaded, status]);
+  }, [isLoaded, status, phase, showOutOfHeartsModal, hearts]);
 
   // Automatically transition to quiz phase if example index goes out of bounds or examples are empty
   useEffect(() => {
@@ -344,6 +397,9 @@ function LessonContent() {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Ignore if user is typing in an input
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+
+      // Ignore keyboard shortcuts if modal alerts are visible or the user is out of hearts
+      if (showOutOfHeartsModal || showExitModal || hearts === 0) return;
       
       // Handle Option Selection (1-12+ dynamically)
       if (status === "none" || status === "selected") {
@@ -424,7 +480,21 @@ function LessonContent() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [status, selectedOption, currentIndex, question, correctAnswers, testId, questions.length]);
+  }, [
+    status,
+    selectedOption,
+    currentIndex,
+    question,
+    correctAnswers,
+    testId,
+    questions,
+    phase,
+    currentExampleIndex,
+    testExamples,
+    showOutOfHeartsModal,
+    showExitModal,
+    hearts
+  ]);
 
   const handleOptionSelect = (index: number) => {
     if (status === "none" || status === "selected") {
@@ -464,6 +534,10 @@ function LessonContent() {
   };
 
   const handleRetake = () => {
+    if (hearts === 0) {
+      setShowOutOfHeartsModal(true);
+      return;
+    }
     localStorage.removeItem(`quiz_state_${testId}`);
     setPhase(testExamples.length > 0 ? "examples" : "quiz");
     setCurrentExampleIndex(0);
@@ -957,11 +1031,22 @@ function LessonContent() {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center z-50 p-4 animate-[fadeIn_0.2s_ease-out]">
           <div className="bg-snow-white border-2 border-cloud-gray border-b-8 rounded-[24px] w-full max-w-[460px] p-6 md:p-8 flex flex-col gap-6 md:gap-8 shadow-none animate-[scaleIn_0.2s_ease-out] relative">
             
-            {/* Broken Heart Icon & Message */}
+            {/* Crying Mascot & Broken Heart Overlay */}
             <div className="flex flex-col items-center text-center gap-5">
-              <div className="w-[110px] h-[110px] bg-red-100 rounded-full flex items-center justify-center text-5xl relative shrink-0 shadow-inner">
-                💔
+              <div className="w-[110px] h-[110px] relative shrink-0">
+                <Image 
+                  src="/emoji/wahhh.webp" 
+                  alt="Sad Mascot" 
+                  fill 
+                  sizes="110px"
+                  className="object-contain drop-shadow-md"
+                  unoptimized
+                />
+                <span className="absolute -bottom-2 -right-2 text-3xl bg-snow-white p-2 rounded-full border-2 border-cloud-gray shadow-sm">
+                  💔
+                </span>
               </div>
+              
               <div className="flex flex-col gap-3 font-din-round">
                 <h3 className="font-feather text-2xl md:text-[28px] text-charcoal font-bold leading-tight tracking-wide">
                   Out of Hearts!
@@ -980,7 +1065,7 @@ function LessonContent() {
               <button
                 disabled={profileGems < 50 || refilling}
                 onClick={handleRefillHearts}
-                className={`w-full bg-[#1cb0f6] text-white font-bold py-3 px-6 rounded-2xl shadow-[0_4px_0_#189edc] active:translate-y-[4px] active:shadow-none hover:brightness-105 transition-all text-body text-center cursor-pointer ${
+                className={`w-full bg-duo-green text-white font-bold py-3 px-6 rounded-2xl shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none hover:brightness-105 transition-all text-body text-center cursor-pointer ${
                   (profileGems < 50 || refilling) ? "opacity-50 cursor-not-allowed shadow-none active:translate-y-0" : ""
                 }`}
               >
@@ -998,7 +1083,7 @@ function LessonContent() {
                   localStorage.removeItem(`quiz_state_${testId}`);
                   router.push("/dashboard");
                 }}
-                className="w-full bg-white text-silver border-2 border-cloud-gray hover:bg-gray-50 hover:text-graphite font-bold py-3 px-6 rounded-2xl shadow-[0_4px_0_var(--color-cloud-gray)] active:translate-y-[4px] active:shadow-none transition-all text-body text-center cursor-pointer"
+                className="w-full bg-white text-graphite border-2 border-cloud-gray hover:bg-gray-50 hover:text-almost-black font-bold py-3 px-6 rounded-2xl shadow-[0_4px_0_var(--color-cloud-gray)] active:translate-y-[4px] active:shadow-none transition-all text-body text-center cursor-pointer"
               >
                 EXIT QUIZ
               </button>
