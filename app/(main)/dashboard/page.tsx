@@ -816,28 +816,28 @@ export default function DashboardPage() {
             /* Standard Dashboard Content */
             <>
               {/* Settings / Controls Row */}
-              <div className="flex justify-between items-center w-full px-4 md:px-0">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between w-full px-4 md:px-0 gap-3">
                 <div 
                   onClick={() => {
                     setSelectedTestForTimer({ testId: "settings", testTitle: "Practice Timer Settings" });
                     const saved = localStorage.getItem("timer_duration");
                     setModalTimerDuration(saved ? parseInt(saved, 10) : 5);
                   }}
-                  className="flex items-center gap-2 bg-duo-green-light/10 hover:bg-duo-green-light/20 border-2 border-cloud-gray rounded-full px-3 py-1.5 md:py-2 md:px-4 cursor-pointer select-none transition-all shadow-[0_3px_0_var(--color-cloud-gray)] active:translate-y-[3px] active:shadow-none active:scale-[0.98] group text-almost-black font-din-round text-xs md:text-sm"
+                  className="flex items-center justify-center sm:justify-start gap-2 bg-duo-green-light/10 hover:bg-duo-green-light/20 border-2 border-cloud-gray rounded-2xl sm:rounded-full py-2.5 px-4 cursor-pointer select-none transition-all shadow-[0_3px_0_var(--color-cloud-gray)] active:translate-y-[3px] active:shadow-none active:scale-[0.98] group text-almost-black font-din-round text-sm"
                 >
-                  <span className="text-sm md:text-base shrink-0">⏱️</span>
-                  <span className="font-extrabold tracking-wider uppercase text-silver group-hover:text-almost-black transition-colors flex items-center gap-1">
-                    <span className="hidden sm:inline">Timer:</span>
+                  <span className="text-base shrink-0">⏱️</span>
+                  <span className="font-extrabold tracking-wider uppercase text-silver group-hover:text-almost-black transition-colors flex items-center gap-1.5">
+                    <span>Timer:</span>
                     <span className="text-sky-blue font-black">{modalTimerDuration === 60 ? "1 Hour" : `${modalTimerDuration} Mins`}</span>
                   </span>
-                  <span className="bg-sky-blue/15 text-sky-blue font-bold px-2 py-0.5 rounded-full text-[9px] md:text-[10px] tracking-wider uppercase transition-all group-hover:bg-sky-blue group-hover:text-white shrink-0">
+                  <span className="bg-sky-blue/15 text-sky-blue font-bold px-2.5 py-0.5 rounded-full text-[10px] tracking-wider uppercase transition-all group-hover:bg-sky-blue group-hover:text-white shrink-0">
                     Change
                   </span>
                 </div>
 
-                <label className="flex items-center cursor-pointer gap-3 opacity-70 hover:opacity-100 transition-opacity shrink-0">
-                  <span className="text-silver font-bold text-xs uppercase tracking-wide whitespace-nowrap">Unlock All</span>
-                  <div className="relative">
+                <label className="flex items-center justify-between sm:justify-end cursor-pointer gap-4 opacity-80 hover:opacity-100 transition-opacity bg-cloud-gray/10 sm:bg-transparent border-2 border-cloud-gray/20 sm:border-0 rounded-2xl py-2.5 px-4 sm:p-0 shrink-0 select-none">
+                  <span className="text-charcoal font-bold text-xs uppercase tracking-wide whitespace-nowrap">Unlock All Reviewers</span>
+                  <div className="relative shrink-0">
                     <input type="checkbox" className="sr-only" checked={unlockAll} onChange={() => setUnlockAll(!unlockAll)} />
                     <div className={`block w-10 h-6 rounded-full transition-colors ${unlockAll ? 'bg-duo-green' : 'bg-[#29353c]'}`}></div>
                     <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${unlockAll ? 'transform translate-x-4' : ''}`}></div>
