@@ -67,57 +67,54 @@ export default function LandingPage() {
 
       {/* Hero Section Footer Carousel / Subjects */}
       <footer className="w-full border-t-2 mb-7 border-cloud-gray bg-white shrink-0">
-        <div className="max-w-[1200px] mx-auto px-6 py-6 overflow-x-auto whitespace-nowrap hide-scrollbar flex items-center justify-center gap-8 md:gap-12">
+        <div className="max-w-[1200px] mx-auto px-6 py-6 overflow-x-auto whitespace-nowrap hide-scrollbar flex items-center justify-center gap-12 sm:gap-16 md:gap-20">
           {/* Left Arrow */}
           <button className="text-cloud-gray hover:text-silver transition-colors px-2 hidden md:block">
             <span className="text-xl font-bold">{"<"}</span>
           </button>
+          
+          <div className="flex items-center gap-2 cursor-pointer opacity-70 hover:opacity-100 transition-opacity">
+            <Image
+              src="/img/gen_imgs/language.webp"
+              alt="English Icon"
+              width={28}
+              height={28}
+              className="object-contain"
+            />
+            <span className="hidden md:inline font-din-round font-bold text-graphite uppercase tracking-wide text-sm">ENGLISH</span>
+          </div>
 
-          {/* Subject Items */}
-          <div className="flex items-center gap-8 md:gap-12">
-            <div className="flex items-center gap-2 cursor-pointer opacity-70 hover:opacity-100 transition-opacity">
-              <Image
-                src="/img/gen_imgs/language.webp"
-                alt="English Icon"
-                width={28}
-                height={28}
-                className="object-contain"
-              />
-              <span className="font-din-round font-bold text-graphite uppercase tracking-wide text-sm">ENGLISH</span>
-            </div>
+          <div className="flex items-center gap-2 cursor-pointer opacity-70 hover:opacity-100 transition-opacity">
+            <Image
+              src="/img/gen_imgs/math.webp"
+              alt="Math Icon"
+              width={28}
+              height={28}
+              className="object-contain"
+            />
+            <span className="hidden md:inline font-din-round font-bold text-graphite uppercase tracking-wide text-sm">MATH</span>
+          </div>
 
-            <div className="flex items-center gap-2 cursor-pointer opacity-70 hover:opacity-100 transition-opacity">
-              <Image
-                src="/img/gen_imgs/math.webp"
-                alt="Math Icon"
-                width={28}
-                height={28}
-                className="object-contain"
-              />
-              <span className="font-din-round font-bold text-graphite uppercase tracking-wide text-sm">MATH</span>
-            </div>
+          <div className="flex items-center gap-2 cursor-pointer opacity-70 hover:opacity-100 transition-opacity">
+            <Image
+              src="/img/gen_imgs/logical.webp"
+              alt="Logic Icon"
+              width={28}
+              height={28}
+              className="object-contain"
+            />
+            <span className="hidden md:inline font-din-round font-bold text-graphite uppercase tracking-wide text-sm">LOGIC</span>
+          </div>
 
-            <div className="flex items-center gap-2 cursor-pointer opacity-70 hover:opacity-100 transition-opacity">
-              <Image
-                src="/img/gen_imgs/logical.webp"
-                alt="Logic Icon"
-                width={28}
-                height={28}
-                className="object-contain"
-              />
-              <span className="font-din-round font-bold text-graphite uppercase tracking-wide text-sm">LOGIC</span>
-            </div>
-
-            <div className="flex items-center gap-2 cursor-pointer opacity-70 hover:opacity-100 transition-opacity">
-              <Image
-                src="/img/gen_imgs/gen_info.webp"
-                alt="General Info Icon"
-                width={28}
-                height={28}
-                className="object-contain"
-              />
-              <span className="font-din-round font-bold text-graphite uppercase tracking-wide text-sm">GEN INFO</span>
-            </div>
+          <div className="flex items-center gap-2 cursor-pointer opacity-70 hover:opacity-100 transition-opacity">
+            <Image
+              src="/img/gen_imgs/gen_info.webp"
+              alt="General Info Icon"
+              width={28}
+              height={28}
+              className="object-contain"
+            />
+            <span className="hidden md:inline font-din-round font-bold text-graphite uppercase tracking-wide text-sm">GEN INFO</span>
           </div>
 
           {/* Right Arrow */}
