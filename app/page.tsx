@@ -35,7 +35,7 @@ export default function LandingPage() {
             {/* Right Column: Copy & Actions */}
             <div className="flex flex-col items-center text-center max-w-[420px] mx-auto md:mx-0">
               <h1 className="font-din-round font-black text-[38px] sm:text-3xl md:text-heading text-charcoal leading-tight mb-6 sm:mb-10 px-2 sm:px-0">
-                The free, fun, and effective way to pass the Civil Service Exam!
+                The free, fun, and effective way to ace your exams!
               </h1>
 
             <div className="flex flex-col w-full gap-4 max-w-[330px]">
@@ -176,12 +176,13 @@ export default function LandingPage() {
           
           {/* Left Illustration Column */}
           <div className="flex justify-center items-center order-1 relative h-[300px] md:h-[400px] w-full">
-              <Image
-                src="/trusted_users.webp"
-                alt="Trusted by users illustration"
-                fill
-                sizes="(max-width: 768px) 100vw, 500px"
-                className="object-contain"
+              <video
+                src="/videos/trusted_by_users.webm"
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="w-full h-full object-contain"
               />
             </div>
 

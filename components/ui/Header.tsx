@@ -44,7 +44,7 @@ export function Header() {
           <div className="relative w-18 h-18 sm:w-20 sm:h-20 shrink-0">
             <Image
               src="/reviewer_logo.webp"
-              alt="Civil Service Prep Logo"
+              alt="ReviewQo Logo"
               fill
               sizes="(max-width: 640px) 72px, 80px"
               className="object-contain drop-shadow-sm hover:scale-105 transition-transform"
@@ -85,10 +85,37 @@ export function Header() {
               {showStats ? (
                 <div className="flex items-center gap-4 font-bold text-sm tracking-wide">
                   {isStatsLoaded && (
-                    <div className="hidden sm:flex items-center gap-3 border-l pl-4 border-cloud-gray">
-                      <span title="Streak" className="cursor-help">🔥 {streak}</span>
-                      <span title="XP" className="text-amber-500 cursor-help">🏆 {xp} XP</span>
-                      <span title="Gems" className="text-blue-400 cursor-help">💎 {gems}</span>
+                    <div className="hidden sm:flex items-center gap-6 border-l pl-5 border-cloud-gray">
+                      <div title="Streak" className="flex items-center gap-2 cursor-help select-none">
+                        <Image
+                          src="/img/gen_imgs/streak.webp"
+                          alt="Streak"
+                          width={32}
+                          height={32}
+                          className="object-contain"
+                        />
+                        <span className="text-orange-500 font-black text-lg">{streak}</span>
+                      </div>
+                      <div title="XP" className="flex items-center gap-2 cursor-help select-none">
+                        <Image
+                          src="/img/gen_imgs/trophy.webp"
+                          alt="XP"
+                          width={32}
+                          height={32}
+                          className="object-contain"
+                        />
+                        <span className="text-amber-500 font-black text-lg">{xp} XP</span>
+                      </div>
+                      <div title="Gems" className="flex items-center gap-2 cursor-help select-none">
+                        <Image
+                          src="/img/gen_imgs/diamond.webp"
+                          alt="Gems"
+                          width={32}
+                          height={32}
+                          className="object-contain"
+                        />
+                        <span className="text-blue-400 font-black text-lg">{gems}</span>
+                      </div>
                     </div>
                   )}
                   {isSignedIn && user ? (

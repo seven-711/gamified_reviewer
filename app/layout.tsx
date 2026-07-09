@@ -21,7 +21,7 @@ const nunito = Nunito({
 
 export const metadata: Metadata = {
   title: "REVIEWQO",
-  description: "A playful, gamified reviewer for the Civil Service Exam",
+  description: "A playful, gamified reviewer for entrance and professional exams",
 };
 
 export default function RootLayout({

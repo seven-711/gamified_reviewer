@@ -607,7 +607,7 @@ export default function DashboardPage() {
       <main className="flex-1 w-full max-w-[600px] mx-auto pb-24">
         <div className="flex flex-col gap-6 pt-2 items-center w-full">
           {/* Section Header */}
-          <div className="w-full bg-duo-green rounded-2xl p-3 md:p-5 flex items-center justify-between shadow-[0_4px_0_#3f8f01]">
+          <div className="sticky top-0 md:top-6 z-30 w-full bg-duo-green rounded-2xl p-3 md:p-5 flex items-center justify-between shadow-[0_4px_0_#3f8f01]">
             <div className="flex flex-col text-white min-w-0 pr-2">
               <div className="flex items-center gap-2 mb-0.5">
                 <span onClick={() => router.push("/onboarding")} className="text-lg font-bold cursor-pointer hover:opacity-80 transition-opacity">←</span>

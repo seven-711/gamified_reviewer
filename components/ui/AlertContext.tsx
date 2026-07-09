@@ -116,7 +116,7 @@ export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     <AlertContext.Provider value={{ showAlert }}>
       {children}
       {alertState && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center z-[100] p-4 animate-fade-in">
+        <div className="dark-mode fixed inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center z-[100] p-4 animate-fade-in">
           <div className="bg-snow-white border-2 border-cloud-gray border-b-8 rounded-[24px] w-full max-w-[420px] p-6 md:p-8 flex flex-col gap-6 md:gap-8 shadow-none animate-scale-in relative text-center font-din-round">
             
             {/* Mascot and Emoji Header */}

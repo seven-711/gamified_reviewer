@@ -11,7 +11,7 @@ export default function RightSidebar() {
   const { streak, xp, hearts, gems } = useStats();
 
   return (
-    <div className="flex flex-col gap-6 pt-8">
+    <div className="sticky top-6 flex flex-col gap-6 pt-8">
       {/* Top Stats Bar */}
       <div className="flex items-center justify-between px-2 text-charcoal font-bold text-body">
         {/* Country/Language placeholder */}
