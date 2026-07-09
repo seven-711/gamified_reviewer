@@ -11,6 +11,7 @@ import { useUser } from "@clerk/nextjs";
 import { getOrCreateGuestSessionId, updateProfileStats, refillHeartsInDb } from "@/lib/session";
 import { supabase } from "@/lib/supabase";
 import { useAlert } from "@/components/ui/AlertContext";
+import { useStats } from "@/components/ui/StatsContext";
 
 type QuizStatus = "none" | "selected" | "correct" | "wrong" | "completed";
 
@@ -29,6 +30,7 @@ function generateShuffledIndices(length: number): number[] {
 
 function LessonContent() {
   const { showAlert } = useAlert();
+  const { updateStatsLocally, refreshStats } = useStats();
   const router = useRouter();
   const searchParams = useSearchParams();
   const testId = searchParams.get("testId") || "abstract_reasoning_test1";
@@ -235,13 +237,15 @@ function LessonContent() {
             last_heart_lost_at: lastHeartLostAt
           })
           .eq("id", profileId);
+        
+        updateStatsLocally({ hearts });
       } catch (err) {
         console.error("Failed to sync hearts to Supabase:", err);
       }
     };
 
     syncHearts();
-  }, [hearts, isLoaded, isHeartsInitialized, isSignedIn, user]);
+  }, [hearts, isLoaded, isHeartsInitialized, isSignedIn, user, updateStatsLocally]);
 
   // Save state to localStorage whenever it changes
   useEffect(() => {
@@ -373,6 +377,7 @@ function LessonContent() {
               streakBonus: (res.gemsEarned - 5 - (isPassed ? 10 : 0) - (correctAnswers === questions.length ? 5 : 0)),
               total: res.gemsEarned
             });
+            await refreshStats();
           }
         };
         saveStats();

@@ -8,6 +8,7 @@ import { useUser } from "@clerk/nextjs";
 import RightSidebar from "@/components/ui/RightSidebar";
 import { getOrCreateGuestSessionId, refillHeartsInDb } from "@/lib/session";
 import { useAlert } from "@/components/ui/AlertContext";
+import { useStats } from "@/components/ui/StatsContext";
 // Data metadata fetched via API
 
 interface UserProfile {
@@ -177,6 +178,7 @@ async function checkHeartsRegeneration(dbProfile: any): Promise<{ hearts: number
 export default function DashboardPage() {
   const { showAlert } = useAlert();
   const router = useRouter();
+  const { streak, xp, gems, hearts, refreshStats } = useStats();
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<UserProfile | null>(() => {
     if (typeof window !== "undefined") {
@@ -224,6 +226,29 @@ export default function DashboardPage() {
   });
   const [showHeartsBlocker, setShowHeartsBlocker] = useState(false);
   const [refillingHearts, setRefillingHearts] = useState(false);
+
+  useEffect(() => {
+    if (profile) {
+      setProfile((prev) => {
+        if (!prev) return null;
+        if (
+          prev.gems === gems &&
+          prev.hearts === hearts &&
+          prev.total_score === xp &&
+          prev.streak === streak
+        ) {
+          return prev;
+        }
+        return {
+          ...prev,
+          gems,
+          hearts,
+          total_score: xp,
+          streak,
+        };
+      });
+    }
+  }, [gems, hearts, xp, streak, profile]);
 
   useEffect(() => {
     async function loadData() {
@@ -550,6 +575,7 @@ export default function DashboardPage() {
         };
       });
       setShowHeartsBlocker(false);
+      await refreshStats();
     } else {
       await showAlert("❌ Refill failed: " + res.error);
     }
@@ -968,7 +994,7 @@ export default function DashboardPage() {
             {/* Reset Progress Button */}
             <div className="w-full mt-8 flex justify-center">
               <button 
-                onClick={() => {
+                onClick={async () => {
                   if (window.confirm("Are you sure you want to reset all your progress? This cannot be undone.")) {
                     const keysToRemove = [];
                     for (let i = 0; i < localStorage.length; i++) {
@@ -978,7 +1004,8 @@ export default function DashboardPage() {
                       }
                     }
                     keysToRemove.forEach(key => localStorage.removeItem(key));
-                    window.location.reload();
+                    setScores({});
+                    await refreshStats();
                   }
                 }}
                 className="text-graphite/50 hover:text-[#ea2b2b] font-bold text-sm underline transition-colors"

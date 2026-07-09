@@ -22,13 +22,13 @@ export default function LandingPage() {
 
             {/* Left Column: Illustration */}
             <div className="flex justify-center md:justify-end items-center relative h-[220px] sm:h-[300px] md:h-[400px] w-full">
-              <Image
-                src="/hero_img.webp"
-                alt="Playful floating characters"
-                fill
-                sizes="(max-width: 768px) 100vw, 500px"
-                className="object-contain"
-                priority
+              <video
+                src="/videos/hero_vid.webm"
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="w-full h-full object-contain"
               />
             </div>
 

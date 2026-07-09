@@ -7,66 +7,15 @@ import { useUser } from "@clerk/nextjs";
 import { supabase } from "@/lib/supabase";
 import { refillHeartsInDb } from "@/lib/session";
 import { useAlert } from "@/components/ui/AlertContext";
+import { useStats } from "@/components/ui/StatsContext";
 
 export default function ShopPage() {
   const { showAlert } = useAlert();
   const { user, isLoaded, isSignedIn } = useUser();
-  const [streak, setStreak] = useState(1);
-  const [xp, setXp] = useState(0);
-  const [hearts, setHearts] = useState(5);
-  const [gems, setGems] = useState(50);
-  const [streakFreezeCount, setStreakFreezeCount] = useState(0);
+  const { streak, xp, hearts, gems, streakFreezeCount, refreshStats, updateStatsLocally } = useStats();
   
   const [purchasingHeart, setPurchasingHeart] = useState(false);
   const [purchasingFreeze, setPurchasingFreeze] = useState(false);
-
-  useEffect(() => {
-    async function loadStats() {
-      if (!isLoaded) return;
-      
-      let profileId: string | null = null;
-      if (user) {
-        profileId = user.id;
-      } else if (typeof window !== "undefined") {
-        profileId = localStorage.getItem("guest_session_id");
-      }
-
-      if (!profileId) {
-        setStreak(1);
-        setXp(0);
-        setHearts(5);
-        setGems(50);
-        setStreakFreezeCount(0);
-        return;
-      }
-
-      const { data } = await supabase
-        .from("profiles")
-        .select("streak, total_score, hearts, last_heart_lost_at, gems, streak_freeze_count")
-        .eq("id", profileId)
-        .single();
-      
-      if (data) {
-        setStreak(data.streak || 1);
-        setXp(data.total_score || 0);
-        setGems(data.gems !== undefined && data.gems !== null ? data.gems : 50);
-        setStreakFreezeCount(data.streak_freeze_count || 0);
-        
-        let h = data.hearts !== undefined && data.hearts !== null ? data.hearts : 5;
-        if (h < 5 && data.last_heart_lost_at) {
-          const now = new Date().getTime();
-          const lastLost = new Date(data.last_heart_lost_at).getTime();
-          const hoursPassed = (now - lastLost) / (1000 * 60 * 60);
-          const regenerated = Math.floor(hoursPassed / 4);
-          if (regenerated > 0) {
-            h = Math.min(5, h + regenerated);
-          }
-        }
-        setHearts(h);
-      }
-    }
-    loadStats();
-  }, [user, isLoaded]);
 
   const handleBuyHeart = async () => {
     if (gems < 50) {
@@ -87,8 +36,8 @@ export default function ShopPage() {
     if (profileId) {
       const res = await refillHeartsInDb(profileId);
       if (res.success) {
-        setGems(prev => Math.max(0, prev - 50));
-        setHearts(5);
+        updateStatsLocally({ gems: Math.max(0, gems - 50), hearts: 5 });
+        await refreshStats();
         await showAlert("❤️ Hearts refilled successfully!");
       } else {
         await showAlert("❌ Purchase failed: " + res.error);
@@ -126,8 +75,8 @@ export default function ShopPage() {
           .eq("id", profileId);
           
         if (!error) {
-          setGems(nextGems);
-          setStreakFreezeCount(nextFreeze);
+          updateStatsLocally({ gems: nextGems, streakFreezeCount: nextFreeze });
+          await refreshStats();
           localStorage.setItem("streak_freeze_count", nextFreeze.toString());
           await showAlert("❄️ Streak Freeze purchased! Equipped.");
         } else {

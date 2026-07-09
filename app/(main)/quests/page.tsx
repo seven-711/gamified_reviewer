@@ -6,14 +6,12 @@ import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
 import { supabase } from "@/lib/supabase";
 import { useAlert } from "@/components/ui/AlertContext";
+import { useStats } from "@/components/ui/StatsContext";
 
 export default function QuestsPage() {
   const { showAlert } = useAlert();
   const { user, isLoaded } = useUser();
-  const [streak, setStreak] = useState(1);
-  const [xp, setXp] = useState(0);
-  const [hearts, setHearts] = useState(5);
-  const [gems, setGems] = useState(50);
+  const { streak, xp, hearts, gems, refreshStats, updateStatsLocally } = useStats();
 
   const [dailyXp, setDailyXp] = useState(0);
   const [dailyLessons, setDailyLessons] = useState(0);
@@ -26,72 +24,28 @@ export default function QuestsPage() {
   const [claiming, setClaiming] = useState<number | null>(null);
 
   useEffect(() => {
-    async function loadStats() {
-      if (!isLoaded) return;
-      
-      let profileId: string | null = null;
-      if (user) {
-        profileId = user.id;
-      } else if (typeof window !== "undefined") {
-        profileId = localStorage.getItem("guest_session_id");
+    if (typeof window !== "undefined") {
+      const todayStr = new Date().toLocaleDateString("en-CA");
+      const lastResetDate = localStorage.getItem("last_quest_reset_date");
+      if (lastResetDate !== todayStr) {
+        localStorage.setItem("last_quest_reset_date", todayStr);
+        localStorage.setItem("daily_xp_earned", "0");
+        localStorage.setItem("daily_lessons_completed", "0");
+        localStorage.setItem("daily_passed_completed", "0");
+        localStorage.setItem("quest_1_claimed", "false");
+        localStorage.setItem("quest_2_claimed", "false");
+        localStorage.setItem("quest_3_claimed", "false");
       }
 
-      if (!profileId) {
-        setStreak(1);
-        setXp(0);
-        setHearts(5);
-        return;
-      }
+      setDailyXp(parseInt(localStorage.getItem("daily_xp_earned") || "0", 10));
+      setDailyLessons(parseInt(localStorage.getItem("daily_lessons_completed") || "0", 10));
+      setDailyPassed(parseInt(localStorage.getItem("daily_passed_completed") || "0", 10));
 
-      const { data } = await supabase
-        .from("profiles")
-        .select("streak, total_score, hearts, last_heart_lost_at, gems")
-        .eq("id", profileId)
-        .single();
-
-      if (data) {
-        setStreak(data.streak || 1);
-        setXp(data.total_score || 0);
-        setGems(data.gems !== undefined && data.gems !== null ? data.gems : 50);
-
-        let h = data.hearts !== undefined && data.hearts !== null ? data.hearts : 5;
-        if (h < 5 && data.last_heart_lost_at) {
-          const now = new Date().getTime();
-          const lastLost = new Date(data.last_heart_lost_at).getTime();
-          const hoursPassed = (now - lastLost) / (1000 * 60 * 60);
-          const regenerated = Math.floor(hoursPassed / 4);
-          if (regenerated > 0) {
-            h = Math.min(5, h + regenerated);
-          }
-        }
-        setHearts(h);
-      }
-
-      // Check daily quest counters
-      if (typeof window !== "undefined") {
-        const todayStr = new Date().toLocaleDateString("en-CA");
-        const lastResetDate = localStorage.getItem("last_quest_reset_date");
-        if (lastResetDate !== todayStr) {
-          localStorage.setItem("last_quest_reset_date", todayStr);
-          localStorage.setItem("daily_xp_earned", "0");
-          localStorage.setItem("daily_lessons_completed", "0");
-          localStorage.setItem("daily_passed_completed", "0");
-          localStorage.setItem("quest_1_claimed", "false");
-          localStorage.setItem("quest_2_claimed", "false");
-          localStorage.setItem("quest_3_claimed", "false");
-        }
-
-        setDailyXp(parseInt(localStorage.getItem("daily_xp_earned") || "0", 10));
-        setDailyLessons(parseInt(localStorage.getItem("daily_lessons_completed") || "0", 10));
-        setDailyPassed(parseInt(localStorage.getItem("daily_passed_completed") || "0", 10));
-
-        setQuest1Claimed(localStorage.getItem("quest_1_claimed") === "true");
-        setQuest2Claimed(localStorage.getItem("quest_2_claimed") === "true");
-        setQuest3Claimed(localStorage.getItem("quest_3_claimed") === "true");
-      }
+      setQuest1Claimed(localStorage.getItem("quest_1_claimed") === "true");
+      setQuest2Claimed(localStorage.getItem("quest_2_claimed") === "true");
+      setQuest3Claimed(localStorage.getItem("quest_3_claimed") === "true");
     }
-    loadStats();
-  }, [user, isLoaded]);
+  }, []);
 
   const handleClaimQuest = async (questNum: number, gemReward: number) => {
     setClaiming(questNum);
@@ -113,7 +67,8 @@ export default function QuestsPage() {
 
         if (!error) {
           localStorage.setItem(`quest_${questNum}_claimed`, "true");
-          setGems(prev => prev + gemReward);
+          updateStatsLocally({ gems: gems + gemReward });
+          await refreshStats();
           if (questNum === 1) setQuest1Claimed(true);
           if (questNum === 2) setQuest2Claimed(true);
           if (questNum === 3) setQuest3Claimed(true);

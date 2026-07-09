@@ -5,6 +5,7 @@ import { Fredoka, Nunito } from "next/font/google";
 import "./globals.css";
 
 import { AlertProvider } from "@/components/ui/AlertContext";
+import { StatsProvider } from "@/components/ui/StatsContext";
 
 const fredoka = Fredoka({
   variable: "--font-fredoka",
@@ -45,7 +46,9 @@ export default function RootLayout({
       </head>
         <body className="min-h-full flex flex-col">
           <AlertProvider>
-            {children}
+            <StatsProvider>
+              {children}
+            </StatsProvider>
           </AlertProvider>
         </body>
       </html>

@@ -1,63 +1,14 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { UserButton, useUser } from "@clerk/nextjs";
-import { supabase } from "@/lib/supabase";
+import { useStats } from "@/components/ui/StatsContext";
 
 export default function RightSidebar() {
   const { user, isLoaded, isSignedIn } = useUser();
-  const [streak, setStreak] = useState(0);
-  const [xp, setXp] = useState(0);
-  const [hearts, setHearts] = useState(5);
-  const [gems, setGems] = useState(50);
-
-  useEffect(() => {
-    async function loadStats() {
-      if (!isLoaded) return;
-      
-      let profileId: string | null = null;
-      if (user) {
-        profileId = user.id;
-      } else if (typeof window !== "undefined") {
-        profileId = localStorage.getItem("guest_session_id");
-      }
-
-      if (!profileId) {
-        setStreak(0);
-        setXp(0);
-        setHearts(5);
-        setGems(50);
-        return;
-      }
-
-      const { data } = await supabase
-        .from("profiles")
-        .select("streak, total_score, hearts, last_heart_lost_at, gems")
-        .eq("id", profileId)
-        .single();
-
-      if (data) {
-        setStreak(data.streak || 0);
-        setXp(data.total_score || 0);
-        setGems(data.gems !== undefined && data.gems !== null ? data.gems : 50);
-        
-        let h = data.hearts !== undefined && data.hearts !== null ? data.hearts : 5;
-        if (h < 5 && data.last_heart_lost_at) {
-          const now = new Date().getTime();
-          const lastLost = new Date(data.last_heart_lost_at).getTime();
-          const hoursPassed = (now - lastLost) / (1000 * 60 * 60);
-          const regenerated = Math.floor(hoursPassed / 4);
-          if (regenerated > 0) {
-            h = Math.min(5, h + regenerated);
-          }
-        }
-        setHearts(h);
-      }
-    }
-    loadStats();
-  }, [user, isLoaded]);
+  const { streak, xp, hearts, gems } = useStats();
 
   return (
     <div className="flex flex-col gap-6 pt-8">
