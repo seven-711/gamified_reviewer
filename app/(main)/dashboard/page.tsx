@@ -607,26 +607,28 @@ export default function DashboardPage() {
       <main className="flex-1 w-full max-w-[600px] mx-auto pb-24">
         <div className="flex flex-col gap-6 pt-2 items-center w-full">
           {/* Section Header */}
-          <div className="sticky top-0 md:top-6 z-30 w-full bg-duo-green rounded-2xl p-3 md:p-5 flex items-center justify-between shadow-[0_4px_0_#3f8f01]">
-            <div className="flex flex-col text-white min-w-0 pr-2">
-              <div className="flex items-center gap-2 mb-0.5">
-                <span onClick={() => router.push("/onboarding")} className="text-lg font-bold cursor-pointer hover:opacity-80 transition-opacity">←</span>
-                <span className="font-bold text-[10px] md:text-sm tracking-widest uppercase">
-                  Section 1, Unit 1
-                </span>
+          <div className="w-full px-4 md:px-0 sticky top-3 md:top-6 z-30">
+            <div className="w-full bg-duo-green rounded-2xl p-3 md:p-5 flex items-center justify-between shadow-[0_4px_0_#3f8f01]">
+              <div className="flex flex-col text-white min-w-0 pr-2">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <span onClick={() => router.push("/onboarding")} className="text-lg font-bold cursor-pointer hover:opacity-80 transition-opacity">←</span>
+                  <span className="font-bold text-[10px] md:text-sm tracking-widest uppercase">
+                    Section 1, Unit 1
+                  </span>
+                </div>
+                <h2 className="font-feather text-base md:text-2xl font-bold tracking-wide leading-tight truncate">
+                  {profile ? (
+                    `${profile.exam_category} ${topicName ? `- ${topicName}` : ""}`
+                  ) : (
+                    <div className="h-6 w-48 bg-white/20 rounded animate-pulse mt-1" />
+                  )}
+                </h2>
               </div>
-              <h2 className="font-feather text-base md:text-2xl font-bold tracking-wide leading-tight truncate">
-                {profile ? (
-                  `${profile.exam_category} ${topicName ? `- ${topicName}` : ""}`
-                ) : (
-                  <div className="h-6 w-48 bg-white/20 rounded animate-pulse mt-1" />
-                )}
-              </h2>
+              <button className="flex items-center justify-center gap-2 bg-white/20 hover:bg-white/30 text-white font-bold p-2.5 sm:px-4 sm:py-2.5 rounded-2xl transition-colors shadow-[0_2px_0_rgba(255,255,255,0.2)] shrink-0">
+                <Image src="/emoji/guidebook.webp" alt="Guidebook" width={24} height={24} className="brightness-0 invert w-auto h-auto" />
+                <span className="hidden sm:inline text-sm">GUIDEBOOK</span>
+              </button>
             </div>
-            <button className="flex items-center justify-center gap-2 bg-white/20 hover:bg-white/30 text-white font-bold p-2.5 sm:px-4 sm:py-2.5 rounded-2xl transition-colors shadow-[0_2px_0_rgba(255,255,255,0.2)] shrink-0">
-              <Image src="/emoji/guidebook.webp" alt="Guidebook" width={24} height={24} className="brightness-0 invert w-auto h-auto" />
-              <span className="hidden sm:inline text-sm">GUIDEBOOK</span>
-            </button>
           </div>
 
           {/* Quantitative Reasoning Active Section Banner */}
