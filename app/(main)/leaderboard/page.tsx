@@ -53,10 +53,12 @@ export default function LeaderboardPage() {
   // Determine if unlocked (has at least 1 lesson completed -> total_score > 0)
   const isUnlocked = currentUserProfile ? currentUserProfile.total_score > 0 : false;
 
+  const [activeTab, setActiveTab] = useState<"league" | "global">("league");
+
   return (
     <>
       {/* Center Column */}
-      <main className="flex-1 w-full max-w-[600px] mx-auto pb-24 flex flex-col items-center pt-6 md:pt-10 px-0 sm:px-4 font-din-round">
+      <main className="flex-1 w-full max-w-[600px] mx-auto pb-24 pt-6 md:pt-10 px-0 sm:px-4 font-din-round">
         
         {loading ? (
           /* Shimmering Loading State */
@@ -111,26 +113,117 @@ export default function LeaderboardPage() {
             </div>
           </div>
         ) : (
-          /* Active Leaderboard State */
+          /* Active Redesigned Gamified Leaderboard State */
           <div className="w-full flex flex-col items-center">
-            {/* Header Shield */}
-            <div className="w-full flex justify-center mb-6 relative">
-              <div className="w-32 h-32 relative">
-                <Image src="/emoji/leaderboard.webp" alt="Leaderboard Logo" fill className="object-contain" unoptimized />
+
+            {/* League Status Bar - Wood / Pink Palette */}
+            <div className="w-full max-w-[440px] bg-[#cc348d] border-2 border-[#b3247a] rounded-2xl px-4 py-3.5 flex items-center justify-between shadow-[0_4px_0_#8c1c5e] mt-4 mb-4 relative z-10">
+              <span className="font-feather font-black text-sm text-pink-100 tracking-widest uppercase">
+                Bronze
+              </span>
+              <div className="absolute left-1/2 -translate-x-1/2 -top-5 w-12 h-12 bg-[#ffc700] border-2 border-white rounded-2xl flex items-center justify-center shadow-lg transform hover:scale-105 transition-transform duration-300 p-2">
+                <div className="w-full h-full relative shrink-0">
+                  <Image src="/img/gen_imgs/trophy.webp" alt="Trophy Logo" fill className="object-contain" unoptimized />
+                </div>
               </div>
             </div>
-            
-            <h2 className="font-feather text-2xl md:text-3xl text-almost-black font-bold mb-2 text-center tracking-wide">
-              Weekly Rankings
-            </h2>
-            <p className="text-silver text-xs md:text-sm font-bold tracking-wider uppercase mb-8">
-              XP Leaderboard
-            </p>
+
+            {/* Podium Columns Container */}
+            <div className="w-full max-w-[440px] flex items-end justify-center gap-2 mt-8 mb-6 z-10 border-b border-cloud-gray/20 dark:border-cloud-gray/10 pb-4">
+              
+              {/* Rank 3 Podium (Left Column - Bubblegum Pink) */}
+              <div className="flex-1 flex flex-col items-center min-w-0">
+                {profiles[2] ? (
+                  <>
+                    <span className="font-din-round font-bold text-[10px] text-charcoal dark:text-silver truncate max-w-full mb-1">
+                      {profiles[2].name || (profiles[2].id.startsWith("guest_") ? `Guest_${profiles[2].id.substring(6, 11)}` : `Reviewer_${profiles[2].id.substring(5, 10)}`)}
+                    </span>
+                    <div className="w-12 h-12 rounded-2xl overflow-hidden border-2 border-[#b3247a] bg-purple-900/40 p-0.5 mb-1.5 relative shadow-md shrink-0">
+                      <img 
+                        src={profiles[2].id === (user ? user.id : (typeof window !== "undefined" ? localStorage.getItem("guest_session_id") : null)) && user?.imageUrl ? user.imageUrl : "/emoji/profile.webp"} 
+                        alt="Rank 3" 
+                        className="object-cover w-full h-full rounded-2xl" 
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <div className="w-12 h-12 rounded-2xl border-2 border-dashed border-purple-800 flex items-center justify-center text-purple-600 mb-2">3</div>
+                )}
+                {/* Podium Block */}
+                <div className="w-full bg-gradient-to-t from-[#b3247a] to-[#cc348d] border-t-4 border-[#e066b1] rounded-t-xl py-2 flex flex-col items-center shadow-lg h-[110px] justify-end pb-3 relative">
+                  <div className="absolute -top-3.5 bg-[#8c1c5e]/80 text-[#fecdd3] text-[8px] font-black px-1.5 py-0.5 rounded-full select-none flex items-center gap-0.5 border border-[#cc348d]/40">
+                    💎 50
+                  </div>
+                  <div className="w-20 h-20 relative shrink-0">
+                    <Image src="/img/gen_imgs/top3.webp" alt="3" fill className="object-contain" unoptimized />
+                  </div>
+                </div>
+              </div>
+
+              {/* Rank 1 Podium (Center Column - Sunshine Yellow) */}
+              <div className="flex-1 flex flex-col items-center min-w-0 z-10 scale-105">
+                {profiles[0] ? (
+                  <>
+                    <span className="font-din-round font-bold text-[11px] text-[#ffc700] truncate max-w-full mb-1 flex items-center gap-0.5">
+                      👑 {profiles[0].name || (profiles[0].id.startsWith("guest_") ? `Guest_${profiles[0].id.substring(6, 11)}` : `Reviewer_${profiles[0].id.substring(5, 10)}`)}
+                    </span>
+                    <div className="w-16 h-16 rounded-2xl overflow-hidden border-4 border-[#ffc700] bg-purple-900/40 p-0.5 mb-1.5 relative shadow-xl shrink-0">
+                      <img 
+                        src={profiles[0].id === (user ? user.id : (typeof window !== "undefined" ? localStorage.getItem("guest_session_id") : null)) && user?.imageUrl ? user.imageUrl : "/emoji/profile.webp"} 
+                        alt="Rank 1" 
+                        className="object-cover w-full h-full rounded-2xl" 
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <div className="w-16 h-16 rounded-2xl border-2 border-dashed border-purple-800 flex items-center justify-center text-purple-600 mb-2">1</div>
+                )}
+                {/* Podium Block */}
+                <div className="w-full bg-gradient-to-t from-[#d97706] to-[#ffc700] border-t-4 border-[#ffe066] rounded-t-xl py-3 flex flex-col items-center shadow-2xl h-[140px] justify-end pb-3 relative">
+                  <div className="absolute -top-3.5 bg-[#ffc700] text-purple-950 text-[9px] font-black px-2 py-0.5 rounded-full select-none flex items-center gap-0.5 shadow-md">
+                    💎 150
+                  </div>
+                  <div className="w-20 h-20 relative shrink-0">
+                    <Image src="/img/gen_imgs/top1.webp" alt="1" fill className="object-contain" unoptimized />
+                  </div>
+                </div>
+              </div>
+
+              {/* Rank 2 Podium (Right Column - Sky Blue) */}
+              <div className="flex-1 flex flex-col items-center min-w-0">
+                {profiles[1] ? (
+                  <>
+                    <span className="font-din-round font-bold text-[10px] text-charcoal dark:text-silver truncate max-w-full mb-1">
+                      {profiles[1].name || (profiles[1].id.startsWith("guest_") ? `Guest_${profiles[1].id.substring(6, 11)}` : `Reviewer_${profiles[1].id.substring(5, 10)}`)}
+                    </span>
+                    <div className="w-12 h-12 rounded-2xl overflow-hidden border-2 border-[#1085ba] bg-purple-900/40 p-0.5 mb-1.5 relative shadow-md shrink-0">
+                      <img 
+                        src={profiles[1].id === (user ? user.id : (typeof window !== "undefined" ? localStorage.getItem("guest_session_id") : null)) && user?.imageUrl ? user.imageUrl : "/emoji/profile.webp"} 
+                        alt="Rank 2" 
+                        className="object-cover w-full h-full rounded-2xl" 
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <div className="w-12 h-12 rounded-2xl border-2 border-dashed border-purple-800 flex items-center justify-center text-[#1085ba] mb-2">2</div>
+                )}
+                {/* Podium Block */}
+                <div className="w-full bg-gradient-to-t from-[#1085ba] to-[#1cb0f6] border-t-4 border-[#6bcaf6] rounded-t-xl py-2 flex flex-col items-center shadow-lg h-[125px] justify-end pb-3 relative">
+                  <div className="absolute -top-3.5 bg-[#0c9bdc] text-white text-[8px] font-black px-1.5 py-0.5 rounded-full select-none flex items-center gap-0.5 border border-[#1cb0f6]/40">
+                    💎 100
+                  </div>
+                  <div className="w-20 h-20 relative shrink-0">
+                    <Image src="/img/gen_imgs/top2.webp" alt="2" fill className="object-contain" unoptimized />
+                  </div>
+                </div>
+              </div>
+
+            </div>
 
             {/* Rankings List */}
-            <div className="w-full max-w-[480px] flex flex-col gap-3">
-              {profiles.slice(0, 10).map((profile, index) => {
-                const rank = index + 1;
+            <div className="w-full max-w-[440px] flex flex-col gap-3 z-10">
+              {profiles.slice(3).map((profile, index) => {
+                const rank = index + 4;
                 const activeProfileId = user ? user.id : (typeof window !== "undefined" ? localStorage.getItem("guest_session_id") : null);
                 const isSelf = activeProfileId === profile.id;
                 
@@ -144,55 +237,51 @@ export default function LeaderboardPage() {
                   displayName = `Reviewer_${profile.id.substring(5, 10)}`;
                 }
 
-                // Rank specific badge background
-                let rankBadge = (
-                  <span className="font-bold text-silver w-6 sm:w-8 text-center text-xs sm:text-base shrink-0">
+                // Rank specific badge background (Rank >= 4)
+                const rankBadge = (
+                  <span className="font-bold text-silver w-12 sm:w-20 text-center text-base sm:text-2xl shrink-0 select-none">
                     {rank}
                   </span>
                 );
-                if (rank === 1) {
-                  rankBadge = <span className="text-lg sm:text-2xl w-6 sm:w-8 text-center shrink-0">🥇</span>;
-                } else if (rank === 2) {
-                  rankBadge = <span className="text-lg sm:text-2xl w-6 sm:w-8 text-center shrink-0">🥈</span>;
-                } else if (rank === 3) {
-                  rankBadge = <span className="text-lg sm:text-2xl w-6 sm:w-8 text-center shrink-0">🥉</span>;
+
+                // Pill styling for Rank 4+ (Default White/Gray adapting to dark mode)
+                let rowBgClass = "border-[#e5e5e5] dark:border-cloud-gray/15 bg-white dark:bg-[#202f36] text-[#3c3c3c] dark:text-[#f1f5f9] shadow-none";
+                if (isSelf) {
+                  rowBgClass = "border-2 border-[#58cc02] bg-[#d7ffb8] dark:bg-[#58cc02]/15 text-[#58cc02] dark:text-[#d7ffb8]";
                 }
 
                 return (
                   <div 
                     key={profile.id}
-                    className={`flex items-center justify-between border-2 rounded-2xl p-2.5 sm:p-4 transition-all duration-150 ${
-                      isSelf 
-                        ? "border-sky-blue bg-sky-blue/10 shadow-[0_4px_0_#189edc] -translate-y-0.5" 
-                        : "border-cloud-gray bg-snow-white shadow-none"
-                    }`}
+                    className={`flex items-center justify-between border-2 rounded-xl p-3.5 sm:p-4.5 transition-all duration-150 ${rowBgClass}`}
                   >
                     <div className="flex items-center gap-2 sm:gap-4 overflow-hidden">
                       {rankBadge}
                       {/* Avatar container */}
-                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-duo-green-light flex items-center justify-center border-2 border-cloud-gray p-0.5 shrink-0 overflow-hidden">
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#d7ffb8] dark:bg-[#202f36] flex items-center justify-center border-2 border-[#e5e5e5] dark:border-cloud-gray/15 p-0.5 shrink-0 overflow-hidden shadow-sm">
                         <img 
                           src={isSelf && user?.imageUrl ? user.imageUrl : "/emoji/profile.webp"} 
                           alt={displayName} 
                           className="object-cover w-full h-full rounded-full" 
                         />
                       </div>
-                      <span className={`font-extrabold text-xs sm:text-sm md:text-base truncate max-w-[90px] min-[380px]:max-w-[120px] sm:max-w-[160px] md:max-w-[220px] ${
-                        isSelf ? "text-sky-blue" : "text-almost-black"
+                      <span className={`font-din-round font-bold text-xs sm:text-sm md:text-base truncate max-w-[90px] min-[380px]:max-w-[120px] sm:max-w-[160px] md:max-w-[220px] tracking-[0.053em] ${
+                        isSelf ? "text-[#58cc02] dark:text-[#d7ffb8]" : ""
                       }`}>
-                        {displayName} {isSelf && <span className="text-[9px] sm:text-[10px] font-bold bg-sky-blue text-white px-1.5 py-0.5 rounded-full uppercase ml-1">You</span>}
+                        {displayName} {isSelf && <span className="text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded-full uppercase ml-1 bg-[#58cc02] text-white tracking-normal">You</span>}
                       </span>
                     </div>
 
                     <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
                       {profile.streak > 0 && (
-                        <span title={`${profile.streak} Day Streak`} className="text-orange-500 font-bold text-[10px] sm:text-xs md:text-sm flex items-center gap-0.5 sm:gap-1 select-none">
+                        <span title={`${profile.streak} Day Streak`} className="font-din-round font-bold text-[10px] sm:text-xs md:text-sm flex items-center gap-0.5 sm:gap-1 select-none text-[#f97316] tracking-[0.053em]">
                           <Image src="/img/gen_imgs/streak.webp" alt="Streak" width={14} height={14} className="object-contain" />
                           <span>{profile.streak}</span>
                         </span>
                       )}
-                      <span className="font-extrabold text-xs sm:text-sm md:text-base text-almost-black flex items-center gap-0.5 sm:gap-1">
-                        🏆 {profile.total_score} <span className="text-[9px] sm:text-[10px] md:text-xs text-silver font-bold uppercase">XP</span>
+                      <span className="font-din-round font-bold text-xs sm:text-sm md:text-base flex items-center gap-1 select-none tracking-[0.053em]">
+                        <Image src="/img/gen_imgs/exp.webp" alt="XP" width={20} height={20} className="object-contain" />
+                        <span>{profile.total_score} <span className="text-[9px] sm:text-[10px] md:text-xs font-bold uppercase tracking-normal">XP</span></span>
                       </span>
                     </div>
                   </div>
@@ -200,7 +289,7 @@ export default function LeaderboardPage() {
               })}
 
               {profiles.length === 0 && (
-                <p className="text-silver font-bold text-sm text-center py-6">
+                <p className="text-[#8c1c5e] font-din-round font-bold text-sm text-center py-6">
                   No active rankings yet. Be the first to join!
                 </p>
               )}

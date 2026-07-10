@@ -9,7 +9,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="dark-mode flex min-h-screen bg-snow-white text-almost-black font-din-round pb-[68px] md:pb-0">
+    <div className="dark-mode flex min-h-screen bg-snow-white text-almost-black font-din-round pb-[68px] md:pb-0 overflow-x-hidden">
       {/* Left Sidebar - Fixed */}
       <div className="hidden md:flex w-[256px] border-r-2 border-cloud-gray fixed h-full bg-snow-white z-40">
         <LeftSidebar />
