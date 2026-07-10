@@ -144,7 +144,24 @@ export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                   </h3>
                 )}
                 <p className="text-graphite text-body leading-relaxed max-w-[340px] mx-auto tracking-wide whitespace-pre-line">
-                  {alertState.message}
+                  {alertState.message.includes("💎") ? (
+                    alertState.message.split("💎").map((part, i, arr) => (
+                      <React.Fragment key={i}>
+                        {part}
+                        {i < arr.length - 1 && (
+                          <Image
+                            src="/img/gen_imgs/diamond.webp"
+                            alt="Gems"
+                            width={18}
+                            height={18}
+                            className="inline-block object-contain align-middle -mt-0.5 mx-0.5"
+                          />
+                        )}
+                      </React.Fragment>
+                    ))
+                  ) : (
+                    alertState.message
+                  )}
                 </p>
               </div>
             </div>

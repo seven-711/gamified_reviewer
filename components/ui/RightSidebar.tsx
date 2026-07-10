@@ -20,12 +20,24 @@ export default function RightSidebar() {
         </div>
         {/* Streak */}
         <div className="flex items-center gap-2 text-orange-500 cursor-pointer hover:bg-duo-green-light p-2 rounded-xl transition-colors">
-          <span className="text-xl">🔥</span>
+          <Image
+            src="/img/gen_imgs/streak.webp"
+            alt="Streak"
+            width={28}
+            height={28}
+            className="object-contain"
+          />
           <span>{streak}</span>
         </div>
         {/* XP / Gems */}
         <div className="flex items-center gap-2 text-blue-400 cursor-pointer hover:bg-duo-green-light p-2 rounded-xl transition-colors" title="Gems">
-          <span className="text-xl">💎</span>
+          <Image
+            src="/img/gen_imgs/diamond.webp"
+            alt="Gems"
+            width={28}
+            height={28}
+            className="object-contain"
+          />
           <span>{gems}</span>
         </div>
         {/* Hearts */}

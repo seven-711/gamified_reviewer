@@ -165,7 +165,14 @@ export default function ProfilePage() {
         <h2 className="font-feather text-xl md:text-2xl font-bold text-white mb-4">Statistics</h2>
         <div className="grid grid-cols-2 gap-4 mb-10">
           <div className="border-2 border-cloud-gray rounded-2xl p-4 flex items-center gap-4">
-             <div className="text-3xl">🔥</div>
+             <div className="w-8 h-8 relative shrink-0">
+               <Image
+                 src="/img/gen_imgs/streak.webp"
+                 alt="Streak"
+                 fill
+                 className="object-contain"
+               />
+             </div>
              <div className="flex flex-col">
                {loading || !profile ? (
                  <div className="h-6 w-12 bg-cloud-gray/20 rounded animate-pulse" />

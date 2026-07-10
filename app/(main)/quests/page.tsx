@@ -148,7 +148,11 @@ export default function QuestsPage() {
               <div className="flex justify-between items-start">
                 <div className="flex flex-col">
                   <span className="font-bold text-base md:text-lg text-almost-black">Daily Sprint</span>
-                  <span className="text-xs text-silver font-semibold">Earn 30 XP today • Reward: 💎 5 Gems</span>
+                  <span className="text-xs text-silver font-semibold flex items-center gap-1.5 mt-0.5">
+                    <span>Earn 30 XP today • Reward:</span>
+                    <Image src="/img/gen_imgs/diamond.webp" alt="Gems" width={14} height={14} className="object-contain" />
+                    <span>5 Gems</span>
+                  </span>
                 </div>
                 {dailyXp >= 30 && !quest1Claimed && (
                   <button
@@ -192,7 +196,11 @@ export default function QuestsPage() {
               <div className="flex justify-between items-start">
                 <div className="flex flex-col">
                   <span className="font-bold text-base md:text-lg text-almost-black">First Steps</span>
-                  <span className="text-xs text-silver font-semibold">Complete 1 lesson today • Reward: 💎 5 Gems</span>
+                  <span className="text-xs text-silver font-semibold flex items-center gap-1.5 mt-0.5">
+                    <span>Complete 1 lesson today • Reward:</span>
+                    <Image src="/img/gen_imgs/diamond.webp" alt="Gems" width={14} height={14} className="object-contain" />
+                    <span>5 Gems</span>
+                  </span>
                 </div>
                 {dailyLessons >= 1 && !quest2Claimed && (
                   <button
@@ -236,7 +244,11 @@ export default function QuestsPage() {
               <div className="flex justify-between items-start">
                 <div className="flex flex-col">
                   <span className="font-bold text-base md:text-lg text-almost-black">High Achiever</span>
-                  <span className="text-xs text-silver font-semibold">Pass a test with &gt;= 80% score • Reward: 💎 10 Gems</span>
+                  <span className="text-xs text-silver font-semibold flex items-center gap-1.5 mt-0.5">
+                    <span>Pass a test with &gt;= 80% score • Reward:</span>
+                    <Image src="/img/gen_imgs/diamond.webp" alt="Gems" width={14} height={14} className="object-contain" />
+                    <span>10 Gems</span>
+                  </span>
                 </div>
                 {dailyPassed >= 1 && !quest3Claimed && (
                   <button
@@ -288,13 +300,25 @@ export default function QuestsPage() {
 
             {/* Streak */}
             <div className="flex items-center gap-1.5 text-orange-500 cursor-pointer hover:bg-duo-green-light p-2 rounded-xl transition-colors">
-              <span className="text-xl">🔥</span>
+              <Image
+                src="/img/gen_imgs/streak.webp"
+                alt="Streak"
+                width={28}
+                height={28}
+                className="object-contain"
+              />
               <span>{streak}</span>
             </div>
 
             {/* XP / Gems */}
             <div className="flex items-center gap-1.5 text-blue-400 cursor-pointer hover:bg-duo-green-light p-2 rounded-xl transition-colors" title="Gems">
-              <span className="text-xl">💎</span>
+              <Image
+                src="/img/gen_imgs/diamond.webp"
+                alt="Gems"
+                width={28}
+                height={28}
+                className="object-contain"
+              />
               <span>{gems}</span>
             </div>
 

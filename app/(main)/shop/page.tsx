@@ -120,7 +120,15 @@ export default function ShopPage() {
                 onClick={handleBuyHeart}
                 className="w-full sm:w-auto bg-transparent text-blue-400 hover:bg-blue-50 border-2 border-cloud-gray font-extrabold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider shrink-0 cursor-pointer active:scale-95 transition-all disabled:opacity-50"
               >
-                {hearts === 5 ? "FULL" : purchasingHeart ? "BUYING..." : "GET FOR 💎 50"}
+                {hearts === 5 ? (
+                  "FULL"
+                ) : purchasingHeart ? (
+                  "BUYING..."
+                ) : (
+                  <span className="flex items-center justify-center gap-1">
+                    GET FOR <Image src="/img/gen_imgs/diamond.webp" alt="Gems" width={16} height={16} className="inline object-contain" /> 50
+                  </span>
+                )}
               </button>
             </div>
           </div>
@@ -154,7 +162,15 @@ export default function ShopPage() {
                 onClick={handleBuyFreeze}
                 className="w-full sm:w-auto border-2 border-cloud-gray hover:bg-gray-50 text-almost-black font-extrabold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider shrink-0 cursor-pointer active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {streakFreezeCount >= 2 ? "EQUIPPED" : purchasingFreeze ? "BUYING..." : "GET FOR 💎 200"}
+                {streakFreezeCount >= 2 ? (
+                  "EQUIPPED"
+                ) : purchasingFreeze ? (
+                  "BUYING..."
+                ) : (
+                  <span className="flex items-center justify-center gap-1">
+                    GET FOR <Image src="/img/gen_imgs/diamond.webp" alt="Gems" width={16} height={16} className="inline object-contain" /> 200
+                  </span>
+                )}
               </button>
             </div>
           </div>
@@ -206,13 +222,25 @@ export default function ShopPage() {
             
             {/* Streak */}
             <div className="flex items-center gap-1.5 text-orange-500 cursor-pointer hover:bg-duo-green-light p-2 rounded-xl transition-colors">
-              <span className="text-xl">🔥</span>
+              <Image
+                src="/img/gen_imgs/streak.webp"
+                alt="Streak"
+                width={28}
+                height={28}
+                className="object-contain"
+              />
               <span>{streak}</span>
             </div>
             
             {/* XP / Gems */}
             <div className="flex items-center gap-1.5 text-blue-400 cursor-pointer hover:bg-duo-green-light p-2 rounded-xl transition-colors" title="Gems">
-              <span className="text-xl">💎</span>
+              <Image
+                src="/img/gen_imgs/diamond.webp"
+                alt="Gems"
+                width={28}
+                height={28}
+                className="object-contain"
+              />
               <span>{gems}</span>
             </div>
             

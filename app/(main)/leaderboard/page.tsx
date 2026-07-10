@@ -56,7 +56,7 @@ export default function LeaderboardPage() {
   return (
     <>
       {/* Center Column */}
-      <main className="flex-1 w-full max-w-[600px] mx-auto pb-24 flex flex-col items-center pt-6 md:pt-10 px-4 font-din-round">
+      <main className="flex-1 w-full max-w-[600px] mx-auto pb-24 flex flex-col items-center pt-6 md:pt-10 px-0 sm:px-4 font-din-round">
         
         {loading ? (
           /* Shimmering Loading State */
@@ -146,52 +146,53 @@ export default function LeaderboardPage() {
 
                 // Rank specific badge background
                 let rankBadge = (
-                  <span className="font-bold text-silver w-8 text-center text-sm md:text-base">
+                  <span className="font-bold text-silver w-6 sm:w-8 text-center text-xs sm:text-base shrink-0">
                     {rank}
                   </span>
                 );
                 if (rank === 1) {
-                  rankBadge = <span className="text-xl md:text-2xl w-8 text-center">🥇</span>;
+                  rankBadge = <span className="text-lg sm:text-2xl w-6 sm:w-8 text-center shrink-0">🥇</span>;
                 } else if (rank === 2) {
-                  rankBadge = <span className="text-xl md:text-2xl w-8 text-center">🥈</span>;
+                  rankBadge = <span className="text-lg sm:text-2xl w-6 sm:w-8 text-center shrink-0">🥈</span>;
                 } else if (rank === 3) {
-                  rankBadge = <span className="text-xl md:text-2xl w-8 text-center">🥉</span>;
+                  rankBadge = <span className="text-lg sm:text-2xl w-6 sm:w-8 text-center shrink-0">🥉</span>;
                 }
 
                 return (
                   <div 
                     key={profile.id}
-                    className={`flex items-center justify-between border-2 rounded-2xl p-4 transition-all duration-150 ${
+                    className={`flex items-center justify-between border-2 rounded-2xl p-2.5 sm:p-4 transition-all duration-150 ${
                       isSelf 
                         ? "border-sky-blue bg-sky-blue/10 shadow-[0_4px_0_#189edc] -translate-y-0.5" 
                         : "border-cloud-gray bg-snow-white shadow-none"
                     }`}
                   >
-                    <div className="flex items-center gap-3 md:gap-4 overflow-hidden">
+                    <div className="flex items-center gap-2 sm:gap-4 overflow-hidden">
                       {rankBadge}
                       {/* Avatar container */}
-                      <div className="w-10 h-10 rounded-full bg-duo-green-light flex items-center justify-center border-2 border-cloud-gray p-0.5 shrink-0 overflow-hidden">
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-duo-green-light flex items-center justify-center border-2 border-cloud-gray p-0.5 shrink-0 overflow-hidden">
                         <img 
                           src={isSelf && user?.imageUrl ? user.imageUrl : "/emoji/profile.webp"} 
                           alt={displayName} 
                           className="object-cover w-full h-full rounded-full" 
                         />
                       </div>
-                      <span className={`font-extrabold text-sm md:text-base truncate max-w-[160px] md:max-w-[220px] ${
+                      <span className={`font-extrabold text-xs sm:text-sm md:text-base truncate max-w-[90px] min-[380px]:max-w-[120px] sm:max-w-[160px] md:max-w-[220px] ${
                         isSelf ? "text-sky-blue" : "text-almost-black"
                       }`}>
-                        {displayName} {isSelf && <span className="text-[10px] font-bold bg-sky-blue text-white px-2 py-0.5 rounded-full uppercase ml-1">You</span>}
+                        {displayName} {isSelf && <span className="text-[9px] sm:text-[10px] font-bold bg-sky-blue text-white px-1.5 py-0.5 rounded-full uppercase ml-1">You</span>}
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-3 shrink-0">
+                    <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
                       {profile.streak > 0 && (
-                        <span title={`${profile.streak} Day Streak`} className="text-orange-500 font-bold text-xs md:text-sm flex items-center gap-0.5 select-none">
-                          🔥 {profile.streak}
+                        <span title={`${profile.streak} Day Streak`} className="text-orange-500 font-bold text-[10px] sm:text-xs md:text-sm flex items-center gap-0.5 sm:gap-1 select-none">
+                          <Image src="/img/gen_imgs/streak.webp" alt="Streak" width={14} height={14} className="object-contain" />
+                          <span>{profile.streak}</span>
                         </span>
                       )}
-                      <span className="font-extrabold text-sm md:text-base text-almost-black flex items-center gap-1">
-                        🏆 {profile.total_score} <span className="text-[10px] md:text-xs text-silver font-bold uppercase">XP</span>
+                      <span className="font-extrabold text-xs sm:text-sm md:text-base text-almost-black flex items-center gap-0.5 sm:gap-1">
+                        🏆 {profile.total_score} <span className="text-[9px] sm:text-[10px] md:text-xs text-silver font-bold uppercase">XP</span>
                       </span>
                     </div>
                   </div>

@@ -1119,8 +1119,9 @@ export default function DashboardPage() {
                   You have 0 hearts. Wait for regeneration (1 heart every 4 hours), or refill instantly using Gems!
                 </p>
                 {profile && (
-                  <div className="text-xs md:text-sm font-extrabold text-[#1cb0f6] mt-1">
-                    💎 Current Balance: {profile.gems} Gems
+                  <div className="text-xs md:text-sm font-extrabold text-[#1cb0f6] mt-1 flex items-center justify-center gap-1">
+                    <Image src="/img/gen_imgs/diamond.webp" alt="Gems" width={16} height={16} className="object-contain" />
+                    <span>Current Balance: {profile.gems} Gems</span>
                   </div>
                 )}
               </div>
@@ -1135,7 +1136,15 @@ export default function DashboardPage() {
                   (!profile || profile.gems < 50 || refillingHearts) ? "opacity-50 cursor-not-allowed shadow-none active:translate-y-0" : ""
                 }`}
               >
-                {refillingHearts ? "Refilling..." : "Refill to 5 Hearts (💎 50)"}
+                {refillingHearts ? (
+                  "Refilling..."
+                ) : (
+                  <span className="flex items-center justify-center gap-1">
+                    Refill to 5 Hearts (
+                    <Image src="/img/gen_imgs/diamond.webp" alt="Gems" width={16} height={16} className="inline object-contain" />
+                    50)
+                  </span>
+                )}
               </button>
               
               {profile && profile.gems < 50 && (

@@ -817,7 +817,10 @@ function LessonContent() {
               )}
               <div className="flex justify-between items-center border-t border-dashed border-cloud-gray/50 pt-2 mt-1 text-sm">
                 <span className="text-almost-black">Total Gems Earned:</span>
-                <span className="text-blue-500 font-black text-base md:text-lg">💎 +{gemsEarnedSummary.total} Gems</span>
+                <span className="text-blue-500 font-black text-base md:text-lg flex items-center gap-1">
+                  <Image src="/img/gen_imgs/diamond.webp" alt="Gems" width={18} height={18} className="object-contain" />
+                  <span>+{gemsEarnedSummary.total} Gems</span>
+                </span>
               </div>
             </div>
           )}
@@ -1059,8 +1062,9 @@ function LessonContent() {
                 <p className="text-graphite text-body leading-relaxed max-w-[360px] mx-auto tracking-wide">
                   You made too many mistakes in this session. Refill to continue practicing, or exit back to the dashboard!
                 </p>
-                <div className="text-xs md:text-sm font-extrabold text-[#1cb0f6] mt-1">
-                  💎 Current Balance: {profileGems} Gems
+                <div className="text-xs md:text-sm font-extrabold text-[#1cb0f6] mt-1 flex items-center justify-center gap-1">
+                  <Image src="/img/gen_imgs/diamond.webp" alt="Gems" width={16} height={16} className="object-contain" />
+                  <span>Current Balance: {profileGems} Gems</span>
                 </div>
               </div>
             </div>
@@ -1074,7 +1078,15 @@ function LessonContent() {
                   (profileGems < 50 || refilling) ? "opacity-50 cursor-not-allowed shadow-none active:translate-y-0" : ""
                 }`}
               >
-                {refilling ? "REFILLING..." : `REFILL (💎 50)`}
+                {refilling ? (
+                  "REFILLING..."
+                ) : (
+                  <span className="flex items-center justify-center gap-1">
+                    REFILL (
+                    <Image src="/img/gen_imgs/diamond.webp" alt="Gems" width={16} height={16} className="inline object-contain" />
+                    50)
+                  </span>
+                )}
               </button>
               
               {profileGems < 50 && (

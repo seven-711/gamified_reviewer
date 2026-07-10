@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 
 const NAV_ITEMS = [
   { name: "LEARN", href: "/dashboard", icon: "/emoji/learn.webp" },
-  { name: "LEADERBOARDS", href: "/leaderboard", icon: "/emoji/leaderboard.webp" },
+  { name: "LEADERBOARD", href: "/leaderboard", icon: "/emoji/leaderboard.webp" },
   { name: "QUESTS", href: "/quests", icon: "/emoji/quest.webp" },
   { name: "SHOP", href: "/shop", icon: "/emoji/shop.webp" },
   { name: "PROFILE", href: "/profile", icon: "/emoji/profile.webp" },
@@ -24,7 +24,7 @@ export default function MobileNavbar() {
           <Link
             key={item.name}
             href={item.href}
-            className="flex flex-col items-center justify-center grow py-1.5 relative cursor-pointer gap-0.5"
+            className="flex flex-col items-center justify-center grow py-1 relative cursor-pointer gap-0.5"
           >
             <div className={`relative transition-all duration-150 ${
               isActive ? "w-7 h-7 scale-110" : "w-6 h-6 grayscale opacity-50 hover:grayscale-0 hover:opacity-85"
@@ -38,7 +38,7 @@ export default function MobileNavbar() {
               />
             </div>
             
-            <span className={`text-[9px] font-extrabold tracking-wider uppercase transition-all duration-150 ${
+            <span className={`text-[8px] min-[360px]:text-[9px] font-extrabold tracking-tight min-[360px]:tracking-wider uppercase transition-all duration-150 ${
               isActive ? "text-sky-blue font-black scale-105" : "text-silver"
             }`}>
               {item.name}
