@@ -138,21 +138,21 @@ export default function LeaderboardPage() {
                     <span className="font-din-round font-bold text-[10px] text-charcoal dark:text-silver truncate max-w-full mb-1">
                       {profiles[2].name || (profiles[2].id.startsWith("guest_") ? `Guest_${profiles[2].id.substring(6, 11)}` : `Reviewer_${profiles[2].id.substring(5, 10)}`)}
                     </span>
-                    <div className="w-12 h-12 rounded-2xl overflow-hidden border-2 border-[#b3247a] bg-purple-900/40 p-0.5 mb-1.5 relative shadow-md shrink-0">
+                    <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-[#b3247a] bg-purple-900/40 p-0.5 mb-1.5 relative shadow-md shrink-0">
                       <img 
                         src={profiles[2].id === (user ? user.id : (typeof window !== "undefined" ? localStorage.getItem("guest_session_id") : null)) && user?.imageUrl ? user.imageUrl : "/emoji/profile.webp"} 
                         alt="Rank 3" 
-                        className="object-cover w-full h-full rounded-2xl" 
+                        className="object-cover w-full h-full rounded-full" 
                       />
                     </div>
                   </>
                 ) : (
-                  <div className="w-12 h-12 rounded-2xl border-2 border-dashed border-purple-800 flex items-center justify-center text-purple-600 mb-2">3</div>
+                  <div className="w-20 h-20 rounded-full border-2 border-dashed border-purple-800 flex items-center justify-center text-purple-600 mb-2">3</div>
                 )}
                 {/* Podium Block */}
                 <div className="w-full bg-gradient-to-t from-[#b3247a] to-[#cc348d] border-t-4 border-[#e066b1] rounded-t-xl py-2 flex flex-col items-center shadow-lg h-[110px] justify-end pb-3 relative">
-                  <div className="absolute -top-3.5 bg-[#8c1c5e]/80 text-[#fecdd3] text-[8px] font-black px-1.5 py-0.5 rounded-full select-none flex items-center gap-0.5 border border-[#cc348d]/40">
-                    💎 50
+                  <div className="absolute -top-3.5 bg-[#8c1c5e]/80 text-[#fecdd3] text-[8px] font-black px-2 py-0.5 rounded-full select-none flex items-center gap-0.5 border border-[#cc348d]/40 uppercase tracking-wider">
+                    {profiles[2]?.total_score || 0} XP
                   </div>
                   <div className="w-20 h-20 relative shrink-0">
                     <Image src="/img/gen_imgs/top3.webp" alt="3" fill className="object-contain" unoptimized />
@@ -167,21 +167,21 @@ export default function LeaderboardPage() {
                     <span className="font-din-round font-bold text-[11px] text-[#ffc700] truncate max-w-full mb-1 flex items-center gap-0.5">
                       👑 {profiles[0].name || (profiles[0].id.startsWith("guest_") ? `Guest_${profiles[0].id.substring(6, 11)}` : `Reviewer_${profiles[0].id.substring(5, 10)}`)}
                     </span>
-                    <div className="w-16 h-16 rounded-2xl overflow-hidden border-4 border-[#ffc700] bg-purple-900/40 p-0.5 mb-1.5 relative shadow-xl shrink-0">
+                    <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-[#ffc700] bg-purple-900/40 p-0.5 mb-1.5 relative shadow-xl shrink-0">
                       <img 
                         src={profiles[0].id === (user ? user.id : (typeof window !== "undefined" ? localStorage.getItem("guest_session_id") : null)) && user?.imageUrl ? user.imageUrl : "/emoji/profile.webp"} 
                         alt="Rank 1" 
-                        className="object-cover w-full h-full rounded-2xl" 
+                        className="object-cover w-full h-full rounded-full" 
                       />
                     </div>
                   </>
                 ) : (
-                  <div className="w-16 h-16 rounded-2xl border-2 border-dashed border-purple-800 flex items-center justify-center text-purple-600 mb-2">1</div>
+                  <div className="w-20 h-20 rounded-full border-2 border-dashed border-purple-800 flex items-center justify-center text-purple-600 mb-2">1</div>
                 )}
                 {/* Podium Block */}
                 <div className="w-full bg-gradient-to-t from-[#d97706] to-[#ffc700] border-t-4 border-[#ffe066] rounded-t-xl py-3 flex flex-col items-center shadow-2xl h-[140px] justify-end pb-3 relative">
-                  <div className="absolute -top-3.5 bg-[#ffc700] text-purple-950 text-[9px] font-black px-2 py-0.5 rounded-full select-none flex items-center gap-0.5 shadow-md">
-                    💎 150
+                  <div className="absolute -top-3.5 bg-[#ffc700] text-purple-950 text-[9px] font-black px-2.5 py-0.5 rounded-full select-none flex items-center gap-0.5 shadow-md uppercase tracking-wider">
+                    {profiles[0]?.total_score || 0} XP
                   </div>
                   <div className="w-20 h-20 relative shrink-0">
                     <Image src="/img/gen_imgs/top1.webp" alt="1" fill className="object-contain" unoptimized />
@@ -196,21 +196,21 @@ export default function LeaderboardPage() {
                     <span className="font-din-round font-bold text-[10px] text-charcoal dark:text-silver truncate max-w-full mb-1">
                       {profiles[1].name || (profiles[1].id.startsWith("guest_") ? `Guest_${profiles[1].id.substring(6, 11)}` : `Reviewer_${profiles[1].id.substring(5, 10)}`)}
                     </span>
-                    <div className="w-12 h-12 rounded-2xl overflow-hidden border-2 border-[#1085ba] bg-purple-900/40 p-0.5 mb-1.5 relative shadow-md shrink-0">
+                    <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-[#1085ba] bg-purple-900/40 p-0.5 mb-1.5 relative shadow-md shrink-0">
                       <img 
                         src={profiles[1].id === (user ? user.id : (typeof window !== "undefined" ? localStorage.getItem("guest_session_id") : null)) && user?.imageUrl ? user.imageUrl : "/emoji/profile.webp"} 
                         alt="Rank 2" 
-                        className="object-cover w-full h-full rounded-2xl" 
+                        className="object-cover w-full h-full rounded-full" 
                       />
                     </div>
                   </>
                 ) : (
-                  <div className="w-12 h-12 rounded-2xl border-2 border-dashed border-purple-800 flex items-center justify-center text-[#1085ba] mb-2">2</div>
+                  <div className="w-20 h-20 rounded-full border-2 border-dashed border-purple-800 flex items-center justify-center text-[#1085ba] mb-2">2</div>
                 )}
                 {/* Podium Block */}
                 <div className="w-full bg-gradient-to-t from-[#1085ba] to-[#1cb0f6] border-t-4 border-[#6bcaf6] rounded-t-xl py-2 flex flex-col items-center shadow-lg h-[125px] justify-end pb-3 relative">
-                  <div className="absolute -top-3.5 bg-[#0c9bdc] text-white text-[8px] font-black px-1.5 py-0.5 rounded-full select-none flex items-center gap-0.5 border border-[#1cb0f6]/40">
-                    💎 100
+                  <div className="absolute -top-3.5 bg-[#0c9bdc] text-white text-[8px] font-black px-2 py-0.5 rounded-full select-none flex items-center gap-0.5 border border-[#1cb0f6]/40 uppercase tracking-wider">
+                    {profiles[1]?.total_score || 0} XP
                   </div>
                   <div className="w-20 h-20 relative shrink-0">
                     <Image src="/img/gen_imgs/top2.webp" alt="2" fill className="object-contain" unoptimized />
