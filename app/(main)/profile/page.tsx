@@ -215,7 +215,7 @@ export default function ProfilePage() {
 
             {/* XP */}
             <div className="flex items-center gap-3 bg-gradient-to-br from-yellow-500/5 to-transparent border border-yellow-500/10 rounded-2xl p-3 hover:-translate-y-0.5 transition-transform">
-              <Image src="/img/gen_imgs/trophy.webp" alt="XP" width={28} height={28} className="object-contain" />
+              <Image src="/img/gen_imgs/exp.webp" alt="XP" width={28} height={28} className="object-contain" />
               <span className="font-extrabold text-[16px] text-white">
                 {profile?.total_score || 0} XP
               </span>
