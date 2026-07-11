@@ -49,6 +49,8 @@ function LessonContent() {
   const [status, setStatus] = useState<QuizStatus>("none");
   const [timeLeft, setTimeLeft] = useState<number>(300);
   const [correctAnswers, setCorrectAnswers] = useState(0);
+  const [consecutiveCorrect, setConsecutiveCorrect] = useState<number>(0);
+  const [showAwoooVideo, setShowAwoooVideo] = useState<boolean>(false);
   const [showHowToAnswer, setShowHowToAnswer] = useState(true);
   const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -83,7 +85,7 @@ function LessonContent() {
         setProfileGems((prev) => Math.max(0, prev - 50));
         setShowOutOfHeartsModal(false);
       } else {
-        await showAlert("❌ Refill failed: " + res.error);
+        await showAlert("Refill failed: " + res.error);
       }
     }
     setRefilling(false);
@@ -145,6 +147,7 @@ function LessonContent() {
               setTimeLeft((savedDuration ? parseInt(savedDuration, 10) : 5) * 60);
             }
             setCorrectAnswers(parsed.correctAnswers ?? 0);
+            setConsecutiveCorrect(parsed.consecutiveCorrect ?? 0);
             if (parsed.showHowToAnswer !== undefined) {
               setShowHowToAnswer(parsed.showHowToAnswer);
             }
@@ -259,10 +262,11 @@ function LessonContent() {
         timeLeft,
         correctAnswers,
         showHowToAnswer,
-        shuffledIndices
+        shuffledIndices,
+        consecutiveCorrect
       }));
     }
-  }, [phase, currentExampleIndex, currentIndex, selectedOption, status, timeLeft, correctAnswers, showHowToAnswer, isLoaded, testId, shuffledIndices]);
+  }, [phase, currentExampleIndex, currentIndex, selectedOption, status, timeLeft, correctAnswers, showHowToAnswer, isLoaded, testId, shuffledIndices, consecutiveCorrect]);
 
   // Timer logic
   useEffect(() => {
@@ -403,6 +407,14 @@ function LessonContent() {
       // Ignore if user is typing in an input
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
 
+      if (showAwoooVideo) {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          setShowAwoooVideo(false);
+        }
+        return;
+      }
+
       // Ignore keyboard shortcuts if modal alerts are visible or the user is out of hearts
       if (showOutOfHeartsModal || showExitModal || hearts === 0) return;
       
@@ -459,8 +471,17 @@ function LessonContent() {
           if (selectedOption === question.correctIndex) {
             setStatus("correct");
             setCorrectAnswers((prev) => prev + 1);
+            setConsecutiveCorrect((prev) => {
+              const next = prev + 1;
+              if (next === 3) {
+                setShowAwoooVideo(true);
+                return 0;
+              }
+              return next;
+            });
           } else {
             setStatus("wrong");
+            setConsecutiveCorrect(0);
             setHearts((prev) => {
               const nextHearts = Math.max(0, prev - 1);
               if (nextHearts === 0) {
@@ -498,7 +519,8 @@ function LessonContent() {
     testExamples,
     showOutOfHeartsModal,
     showExitModal,
-    hearts
+    hearts,
+    showAwoooVideo
   ]);
 
   const handleOptionSelect = (index: number) => {
@@ -514,8 +536,17 @@ function LessonContent() {
     if (selectedOption === question.correctIndex) {
       setStatus("correct");
       setCorrectAnswers((prev) => prev + 1);
+      setConsecutiveCorrect((prev) => {
+        const next = prev + 1;
+        if (next === 3) {
+          setShowAwoooVideo(true);
+          return 0;
+        }
+        return next;
+      });
     } else {
       setStatus("wrong");
+      setConsecutiveCorrect(0);
       setHearts((prev) => {
         const nextHearts = Math.max(0, prev - 1);
         if (nextHearts === 0) {
@@ -550,6 +581,7 @@ function LessonContent() {
     setSelectedOption(null);
     setStatus("none");
     setCorrectAnswers(0);
+    setConsecutiveCorrect(0);
     scoreSavedRef.current = false;
     const savedDuration = localStorage.getItem("timer_duration");
     setTimeLeft((savedDuration ? parseInt(savedDuration, 10) : 5) * 60);
@@ -989,7 +1021,7 @@ function LessonContent() {
 
       {showExitModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center z-50 p-4 animate-[fadeIn_0.2s_ease-out]">
-          <div className="bg-white border-2 border-cloud-gray border-b-8 rounded-[24px] w-full max-w-[460px] p-6 md:p-8 flex flex-col gap-6 md:gap-8 shadow-none animate-[scaleIn_0.2s_ease-out] relative">
+          <div className="bg-white dark:bg-[#202f36] border-2 border-cloud-gray dark:border-cloud-gray/15 border-b-8 rounded-[24px] w-full max-w-[460px] p-6 md:p-8 flex flex-col gap-6 md:gap-8 shadow-none animate-[scaleIn_0.2s_ease-out] relative">
             
             {/* Mascot & Dialogue */}
             <div className="flex flex-col items-center text-center gap-5">
@@ -1004,10 +1036,10 @@ function LessonContent() {
                 />
               </div>
               <div className="flex flex-col gap-3 font-din-round">
-                <h3 className="font-feather text-2xl md:text-[28px] text-charcoal font-bold leading-tight tracking-wide">
+                <h3 className="font-feather text-2xl md:text-[28px] text-charcoal dark:text-[#f1f5f9] font-bold leading-tight tracking-wide">
                   Wait, don&apos;t go!
                 </h3>
-                <p className="text-graphite text-body leading-relaxed max-w-[360px] mx-auto tracking-wide">
+                <p className="text-graphite dark:text-silver text-body leading-relaxed max-w-[360px] mx-auto tracking-wide">
                   You&apos;re in the middle of a test. If you quit now, you will lose your progress on this attempt!
                 </p>
               </div>
@@ -1020,7 +1052,7 @@ function LessonContent() {
                   localStorage.removeItem(`quiz_state_${testId}`);
                   router.push("/dashboard");
                 }}
-                className="w-full sm:flex-1 bg-white text-[#ff4b4b] border-2 border-cloud-gray font-bold py-3 px-6 rounded-2xl shadow-[0_4px_0_var(--color-cloud-gray)] active:translate-y-[4px] active:shadow-none hover:bg-gray-50 transition-all text-body text-center cursor-pointer font-din-round"
+                className="w-full sm:flex-1 bg-white dark:bg-transparent text-[#ff4b4b] border-2 border-cloud-gray dark:border-cloud-gray/15 font-bold py-3 px-6 rounded-2xl shadow-[0_4px_0_var(--color-cloud-gray)] dark:shadow-none active:translate-y-[4px] active:shadow-none hover:bg-gray-50 dark:hover:bg-slate-800/40 transition-all text-body text-center cursor-pointer font-din-round"
               >
                 QUIT TEST
               </button>
@@ -1037,7 +1069,7 @@ function LessonContent() {
 
       {showOutOfHeartsModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center z-50 p-4 animate-[fadeIn_0.2s_ease-out]">
-          <div className="bg-snow-white border-2 border-cloud-gray border-b-8 rounded-[24px] w-full max-w-[460px] p-6 md:p-8 flex flex-col gap-6 md:gap-8 shadow-none animate-[scaleIn_0.2s_ease-out] relative">
+          <div className="bg-snow-white dark:bg-[#202f36] border-2 border-cloud-gray dark:border-cloud-gray/15 border-b-8 rounded-[24px] w-full max-w-[460px] p-6 md:p-8 flex flex-col gap-6 md:gap-8 shadow-none animate-[scaleIn_0.2s_ease-out] relative">
             
             {/* Crying Mascot & Broken Heart Overlay */}
             <div className="flex flex-col items-center text-center gap-5">
@@ -1050,16 +1082,16 @@ function LessonContent() {
                   className="object-contain drop-shadow-md"
                   unoptimized
                 />
-                <span className="absolute -bottom-2 -right-2 text-3xl bg-snow-white p-2 rounded-full border-2 border-cloud-gray shadow-sm">
+                <span className="absolute -bottom-2 -right-2 text-3xl bg-snow-white dark:bg-[#1a2529] p-2 rounded-full border-2 border-cloud-gray dark:border-cloud-gray/15 shadow-sm">
                   💔
                 </span>
               </div>
               
               <div className="flex flex-col gap-3 font-din-round">
-                <h3 className="font-feather text-2xl md:text-[28px] text-charcoal font-bold leading-tight tracking-wide">
+                <h3 className="font-feather text-2xl md:text-[28px] text-charcoal dark:text-[#f1f5f9] font-bold leading-tight tracking-wide">
                   Out of Hearts!
                 </h3>
-                <p className="text-graphite text-body leading-relaxed max-w-[360px] mx-auto tracking-wide">
+                <p className="text-graphite dark:text-silver text-body leading-relaxed max-w-[360px] mx-auto tracking-wide">
                   You made too many mistakes in this session. Refill to continue practicing, or exit back to the dashboard!
                 </p>
                 <div className="text-xs md:text-sm font-extrabold text-[#1cb0f6] mt-1 flex items-center justify-center gap-1">
@@ -1100,11 +1132,43 @@ function LessonContent() {
                   localStorage.removeItem(`quiz_state_${testId}`);
                   router.push("/dashboard");
                 }}
-                className="w-full bg-white text-graphite border-2 border-cloud-gray hover:bg-gray-50 hover:text-almost-black font-bold py-3 px-6 rounded-2xl shadow-[0_4px_0_var(--color-cloud-gray)] active:translate-y-[4px] active:shadow-none transition-all text-body text-center cursor-pointer"
+                className="w-full bg-white dark:bg-transparent text-graphite dark:text-silver border-2 border-cloud-gray dark:border-cloud-gray/15 hover:bg-gray-50 dark:hover:bg-slate-800/40 hover:text-almost-black dark:hover:text-white font-bold py-3 px-6 rounded-2xl shadow-[0_4px_0_var(--color-cloud-gray)] dark:shadow-none active:translate-y-[4px] active:shadow-none transition-all text-body text-center cursor-pointer"
               >
                 EXIT QUIZ
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {showAwoooVideo && (
+        <div className="fixed inset-0 bg-black flex flex-col items-center justify-center z-[100] p-4 animate-[fadeIn_0.2s_ease-out]">
+          <div className="w-full max-w-[480px] flex flex-col items-center gap-6 animate-[scaleIn_0.2s_ease-out]">
+            <div className="flex flex-col items-center text-center gap-2">
+              <h3 className="font-feather font-black text-3xl md:text-4xl text-[#ffc700] tracking-wide uppercase select-none">
+                3 Correct Streak! 🔥
+              </h3>
+            </div>
+            
+            <div className="w-full aspect-video relative bg-black flex items-center justify-center">
+              <video
+                src="/videos/awooo.webm"
+                autoPlay
+                playsInline
+                className="w-full h-full object-contain"
+                onEnded={() => setShowAwoooVideo(false)}
+                onError={(e) => {
+                  console.error("Awooo video failed to play:", e);
+                }}
+              />
+            </div>
+            
+            <button
+              onClick={() => setShowAwoooVideo(false)}
+              className="w-full max-w-[240px] bg-duo-green text-white font-bold py-3 px-6 rounded-2xl shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none hover:brightness-105 transition-all text-body text-center cursor-pointer font-din-round"
+            >
+              CONTINUE
+            </button>
           </div>
         </div>
       )}

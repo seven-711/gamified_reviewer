@@ -98,7 +98,7 @@ export function Header() {
                       </div>
                       <div title="XP" className="flex items-center gap-2 cursor-help select-none">
                         <Image
-                          src="/img/gen_imgs/trophy.webp"
+                          src="/img/gen_imgs/exp.webp"
                           alt="XP"
                           width={32}
                           height={32}

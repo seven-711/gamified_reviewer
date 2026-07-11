@@ -32,7 +32,7 @@ export default function LeaderboardPage() {
           console.error("Error fetching profiles:", error);
         } else if (data) {
           setProfiles(data);
-          
+
           const profileId = user ? user.id : (typeof window !== "undefined" ? localStorage.getItem("guest_session_id") : null);
           if (profileId) {
             const current = data.find((p) => p.id === profileId);
@@ -59,7 +59,7 @@ export default function LeaderboardPage() {
     <>
       {/* Center Column */}
       <main className="flex-1 w-full max-w-[600px] mx-auto pb-24 pt-6 md:pt-10 px-0 sm:px-4 font-din-round">
-        
+
         {loading ? (
           /* Shimmering Loading State */
           <div className="w-full flex flex-col items-center gap-6">
@@ -83,21 +83,21 @@ export default function LeaderboardPage() {
                 <Image src="/emoji/unlockleaderboard.webp" alt="Unlock Leaderboard" fill className="object-contain" unoptimized />
               </div>
             </div>
-            
+
             <h2 className="font-feather text-xl md:text-2xl text-almost-black font-bold mb-3 text-center">
               Unlock Leaderboards!
             </h2>
-            
+
             <p className="text-silver text-sm md:text-base font-semibold mb-8 text-center max-w-[340px] leading-relaxed">
               Complete your first lesson or chapter test to start competing with others!
             </p>
-            
+
             <Link href="/dashboard" className="w-full max-w-[280px]">
               <button className="w-full bg-duo-green hover:bg-duo-green/95 text-white font-extrabold py-3.5 rounded-xl shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none transition-all uppercase tracking-widest text-sm font-din-round cursor-pointer text-center">
                 Start a Lesson
               </button>
             </Link>
-     
+
             {/* Blurred Mock Leaderboard rankings underneath */}
             <div className="w-full max-w-[420px] mt-16 flex flex-col gap-5 opacity-30 pointer-events-none filter blur-[2px]">
               {[...Array(5)].map((_, i) => (
@@ -130,7 +130,7 @@ export default function LeaderboardPage() {
 
             {/* Podium Columns Container */}
             <div className="w-full max-w-[440px] flex items-end justify-center gap-2 mt-8 mb-6 z-10 border-b border-cloud-gray/20 dark:border-cloud-gray/10 pb-4">
-              
+
               {/* Rank 3 Podium (Left Column - Bubblegum Pink) */}
               <div className="flex-1 flex flex-col items-center min-w-0">
                 {profiles[2] ? (
@@ -139,10 +139,10 @@ export default function LeaderboardPage() {
                       {profiles[2].name || (profiles[2].id.startsWith("guest_") ? `Guest_${profiles[2].id.substring(6, 11)}` : `Reviewer_${profiles[2].id.substring(5, 10)}`)}
                     </span>
                     <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-[#b3247a] bg-purple-900/40 p-0.5 mb-1.5 relative shadow-md shrink-0">
-                      <img 
-                        src={profiles[2].id === (user ? user.id : (typeof window !== "undefined" ? localStorage.getItem("guest_session_id") : null)) && user?.imageUrl ? user.imageUrl : "/emoji/profile.webp"} 
-                        alt="Rank 3" 
-                        className="object-cover w-full h-full rounded-full" 
+                      <img
+                        src={profiles[2].id === (user ? user.id : (typeof window !== "undefined" ? localStorage.getItem("guest_session_id") : null)) && user?.imageUrl ? user.imageUrl : "/emoji/profile.webp"}
+                        alt="Rank 3"
+                        className="object-cover w-full h-full rounded-full"
                       />
                     </div>
                   </>
@@ -168,10 +168,10 @@ export default function LeaderboardPage() {
                       👑 {profiles[0].name || (profiles[0].id.startsWith("guest_") ? `Guest_${profiles[0].id.substring(6, 11)}` : `Reviewer_${profiles[0].id.substring(5, 10)}`)}
                     </span>
                     <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-[#ffc700] bg-purple-900/40 p-0.5 mb-1.5 relative shadow-xl shrink-0">
-                      <img 
-                        src={profiles[0].id === (user ? user.id : (typeof window !== "undefined" ? localStorage.getItem("guest_session_id") : null)) && user?.imageUrl ? user.imageUrl : "/emoji/profile.webp"} 
-                        alt="Rank 1" 
-                        className="object-cover w-full h-full rounded-full" 
+                      <img
+                        src={profiles[0].id === (user ? user.id : (typeof window !== "undefined" ? localStorage.getItem("guest_session_id") : null)) && user?.imageUrl ? user.imageUrl : "/emoji/profile.webp"}
+                        alt="Rank 1"
+                        className="object-cover w-full h-full rounded-full"
                       />
                     </div>
                   </>
@@ -197,10 +197,10 @@ export default function LeaderboardPage() {
                       {profiles[1].name || (profiles[1].id.startsWith("guest_") ? `Guest_${profiles[1].id.substring(6, 11)}` : `Reviewer_${profiles[1].id.substring(5, 10)}`)}
                     </span>
                     <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-[#1085ba] bg-purple-900/40 p-0.5 mb-1.5 relative shadow-md shrink-0">
-                      <img 
-                        src={profiles[1].id === (user ? user.id : (typeof window !== "undefined" ? localStorage.getItem("guest_session_id") : null)) && user?.imageUrl ? user.imageUrl : "/emoji/profile.webp"} 
-                        alt="Rank 2" 
-                        className="object-cover w-full h-full rounded-full" 
+                      <img
+                        src={profiles[1].id === (user ? user.id : (typeof window !== "undefined" ? localStorage.getItem("guest_session_id") : null)) && user?.imageUrl ? user.imageUrl : "/emoji/profile.webp"}
+                        alt="Rank 2"
+                        className="object-cover w-full h-full rounded-full"
                       />
                     </div>
                   </>
@@ -226,7 +226,7 @@ export default function LeaderboardPage() {
                 const rank = index + 4;
                 const activeProfileId = user ? user.id : (typeof window !== "undefined" ? localStorage.getItem("guest_session_id") : null);
                 const isSelf = activeProfileId === profile.id;
-                
+
                 // Get display username from name or fallback to profile ID substring
                 let displayName = "Anonymous User";
                 if (profile.name) {
@@ -239,35 +239,22 @@ export default function LeaderboardPage() {
 
                 // Rank specific badge background (Rank >= 4)
                 const rankBadge = (
-                  <span className="font-bold text-silver w-12 sm:w-20 text-center text-base sm:text-2xl shrink-0 select-none">
+                  <span className="font-bold text-duo-green w-12 sm:w-20 text-center text-base sm:text-2xl shrink-0 select-none">
                     {rank}
                   </span>
                 );
 
                 // Pill styling for Rank 4+ (Default White/Gray adapting to dark mode)
-                let rowBgClass = "border-[#e5e5e5] dark:border-cloud-gray/15 bg-white dark:bg-[#202f36] text-[#3c3c3c] dark:text-[#f1f5f9] shadow-none";
-                if (isSelf) {
-                  rowBgClass = "border-2 border-[#58cc02] bg-[#d7ffb8] dark:bg-[#58cc02]/15 text-[#58cc02] dark:text-[#d7ffb8]";
-                }
+                let rowBgClass = "border-transparent bg-transparent text-[#3c3c3c] dark:text-[#f1f5f9] shadow-none";
 
                 return (
-                  <div 
+                  <div
                     key={profile.id}
                     className={`flex items-center justify-between border-2 rounded-xl p-3.5 sm:p-4.5 transition-all duration-150 ${rowBgClass}`}
                   >
-                    <div className="flex items-center gap-2 sm:gap-4 overflow-hidden">
+                    <div className="flex items-center gap-5 sm:gap-8 overflow-hidden">
                       {rankBadge}
-                      {/* Avatar container */}
-                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#d7ffb8] dark:bg-[#202f36] flex items-center justify-center border-2 border-[#e5e5e5] dark:border-cloud-gray/15 p-0.5 shrink-0 overflow-hidden shadow-sm">
-                        <img 
-                          src={isSelf && user?.imageUrl ? user.imageUrl : "/emoji/profile.webp"} 
-                          alt={displayName} 
-                          className="object-cover w-full h-full rounded-full" 
-                        />
-                      </div>
-                      <span className={`font-din-round font-bold text-xs sm:text-sm md:text-base truncate max-w-[90px] min-[380px]:max-w-[120px] sm:max-w-[160px] md:max-w-[220px] tracking-[0.053em] ${
-                        isSelf ? "text-[#58cc02] dark:text-[#d7ffb8]" : ""
-                      }`}>
+                      <span className="font-din-round font-bold text-xs sm:text-sm md:text-base truncate max-w-[90px] min-[380px]:max-w-[120px] sm:max-w-[160px] md:max-w-[220px] tracking-[0.053em]">
                         {displayName} {isSelf && <span className="text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded-full uppercase ml-1 bg-[#58cc02] text-white tracking-normal">You</span>}
                       </span>
                     </div>
@@ -275,7 +262,7 @@ export default function LeaderboardPage() {
                     <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
                       {profile.streak > 0 && (
                         <span title={`${profile.streak} Day Streak`} className="font-din-round font-bold text-[10px] sm:text-xs md:text-sm flex items-center gap-0.5 sm:gap-1 select-none text-[#f97316] tracking-[0.053em]">
-                          <Image src="/img/gen_imgs/streak.webp" alt="Streak" width={14} height={14} className="object-contain" />
+                          <Image src="/img/gen_imgs/streak.webp" alt="Streak" width={20} height={20} className="object-contain" />
                           <span>{profile.streak}</span>
                         </span>
                       )}
@@ -297,7 +284,7 @@ export default function LeaderboardPage() {
           </div>
         )}
       </main>
- 
+
       {/* Right Sidebar */}
       <aside className="hidden lg:block w-[368px] shrink-0 pt-4 md:pt-8 font-din-round">
         <div className="border-2 border-cloud-gray rounded-2xl p-6 flex flex-col gap-5 bg-snow-white">
