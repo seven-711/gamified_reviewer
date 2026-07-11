@@ -611,7 +611,7 @@ function LessonContent() {
   }
 
   if (!isLoaded || loadingData) return (
-    <div className="min-h-screen flex items-center justify-center font-din-round">
+    <div className="min-h-screen flex items-center justify-center font-din-round bg-white">
       <div className="flex flex-col items-center gap-4">
         <div className="h-12 w-12 animate-spin rounded-full border-4 border-cloud-gray border-t-duo-green"></div>
         <p className="text-graphite font-bold">Loading test...</p>
@@ -758,7 +758,7 @@ function LessonContent() {
       window.location.reload();
     }
     return (
-      <div className="min-h-screen flex items-center justify-center font-din-round">
+      <div className="min-h-screen flex items-center justify-center font-din-round bg-white">
         <div className="flex flex-col items-center gap-4">
           <div className="h-12 w-12 animate-spin rounded-full border-4 border-cloud-gray border-t-duo-green"></div>
           <p className="text-graphite font-bold">Resetting corrupted session...</p>
@@ -902,7 +902,7 @@ function LessonContent() {
 
           <div className="flex items-center gap-2 select-none">
             {/* Hearts Indicator */}
-            <div className="flex items-center gap-1.5 font-bold shrink-0 bg-cloud-gray/20 dark:bg-[#202f36] px-3 py-1.5 rounded-xl border-2 border-cloud-gray/40 dark:border-cloud-gray/15 text-red-500">
+            <div className="flex items-center gap-1.5 font-bold shrink-0 px-3 py-1.5 rounded-xl text-red-500">
               <Image
                 src="/img/gen_imgs/user_life.webp"
                 alt="Hearts"
@@ -914,8 +914,7 @@ function LessonContent() {
             </div>
 
             {/* Timer */}
-            <div className={`flex items-center gap-1.5 font-bold shrink-0 bg-cloud-gray/20 px-3 py-1.5 rounded-xl border-2 border-cloud-gray/40 transition-colors ${timeLeft < 60 ? 'text-[#ea2b2b] animate-pulse border-[#ea2b2b]/40 bg-[#ea2b2b]/10' : 'text-graphite'}`}>
-              <span className="text-lg">⏱️</span>
+            <div className={`flex items-center gap-1.5 font-bold shrink-0 px-3 py-1.5 rounded-xl transition-colors ${timeLeft < 60 ? 'text-[#ea2b2b] animate-pulse border-[#ea2b2b]/40 bg-[#ea2b2b]/10' : 'text-graphite'}`}>
               <span className="text-[17px] font-mono">
                 {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
               </span>
@@ -1197,7 +1196,7 @@ function LessonContent() {
 
 export default function LessonPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center font-din-round">Loading...</div>}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center font-din-round bg-white text-graphite">Loading...</div>}>
       <LessonContent />
     </Suspense>
   );

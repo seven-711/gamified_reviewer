@@ -6,8 +6,10 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { useUser, UserButton } from "@clerk/nextjs";
 import { useStats } from "@/components/ui/StatsContext";
+import { usePathname } from "next/navigation";
 
 export function Header() {
+  const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const { streak, xp, hearts, gems, isLoaded: isStatsLoaded } = useStats();
@@ -86,39 +88,41 @@ export function Header() {
                 <div className="flex items-center gap-3 sm:gap-4 font-bold text-sm tracking-wide">
                   {isStatsLoaded && (
                     <>
-                      {/* Mobile stats (visible on mobile only, hidden on desktop) */}
-                      <div className="flex sm:hidden items-center gap-3 mr-1">
-                        <div title="Streak" className="flex items-center gap-1 cursor-help select-none">
-                          <Image
-                            src="/img/gen_imgs/streak.webp"
-                            alt="Streak"
-                            width={22}
-                            height={22}
-                            className="object-contain"
-                          />
-                          <span className="text-orange-500 font-extrabold text-sm">{streak}</span>
+                      {/* Mobile stats (visible on mobile only, hidden on desktop, except on landing page) */}
+                      {pathname !== "/" && (
+                        <div className="flex sm:hidden items-center gap-3 mr-1">
+                          <div title="Streak" className="flex items-center gap-1 cursor-help select-none">
+                            <Image
+                              src="/img/gen_imgs/streak.webp"
+                              alt="Streak"
+                              width={22}
+                              height={22}
+                              className="object-contain"
+                            />
+                            <span className="text-orange-500 font-extrabold text-sm">{streak}</span>
+                          </div>
+                          <div title="Hearts" className="flex items-center gap-1 cursor-help select-none text-red-500">
+                            <Image
+                              src="/img/gen_imgs/user_life.webp"
+                              alt="Hearts"
+                              width={22}
+                              height={22}
+                              className="object-contain"
+                            />
+                            <span className="font-extrabold text-sm">{hearts}</span>
+                          </div>
+                          <div title="Gems" className="flex items-center gap-1 cursor-help select-none">
+                            <Image
+                              src="/img/gen_imgs/diamond.webp"
+                              alt="Gems"
+                              width={22}
+                              height={22}
+                              className="object-contain"
+                            />
+                            <span className="text-blue-400 font-extrabold text-sm">{gems}</span>
+                          </div>
                         </div>
-                        <div title="Hearts" className="flex items-center gap-1 cursor-help select-none text-red-500">
-                          <Image
-                            src="/img/gen_imgs/user_life.webp"
-                            alt="Hearts"
-                            width={22}
-                            height={22}
-                            className="object-contain"
-                          />
-                          <span className="font-extrabold text-sm">{hearts}</span>
-                        </div>
-                        <div title="Gems" className="flex items-center gap-1 cursor-help select-none">
-                          <Image
-                            src="/img/gen_imgs/diamond.webp"
-                            alt="Gems"
-                            width={22}
-                            height={22}
-                            className="object-contain"
-                          />
-                          <span className="text-blue-400 font-extrabold text-sm">{gems}</span>
-                        </div>
-                      </div>
+                      )}
 
                       {/* Desktop stats (hidden on mobile, visible on desktop) */}
                       <div className="hidden sm:flex items-center gap-6 border-l pl-5 border-cloud-gray">
