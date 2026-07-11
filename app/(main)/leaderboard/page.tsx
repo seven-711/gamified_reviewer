@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
 import { supabase } from "@/lib/supabase";
+import { getStreakImage } from "@/lib/streak";
 
 interface LeaderboardUser {
   id: string;
@@ -36,7 +37,9 @@ export default function LeaderboardPage() {
         if (error) {
           console.error("Error fetching profiles:", error);
         } else if (data) {
-          setProfiles(data);
+          // Filter out guest accounts from public leaderboard rankings
+          const registeredProfiles = data.filter((p) => !p.id.startsWith("guest_"));
+          setProfiles(registeredProfiles);
 
           const profileId = user ? user.id : (typeof window !== "undefined" ? localStorage.getItem("guest_session_id") : null);
           if (profileId) {
@@ -55,8 +58,8 @@ export default function LeaderboardPage() {
     fetchLeaderboard();
   }, [user, isLoaded]);
 
-  // Determine if unlocked (has at least 1 lesson completed -> total_score > 0)
-  const isUnlocked = currentUserProfile ? currentUserProfile.total_score > 0 : false;
+  // Determine if unlocked (must be logged in AND has at least 1 lesson completed -> total_score > 0)
+  const isUnlocked = !!user && currentUserProfile ? currentUserProfile.total_score > 0 : false;
 
   const [activeTab, setActiveTab] = useState<"league" | "global">("league");
 
@@ -89,19 +92,44 @@ export default function LeaderboardPage() {
               </div>
             </div>
 
-            <h2 className="font-feather text-xl md:text-2xl text-almost-black font-bold mb-3 text-center">
-              Unlock Leaderboards!
-            </h2>
+            {!user ? (
+              <>
+                <h2 className="font-feather text-xl md:text-2xl text-almost-black font-bold mb-3 text-center">
+                  Join the Leaderboard!
+                </h2>
 
-            <p className="text-silver text-sm md:text-base font-semibold mb-8 text-center max-w-[340px] leading-relaxed">
-              Complete your first lesson or chapter test to start competing with others!
-            </p>
+                <p className="text-silver text-sm md:text-base font-semibold mb-8 text-center max-w-[340px] leading-relaxed">
+                  You are currently playing as a guest. Log in or create a profile to compete in leaderboards!
+                  {currentUserProfile && currentUserProfile.total_score > 0 && (
+                    <span className="block mt-3 text-duo-green font-bold text-center">
+                      Current Accumulated XP: {currentUserProfile.total_score} XP
+                    </span>
+                  )}
+                </p>
 
-            <Link href="/dashboard" className="w-full max-w-[280px]">
-              <button className="w-full bg-duo-green hover:bg-duo-green/95 text-white font-extrabold py-3.5 rounded-xl shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none transition-all uppercase tracking-widest text-sm font-din-round cursor-pointer text-center">
-                Start a Lesson
-              </button>
-            </Link>
+                <Link href="/signup" className="w-full max-w-[280px]">
+                  <button className="w-full bg-duo-green hover:bg-duo-green/95 text-white font-extrabold py-3.5 rounded-xl shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none transition-all uppercase tracking-widest text-sm font-din-round cursor-pointer text-center">
+                    Create a Profile
+                  </button>
+                </Link>
+              </>
+            ) : (
+              <>
+                <h2 className="font-feather text-xl md:text-2xl text-almost-black font-bold mb-3 text-center">
+                  Unlock Leaderboards!
+                </h2>
+
+                <p className="text-silver text-sm md:text-base font-semibold mb-8 text-center max-w-[340px] leading-relaxed">
+                  Complete your first lesson or chapter test to start competing with others!
+                </p>
+
+                <Link href="/dashboard" className="w-full max-w-[280px]">
+                  <button className="w-full bg-duo-green hover:bg-duo-green/95 text-white font-extrabold py-3.5 rounded-xl shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none transition-all uppercase tracking-widest text-sm font-din-round cursor-pointer text-center">
+                    Start a Lesson
+                  </button>
+                </Link>
+              </>
+            )}
 
             {/* Blurred Mock Leaderboard rankings underneath */}
             <div className="w-full max-w-[420px] mt-16 flex flex-col gap-5 opacity-30 pointer-events-none filter blur-[2px]">
@@ -267,12 +295,12 @@ export default function LeaderboardPage() {
                     <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
                       {profile.streak > 0 && (
                         <span title={`${profile.streak} Day Streak`} className="font-din-round font-bold text-[10px] sm:text-xs md:text-sm flex items-center gap-0.5 sm:gap-1 select-none text-[#f97316] tracking-[0.053em]">
-                          <Image src="/img/gen_imgs/streak.webp" alt="Streak" width={20} height={20} className="object-contain" />
+                          <Image src={getStreakImage(profile.streak)} alt="Streak" width={20} height={20} className="object-contain" style={{ height: 'auto' }} />
                           <span>{profile.streak}</span>
                         </span>
                       )}
                       <span className="font-din-round font-bold text-xs sm:text-sm md:text-base flex items-center gap-1 select-none tracking-[0.053em]">
-                        <Image src="/img/gen_imgs/exp.webp" alt="XP" width={20} height={20} className="object-contain" />
+                        <Image src="/img/gen_imgs/exp.webp" alt="XP" width={20} height={20} className="object-contain" style={{ height: 'auto' }} />
                         <span>{profile.total_score} <span className="text-[9px] sm:text-[10px] md:text-xs font-bold uppercase tracking-normal">XP</span></span>
                       </span>
                     </div>

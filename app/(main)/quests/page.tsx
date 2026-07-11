@@ -7,6 +7,7 @@ import { useUser } from "@clerk/nextjs";
 import { supabase } from "@/lib/supabase";
 import { useAlert } from "@/components/ui/AlertContext";
 import { useStats } from "@/components/ui/StatsContext";
+import { getStreakImage } from "@/lib/streak";
 
 export default function QuestsPage() {
   const { showAlert } = useAlert();
@@ -20,7 +21,7 @@ export default function QuestsPage() {
   const [quest1Claimed, setQuest1Claimed] = useState(false);
   const [quest2Claimed, setQuest2Claimed] = useState(false);
   const [quest3Claimed, setQuest3Claimed] = useState(false);
-  
+
   const [claiming, setClaiming] = useState<number | null>(null);
 
   useEffect(() => {
@@ -169,11 +170,11 @@ export default function QuestsPage() {
                   </span>
                 )}
               </div>
-              
+
               {!quest1Claimed && (
                 <div className="w-full flex items-center gap-4">
                   <div className="h-6 w-full bg-cloud-gray rounded-full overflow-hidden relative flex items-center justify-center">
-                    <div 
+                    <div
                       className="absolute left-0 top-0 h-full bg-sunshine-yellow rounded-full transition-all duration-300"
                       style={{ width: `${Math.min(100, (dailyXp / 30) * 100)}%` }}
                     ></div>
@@ -217,11 +218,11 @@ export default function QuestsPage() {
                   </span>
                 )}
               </div>
-              
+
               {!quest2Claimed && (
                 <div className="w-full flex items-center gap-4">
                   <div className="h-6 w-full bg-cloud-gray rounded-full overflow-hidden relative flex items-center justify-center">
-                    <div 
+                    <div
                       className="absolute left-0 top-0 h-full bg-duo-green rounded-full transition-all duration-300"
                       style={{ width: `${Math.min(100, (dailyLessons / 1) * 100)}%` }}
                     ></div>
@@ -265,11 +266,11 @@ export default function QuestsPage() {
                   </span>
                 )}
               </div>
-              
+
               {!quest3Claimed && (
                 <div className="w-full flex items-center gap-4">
                   <div className="h-6 w-full bg-cloud-gray rounded-full overflow-hidden relative flex items-center justify-center">
-                    <div 
+                    <div
                       className="absolute left-0 top-0 h-full bg-sky-blue rounded-full transition-all duration-300"
                       style={{ width: `${Math.min(100, (dailyPassed / 1) * 100)}%` }}
                     ></div>
@@ -301,11 +302,12 @@ export default function QuestsPage() {
             {/* Streak */}
             <div className="flex items-center gap-1.5 text-orange-500 cursor-pointer hover:bg-duo-green-light p-2 rounded-xl transition-colors">
               <Image
-                src="/img/gen_imgs/streak.webp"
+                src={getStreakImage(streak)}
                 alt="Streak"
                 width={28}
                 height={28}
                 className="object-contain"
+                style={{ height: 'auto' }}
               />
               <span>{streak}</span>
             </div>
@@ -330,6 +332,7 @@ export default function QuestsPage() {
                 width={24}
                 height={24}
                 className="object-contain"
+                style={{ height: 'auto' }}
               />
               <span>{hearts}</span>
             </div>

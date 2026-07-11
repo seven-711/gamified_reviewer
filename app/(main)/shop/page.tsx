@@ -8,12 +8,13 @@ import { supabase } from "@/lib/supabase";
 import { refillHeartsInDb } from "@/lib/session";
 import { useAlert } from "@/components/ui/AlertContext";
 import { useStats } from "@/components/ui/StatsContext";
+import { getStreakImage } from "@/lib/streak";
 
 export default function ShopPage() {
   const { showAlert } = useAlert();
   const { user, isLoaded, isSignedIn } = useUser();
   const { streak, xp, hearts, gems, streakFreezeCount, refreshStats, updateStatsLocally } = useStats();
-  
+
   const [purchasingHeart, setPurchasingHeart] = useState(false);
   const [purchasingFreeze, setPurchasingFreeze] = useState(false);
 
@@ -26,13 +27,13 @@ export default function ShopPage() {
       await showAlert("❤️ Your hearts are already full!");
       return;
     }
-    
+
     setPurchasingHeart(true);
     let profileId: string | null = null;
     if (user) {
       profileId = user.id;
     }
-    
+
     if (profileId) {
       const res = await refillHeartsInDb(profileId);
       if (res.success) {
@@ -55,13 +56,13 @@ export default function ShopPage() {
       await showAlert("❄️ You can only equip a maximum of 2 Streak Freezes!");
       return;
     }
-    
+
     setPurchasingFreeze(true);
     let profileId: string | null = null;
     if (user) {
       profileId = user.id;
     }
-    
+
     if (profileId) {
       try {
         const nextGems = Math.max(0, gems - 200);
@@ -73,7 +74,7 @@ export default function ShopPage() {
             streak_freeze_count: nextFreeze
           })
           .eq("id", profileId);
-          
+
         if (!error) {
           updateStatsLocally({ gems: nextGems, streakFreezeCount: nextFreeze });
           await refreshStats();
@@ -93,16 +94,16 @@ export default function ShopPage() {
     <>
       {/* Center Column */}
       <main className="flex-1 w-full max-w-[600px] mx-auto pb-24 flex flex-col gap-8 pt-4 md:pt-8 px-4 font-din-round relative">
-        
+
         {/* Shop Content Container */}
         <div className={`flex flex-col gap-8 w-full ${(!isSignedIn || !user) ? "select-none pointer-events-none filter blur-[3px] opacity-40" : ""}`}>
-          
+
           {/* Hearts Section */}
           <div className="flex flex-col gap-4">
             <h2 className="font-feather text-xl md:text-2xl text-almost-black font-bold tracking-wide border-b-2 border-cloud-gray pb-2">
               Hearts
             </h2>
-            
+
             <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl border-2 border-cloud-gray bg-snow-white gap-4">
               <div className="flex items-center gap-4 min-w-0">
                 <div className="w-14 h-14 rounded-2xl bg-red-500/10 flex items-center justify-center shadow-sm shrink-0">
@@ -112,6 +113,7 @@ export default function ShopPage() {
                     width={36}
                     height={36}
                     className="object-contain"
+                    style={{ height: 'auto' }}
                   />
                 </div>
                 <div className="flex flex-col gap-1 min-w-0">
@@ -144,7 +146,7 @@ export default function ShopPage() {
             <h2 className="font-feather text-xl md:text-2xl text-almost-black font-bold tracking-wide border-b-2 border-cloud-gray pb-2">
               Power-Ups
             </h2>
-            
+
             <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl border-2 border-cloud-gray bg-snow-white gap-4">
               <div className="flex items-center gap-4 min-w-0">
                 {/* Frozen blue fire crystal badge */}
@@ -193,7 +195,7 @@ export default function ShopPage() {
                   <Image src="/emoji/quest.webp" alt="Treasure Chest" fill className="object-contain drop-shadow-md" unoptimized />
                 </div>
               </div>
-              
+
               <div className="flex flex-col gap-2">
                 <h3 className="font-feather text-xl md:text-2xl text-almost-black font-bold tracking-wide">
                   You earned {gems} gems!
@@ -217,7 +219,7 @@ export default function ShopPage() {
       {/* Right Sidebar */}
       <aside className="hidden lg:block w-[368px] shrink-0 pt-4 md:pt-8 font-din-round">
         <div className="flex flex-col gap-6">
-          
+
           {/* Top Stats Bar */}
           <div className="flex items-center justify-between px-2 text-almost-black font-bold text-sm md:text-base">
             {/* Flag / Language */}
@@ -225,19 +227,20 @@ export default function ShopPage() {
               <span className="text-xl">🇵🇭</span>
               <span className="text-[12px] font-extrabold">1</span>
             </div>
-            
+
             {/* Streak */}
             <div className="flex items-center gap-1.5 text-orange-500 cursor-pointer hover:bg-duo-green-light p-2 rounded-xl transition-colors">
               <Image
-                src="/img/gen_imgs/streak.webp"
+                src={getStreakImage(streak)}
                 alt="Streak"
                 width={28}
                 height={28}
                 className="object-contain"
+                style={{ height: 'auto' }}
               />
               <span>{streak}</span>
             </div>
-            
+
             {/* XP / Gems */}
             <div className="flex items-center gap-1.5 text-blue-400 cursor-pointer hover:bg-duo-green-light p-2 rounded-xl transition-colors" title="Gems">
               <Image
@@ -249,7 +252,7 @@ export default function ShopPage() {
               />
               <span>{gems}</span>
             </div>
-            
+
             {/* Hearts */}
             <div className="flex items-center gap-1.5 text-red-500 cursor-pointer hover:bg-duo-green-light p-2 rounded-xl transition-colors">
               <Image
@@ -258,6 +261,7 @@ export default function ShopPage() {
                 width={24}
                 height={24}
                 className="object-contain"
+                style={{ height: 'auto' }}
               />
               <span>{hearts}</span>
             </div>
@@ -286,7 +290,7 @@ export default function ShopPage() {
                 View All
               </Link>
             </div>
-            
+
             <div className="flex items-center gap-4 mt-2">
               <div className="w-16 h-16 relative shrink-0 bg-sunshine-yellow rounded-xl flex items-center justify-center text-2xl text-white font-bold">
                 ⚡
@@ -308,14 +312,14 @@ export default function ShopPage() {
             <h3 className="font-bold text-[17px] text-almost-black leading-snug">
               Create a profile to save your progress!
             </h3>
-            
+
             <div className="flex flex-col gap-3 w-full">
               <Link href="/signup" className="w-full">
                 <button className="w-full bg-duo-green hover:bg-duo-green/95 text-white font-extrabold py-3 rounded-xl shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none transition-all uppercase tracking-widest text-xs md:text-sm cursor-pointer">
                   CREATE A PROFILE
                 </button>
               </Link>
-              
+
               <Link href="/login" className="w-full">
                 <button className="w-full bg-sky-blue hover:bg-sky-blue/95 text-white font-extrabold py-3 rounded-xl shadow-[0_4px_0_#189edc] active:translate-y-[4px] active:shadow-none transition-all uppercase tracking-widest text-xs md:text-sm cursor-pointer">
                   SIGN IN

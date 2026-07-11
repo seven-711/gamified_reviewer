@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { UserButton, useUser } from "@clerk/nextjs";
 import { useStats } from "@/components/ui/StatsContext";
+import { getStreakImage } from "@/lib/streak";
 
 export default function RightSidebar() {
   const { user, isLoaded, isSignedIn } = useUser();
@@ -21,11 +22,12 @@ export default function RightSidebar() {
         {/* Streak */}
         <div className="flex items-center gap-2 text-orange-500 cursor-pointer hover:bg-duo-green-light p-2 rounded-xl transition-colors">
           <Image
-            src="/img/gen_imgs/streak.webp"
+            src={getStreakImage(streak)}
             alt="Streak"
             width={28}
             height={28}
             className="object-contain"
+            style={{ height: 'auto' }}
           />
           <span>{streak}</span>
         </div>
@@ -48,6 +50,7 @@ export default function RightSidebar() {
             width={28}
             height={28}
             className="object-contain"
+            style={{ height: 'auto' }}
           />
           <span>{hearts}</span>
         </div>

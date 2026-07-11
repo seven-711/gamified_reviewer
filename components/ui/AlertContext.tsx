@@ -103,6 +103,7 @@ const renderAlertMessage = (msg: string) => {
           width={18}
           height={18}
           className="inline-block object-contain align-middle -mt-0.5 mx-0.5"
+          style={{ height: 'auto' }}
         />
       );
     }
@@ -170,6 +171,7 @@ export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                         width={28}
                         height={28}
                         className="object-contain"
+                        style={{ height: 'auto' }}
                       />
                     ) : (
                       alertState.emoji

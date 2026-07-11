@@ -28,15 +28,22 @@ function generateShuffledIndices(length: number): number[] {
   return indices;
 }
 
+const playSound = (src: string) => {
+  if (typeof window !== "undefined") {
+    const audio = new Audio(src);
+    audio.play().catch((err) => console.error("Error playing audio:", err));
+  }
+};
+
 function LessonContent() {
   const { showAlert } = useAlert();
   const { updateStatsLocally, refreshStats } = useStats();
   const router = useRouter();
   const searchParams = useSearchParams();
   const testId = searchParams.get("testId") || "abstract_reasoning_test1";
-  
+
   const { user, isSignedIn } = useUser();
-  
+
   const [questions, setQuestions] = useState<any[]>([]);
   const [shuffledIndices, setShuffledIndices] = useState<number[]>([]);
   const [testExamples, setTestExamples] = useState<any[]>([]);
@@ -240,7 +247,7 @@ function LessonContent() {
             last_heart_lost_at: lastHeartLostAt
           })
           .eq("id", profileId);
-        
+
         updateStatsLocally({ hearts });
       } catch (err) {
         console.error("Failed to sync hearts to Supabase:", err);
@@ -271,7 +278,7 @@ function LessonContent() {
   // Timer logic
   useEffect(() => {
     if (!isLoaded || status === "completed" || phase !== "quiz" || showOutOfHeartsModal || hearts === 0) return;
-    
+
     const interval = setInterval(() => {
       setTimeLeft(prev => {
         if (prev <= 1) {
@@ -306,7 +313,7 @@ function LessonContent() {
         try {
           const parsed = JSON.parse(existingScore);
           attempts = (parsed.attempts || 0) + 1;
-          
+
           // If the test length changed, invalidate the old score.
           if (parsed.total === questions.length) {
             previousBest = parsed.score || 0;
@@ -314,9 +321,9 @@ function LessonContent() {
               maxScore = parsed.score;
             }
           }
-        } catch(e) {}
+        } catch (e) { }
       }
-      
+
       localStorage.setItem(`quiz_score_${testId}`, JSON.stringify({
         score: maxScore,
         previousBest: previousBest,
@@ -389,10 +396,10 @@ function LessonContent() {
     }
   }, [status, correctAnswers, questions.length, testId, isSignedIn, user, timeLeft, hearts]);
 
-  console.log('Quiz Render Diagnostics:', { 
-    phase, 
-    currentIndex, 
-    questionsLength: questions.length, 
+  console.log('Quiz Render Diagnostics:', {
+    phase,
+    currentIndex,
+    questionsLength: questions.length,
     status,
     currentExampleIndex,
     testExamplesLength: testExamples.length,
@@ -417,16 +424,16 @@ function LessonContent() {
 
       // Ignore keyboard shortcuts if modal alerts are visible or the user is out of hearts
       if (showOutOfHeartsModal || showExitModal || hearts === 0) return;
-      
+
       // Handle Option Selection (1-12+ dynamically)
       if (status === "none" || status === "selected") {
         if (/^[0-9]$/.test(e.key)) {
           keyBufferRef.current += e.key;
-          
+
           if (keyTimeoutRef.current) {
             clearTimeout(keyTimeoutRef.current);
           }
-          
+
           const val = parseInt(keyBufferRef.current, 10);
           if (val >= 1 && val <= question.options.length) {
             setSelectedOption(val - 1);
@@ -459,16 +466,17 @@ function LessonContent() {
       // Handle Enter Key
       if (e.key === "Enter") {
         if (phase === "examples") {
-            if (currentExampleIndex < testExamples.length - 1) {
-              setCurrentExampleIndex(prev => prev + 1);
-            } else {
-              setPhase("quiz");
-            }
-            return;
+          if (currentExampleIndex < testExamples.length - 1) {
+            setCurrentExampleIndex(prev => prev + 1);
+          } else {
+            setPhase("quiz");
+          }
+          return;
         }
         if (status === "selected" && selectedOption !== null) {
           // Equivalent to handleCheck logic, using functional state updates where possible
           if (selectedOption === question.correctIndex) {
+            playSound("/videos/correct.mp3");
             setStatus("correct");
             setCorrectAnswers((prev) => prev + 1);
             setConsecutiveCorrect((prev) => {
@@ -480,6 +488,7 @@ function LessonContent() {
               return next;
             });
           } else {
+            playSound("/videos/wrong.mp3");
             setStatus("wrong");
             setConsecutiveCorrect(0);
             setHearts((prev) => {
@@ -534,6 +543,7 @@ function LessonContent() {
     if (selectedOption === null) return;
 
     if (selectedOption === question.correctIndex) {
+      playSound("/videos/correct.mp3");
       setStatus("correct");
       setCorrectAnswers((prev) => prev + 1);
       setConsecutiveCorrect((prev) => {
@@ -545,6 +555,7 @@ function LessonContent() {
         return next;
       });
     } else {
+      playSound("/videos/wrong.mp3");
       setStatus("wrong");
       setConsecutiveCorrect(0);
       setHearts((prev) => {
@@ -595,7 +606,7 @@ function LessonContent() {
         </div>
         <h1 className="font-feather text-3xl mb-4 text-[#ea2b2b]">Content Under Construction</h1>
         <p className="text-[17px] text-graphite mb-4 max-w-md">
-          Sorry! The reviewer questions for <strong>{testId.replace(/_/g, ' ')}</strong> are currently under construction or not yet uploaded. 
+          Sorry! The reviewer questions for <strong>{testId.replace(/_/g, ' ')}</strong> are currently under construction or not yet uploaded.
         </p>
         <p className="text-[15px] text-silver mb-8 max-w-md">
           Currently available reviewers: Abstract Reasoning, Logical Reasoning, Numerical Reasoning, and Quantitative Reasoning.
@@ -670,7 +681,7 @@ function LessonContent() {
             </div>
           </div>
         </main>
-        
+
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-cloud-gray p-4 md:p-6 z-40">
           <div className="max-w-[1024px] mx-auto flex justify-end">
             <button
@@ -691,14 +702,14 @@ function LessonContent() {
         {showExitModal && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center z-50 p-4 animate-[fadeIn_0.2s_ease-out]">
             <div className="bg-white border-2 border-cloud-gray border-b-8 rounded-[24px] w-full max-w-[460px] p-6 md:p-8 flex flex-col gap-6 md:gap-8 shadow-none animate-[scaleIn_0.2s_ease-out] relative">
-              
+
               {/* Mascot & Dialogue */}
               <div className="flex flex-col items-center text-center gap-5">
                 <div className="w-[96px] h-[96px] relative shrink-0">
-                  <Image 
-                    src="/emoji/wahhh.webp" 
-                    alt="Sad Mascot" 
-                    fill 
+                  <Image
+                    src="/emoji/wahhh.webp"
+                    alt="Sad Mascot"
+                    fill
                     sizes="96px"
                     className="object-contain drop-shadow-md"
                     unoptimized
@@ -772,7 +783,7 @@ function LessonContent() {
     const isPassed = (correctAnswers / questions.length) >= 0.8;
     const isTimeUp = timeLeft === 0;
     const percentage = (correctAnswers / questions.length) * 100;
-    
+
     let emojiSrc = "/emoji/naysu.webp";
     if (percentage === 100) {
       emojiSrc = "/emoji/awow.webp";
@@ -783,17 +794,17 @@ function LessonContent() {
     } else {
       emojiSrc = "/emoji/wahhh.webp";
     }
-    
+
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-white font-din-round text-almost-black px-6 text-center">
         <div className="w-48 h-48 md:w-56 md:h-56 relative mb-4">
           <Image src={emojiSrc} alt="Score reaction" fill className="object-contain drop-shadow-lg" />
         </div>
-        
+
         <h1 className={`font-feather text-4xl mb-4 ${isTimeUp ? "text-[#ea2b2b]" : "text-duo-green"}`}>
           {isTimeUp ? "Time's Up!" : "Lesson Complete!"}
         </h1>
-        
+
         <div className="bg-cloud-gray/10 border-2 border-cloud-gray/20 rounded-3xl p-6 mb-6 w-full max-w-sm flex flex-col gap-4">
           <div>
             <p className="text-graphite font-bold text-base mb-1 uppercase tracking-wide opacity-70">Your Score</p>
@@ -801,7 +812,7 @@ function LessonContent() {
               {correctAnswers} <span className="text-3xl text-graphite/50 font-din-round">/ {questions.length}</span>
             </p>
           </div>
-          
+
           {xpBreakdown && (
             <div className="border-t-2 border-cloud-gray/30 pt-4 mt-2 flex flex-col gap-2 text-left text-xs md:text-sm font-din-round font-bold text-graphite">
               <div className="flex justify-between items-center">
@@ -857,13 +868,13 @@ function LessonContent() {
             </div>
           )}
         </div>
-        
+
         <p className="text-[17px] text-graphite mb-8 max-w-md">
-          {isPassed 
+          {isPassed
             ? (isPerfect ? "Perfect score! You've successfully finished this practice set and unlocked the next one." : "Great job! You've successfully finished this practice set and unlocked the next one.")
             : `Great effort! However, you need to score at least 80% (${Math.ceil(questions.length * 0.8)}/${questions.length}) to unlock the next test.`}
         </p>
-        
+
         <div className="flex flex-col gap-4 w-full max-w-xs">
           <button
             onClick={() => router.push("/dashboard")}
@@ -883,9 +894,8 @@ function LessonContent() {
   }
 
   return (
-    <div className={`min-h-dvh flex flex-col bg-white font-din-round text-almost-black ${
-      status === "correct" || status === "wrong" ? "pb-[250px] md:pb-[200px]" : "pb-[120px] md:pb-80px"
-    }`}>
+    <div className={`min-h-dvh flex flex-col bg-white font-din-round text-almost-black ${status === "correct" || status === "wrong" ? "pb-[250px] md:pb-[200px]" : "pb-[120px] md:pb-80px"
+      }`}>
       {/* Header */}
       <header className="sticky top-0 bg-white py-4 px-4 md:px-6 z-30">
         <div className="max-w-[1024px] mx-auto flex items-center gap-4">
@@ -895,7 +905,7 @@ function LessonContent() {
           >
             ✕
           </button>
-          
+
           <div className="grow max-w-[800px]">
             <ProgressBar progress={progress} />
           </div>
@@ -909,6 +919,7 @@ function LessonContent() {
                 width={20}
                 height={20}
                 className="object-contain"
+                style={{ height: 'auto' }}
               />
               <span className="text-[17px]">{hearts}</span>
             </div>
@@ -932,9 +943,9 @@ function LessonContent() {
         {/* Question Image */}
         {question.type === "image" && question.image && (
           <div className="w-full flex flex-col items-center justify-center mb-4 relative min-h-[150px]">
-            <img 
-              src={question.image} 
-              alt="Question" 
+            <img
+              src={question.image}
+              alt="Question"
               className="max-w-full w-full h-auto max-h-[60vh] md:max-h-[500px] object-contain border-2 border-cloud-gray rounded-xl"
             />
             {testId.includes("logical_reasoning") && question.options.length === 12 && (
@@ -945,7 +956,7 @@ function LessonContent() {
                     <span className="text-sky-blue/80 uppercase text-[10px] md:text-xs tracking-wider block mb-0.5">How to answer</span>
                     The options (1-12) correspond to the boxes in the answer area, ordered from left to right, top to bottom.
                   </div>
-                  <button 
+                  <button
                     onClick={() => setShowHowToAnswer(false)}
                     className="absolute top-2 right-2 md:top-1/2 md:-translate-y-1/2 md:right-3 p-1 hover:bg-sky-blue/20 rounded-full transition-colors text-sky-blue"
                     aria-label="Hide hint"
@@ -972,7 +983,7 @@ function LessonContent() {
           {question.options.map((opt: string, idx: number) => {
             const isSelected = selectedOption === idx;
             const isCorrect = idx === question.correctIndex;
-            
+
             // Highlight styling based on status
             let cardClass = "border-cloud-gray hover:bg-gray-50 shadow-[0_4px_0_var(--color-cloud-gray)]";
             let textClass = "text-almost-black";
@@ -1016,9 +1027,9 @@ function LessonContent() {
         </div>
       </main>
 
-      <QuizFooter 
-        status={status} 
-        onCheck={handleCheck} 
+      <QuizFooter
+        status={status}
+        onCheck={handleCheck}
         onContinue={handleContinue}
         explanation={question.explanation}
         correctAnswer={question.options[question.correctIndex]}
@@ -1027,14 +1038,14 @@ function LessonContent() {
       {showExitModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center z-50 p-4 animate-[fadeIn_0.2s_ease-out]">
           <div className="bg-white dark:bg-[#202f36] border-2 border-cloud-gray dark:border-cloud-gray/15 border-b-8 rounded-[24px] w-full max-w-[460px] p-6 md:p-8 flex flex-col gap-6 md:gap-8 shadow-none animate-[scaleIn_0.2s_ease-out] relative">
-            
+
             {/* Mascot & Dialogue */}
             <div className="flex flex-col items-center text-center gap-5">
               <div className="w-[96px] h-[96px] relative shrink-0">
-                <Image 
-                  src="/emoji/wahhh.webp" 
-                  alt="Sad Mascot" 
-                  fill 
+                <Image
+                  src="/emoji/wahhh.webp"
+                  alt="Sad Mascot"
+                  fill
                   sizes="96px"
                   className="object-contain drop-shadow-md"
                   unoptimized
@@ -1075,14 +1086,14 @@ function LessonContent() {
       {showOutOfHeartsModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center z-50 p-4 animate-[fadeIn_0.2s_ease-out]">
           <div className="bg-snow-white dark:bg-[#202f36] border-2 border-cloud-gray dark:border-cloud-gray/15 border-b-8 rounded-[24px] w-full max-w-[460px] p-6 md:p-8 flex flex-col gap-6 md:gap-8 shadow-none animate-[scaleIn_0.2s_ease-out] relative">
-            
+
             {/* Crying Mascot & Broken Heart Overlay */}
             <div className="flex flex-col items-center text-center gap-5">
               <div className="w-[110px] h-[110px] relative shrink-0">
-                <Image 
-                  src="/emoji/wahhh.webp" 
-                  alt="Sad Mascot" 
-                  fill 
+                <Image
+                  src="/emoji/wahhh.webp"
+                  alt="Sad Mascot"
+                  fill
                   sizes="110px"
                   className="object-contain drop-shadow-md"
                   unoptimized
@@ -1091,7 +1102,7 @@ function LessonContent() {
                   💔
                 </span>
               </div>
-              
+
               <div className="flex flex-col gap-3 font-din-round">
                 <h3 className="font-feather text-2xl md:text-[28px] text-charcoal dark:text-[#f1f5f9] font-bold leading-tight tracking-wide">
                   Out of Hearts!
@@ -1111,9 +1122,8 @@ function LessonContent() {
               <button
                 disabled={profileGems < 50 || refilling}
                 onClick={handleRefillHearts}
-                className={`w-full bg-duo-green text-white font-bold py-3 px-6 rounded-2xl shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none hover:brightness-105 transition-all text-body text-center cursor-pointer ${
-                  (profileGems < 50 || refilling) ? "opacity-50 cursor-not-allowed shadow-none active:translate-y-0" : ""
-                }`}
+                className={`w-full bg-duo-green text-white font-bold py-3 px-6 rounded-2xl shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none hover:brightness-105 transition-all text-body text-center cursor-pointer ${(profileGems < 50 || refilling) ? "opacity-50 cursor-not-allowed shadow-none active:translate-y-0" : ""
+                  }`}
               >
                 {refilling ? (
                   "REFILLING..."
@@ -1125,7 +1135,7 @@ function LessonContent() {
                   </span>
                 )}
               </button>
-              
+
               {profileGems < 50 && (
                 <span className="text-[11px] text-red-500 font-bold -mt-1 leading-none text-center">
                   You need 50 Gems to refill. Try again once you earn more XP!
@@ -1154,7 +1164,7 @@ function LessonContent() {
                 3 Correct Streak! 🔥
               </h3>
             </div>
-            
+
             <div className="w-full aspect-video relative bg-black flex items-center justify-center">
               <video
                 src="/videos/awooo.webm"
@@ -1167,7 +1177,7 @@ function LessonContent() {
                 }}
               />
             </div>
-            
+
             <button
               onClick={() => setShowAwoooVideo(false)}
               className="w-full max-w-[240px] bg-duo-green text-white font-bold py-3 px-6 rounded-2xl shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none hover:brightness-105 transition-all text-body text-center cursor-pointer font-din-round"

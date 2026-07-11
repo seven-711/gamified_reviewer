@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { supabase } from "@/lib/supabase";
 import { useUser, UserButton, SignOutButton } from "@clerk/nextjs";
+import { getStreakImage } from "@/lib/streak";
 
 interface UserProfile {
   id: string;
@@ -37,7 +38,7 @@ export default function ProfilePage() {
         setLoading(false);
         return;
       }
-      
+
       try {
         const { data: userProfile, error } = await supabase
           .from("profiles")
@@ -73,7 +74,7 @@ export default function ProfilePage() {
     const value = parseInt(e.target.value, 10);
     setTimerDuration(value);
     localStorage.setItem("timer_duration", value.toString());
-    
+
     if (isSignedIn && user) {
       setSavingTimer(true);
       try {
@@ -107,7 +108,7 @@ export default function ProfilePage() {
   return (
     <>
       <main className="flex-1 w-full max-w-[600px] mx-auto pb-16 pt-2 font-din-round">
-        
+
         {/* Top Header Row: Name & Action Buttons */}
         <div className="flex items-center justify-between gap-4 mb-4">
           <h1 className="font-feather text-2xl sm:text-3xl font-black text-white tracking-wide truncate max-w-[200px] sm:max-w-none">
@@ -117,9 +118,9 @@ export default function ProfilePage() {
             <button className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white transition-colors cursor-pointer select-none" title="Share Profile">
               <span className="text-lg">📤</span>
             </button>
-            <button 
-              onClick={() => router.push("/onboarding")} 
-              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white transition-colors cursor-pointer select-none" 
+            <button
+              onClick={() => router.push("/onboarding")}
+              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white transition-colors cursor-pointer select-none"
               title="Settings"
             >
               <span className="text-lg">⚙️</span>
@@ -134,10 +135,10 @@ export default function ProfilePage() {
             {(!isLoaded || !user) ? (
               <div className="w-full h-full bg-cloud-gray/20 animate-pulse rounded-full" />
             ) : (
-              <img 
-                src={(user && user.imageUrl) ? user.imageUrl : "/emoji/profile.webp"} 
-                alt="Avatar" 
-                className={`object-cover w-full h-full rounded-full ${(!user || !user.imageUrl) ? "scale-[1.7] translate-y-1" : ""}`} 
+              <img
+                src={(user && user.imageUrl) ? user.imageUrl : "/emoji/profile.webp"}
+                alt="Avatar"
+                className={`object-cover w-full h-full rounded-full ${(!user || !user.imageUrl) ? "scale-[1.7] translate-y-1" : ""}`}
               />
             )}
           </div>
@@ -151,7 +152,7 @@ export default function ProfilePage() {
                 @{user?.primaryEmailAddress?.emailAddress.split("@")[0] || "learner"} • Joined {new Date(user?.createdAt || Date.now()).getFullYear()}
               </p>
             </div>
-            
+
             <div className="self-start sm:self-auto shrink-0">
               <SignOutButton>
                 <button className="flex items-center gap-1.5 border-2 border-red-500/30 hover:border-red-500/50 hover:bg-red-500/10 px-3 py-1.5 rounded-xl transition-all cursor-pointer">
@@ -174,7 +175,7 @@ export default function ProfilePage() {
               </span>
               <span className="text-silver font-extrabold text-[10px] uppercase tracking-wider mt-1">Courses</span>
             </div>
-            
+
             <div className="flex flex-col items-center">
               <span className="text-base sm:text-lg font-black text-white select-none">11</span>
               <span className="text-silver font-extrabold text-[10px] uppercase tracking-wider mt-1">Following</span>
@@ -197,11 +198,11 @@ export default function ProfilePage() {
           <h2 className="font-feather text-xs font-black tracking-widest text-silver uppercase mb-5 select-none">
             Overview
           </h2>
-          
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Streak */}
             <div className="flex items-center gap-3 bg-gradient-to-br from-orange-500/5 to-transparent border border-orange-500/10 rounded-2xl p-3 hover:-translate-y-0.5 transition-transform">
-              <Image src="/img/gen_imgs/streak.webp" alt="Streak" width={28} height={28} className="object-contain" />
+              <Image src={getStreakImage(profile?.streak || 0)} alt="Streak" width={28} height={28} className="object-contain" style={{ height: 'auto' }} />
               <span className="font-extrabold text-[16px] text-white">
                 {profile?.streak || 0} days
               </span>
@@ -209,7 +210,7 @@ export default function ProfilePage() {
 
             {/* XP */}
             <div className="flex items-center gap-3 bg-gradient-to-br from-yellow-500/5 to-transparent border border-yellow-500/10 rounded-2xl p-3 hover:-translate-y-0.5 transition-transform">
-              <Image src="/img/gen_imgs/exp.webp" alt="XP" width={28} height={28} className="object-contain" />
+              <Image src="/img/gen_imgs/exp.webp" alt="XP" width={28} height={28} className="object-contain" style={{ height: 'auto' }} />
               <span className="font-extrabold text-[16px] text-white">
                 {profile?.total_score || 0} XP
               </span>
@@ -238,7 +239,7 @@ export default function ProfilePage() {
           <h2 className="font-feather text-xs font-black tracking-widest text-silver uppercase mb-5 select-none">
             Friend Streaks
           </h2>
-          
+
           <div className="flex items-center gap-5 overflow-x-auto pb-2">
             {/* Friend 1 */}
             <div className="flex flex-col items-center gap-1.5 shrink-0">
@@ -282,7 +283,7 @@ export default function ProfilePage() {
               View All &gt;
             </span>
           </div>
-          
+
           <div className="flex items-center gap-5">
             <div className="w-14 h-14 rounded-full overflow-hidden bg-gradient-to-tr from-orange-500/20 to-yellow-500/20 border border-orange-500/30 flex items-center justify-center p-2 relative shadow-md hover:scale-105 transition-transform duration-300">
               <Image src="/img/gen_imgs/trophy.webp" alt="Badge" width={36} height={36} className="object-contain" />
@@ -291,7 +292,7 @@ export default function ProfilePage() {
               <Image src="/img/gen_imgs/diamond.webp" alt="Badge" width={36} height={36} className="object-contain" />
             </div>
             <div className="w-14 h-14 rounded-full overflow-hidden bg-gradient-to-tr from-duo-green/20 to-emerald-500/20 border border-duo-green/30 flex items-center justify-center p-2 relative shadow-md hover:scale-105 transition-transform duration-300">
-              <Image src="/img/gen_imgs/streak.webp" alt="Badge" width={36} height={36} className="object-contain" />
+              <Image src={getStreakImage(profile?.streak || 0)} alt="Badge" width={36} height={36} className="object-contain" style={{ height: 'auto' }} />
             </div>
             <div className="w-14 h-14 rounded-full bg-cloud-gray/10 border border-cloud-gray/30 flex items-center justify-center text-silver text-xl select-none grayscale opacity-30">
               🔒
@@ -309,7 +310,7 @@ export default function ProfilePage() {
               View All &gt;
             </span>
           </div>
-          
+
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {/* Achievement 1 */}
             <div className="flex flex-col items-center gap-2 relative group cursor-pointer">
@@ -343,7 +344,7 @@ export default function ProfilePage() {
                 NEW
               </span>
               <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-500/10 to-transparent border-2 border-orange-500/30 flex items-center justify-center p-2 relative group-hover:scale-105 transition-all">
-                <Image src="/img/gen_imgs/streak.webp" alt="Streak" width={36} height={36} className="object-contain" />
+                <Image src={getStreakImage(profile?.streak || 0)} alt="Streak" width={36} height={36} className="object-contain" style={{ height: 'auto' }} />
               </div>
               <span className="text-[9px] font-extrabold text-orange-500 bg-orange-500/15 px-2 py-0.5 rounded-full select-none">
                 {profile?.streak || 0} days
@@ -368,33 +369,33 @@ export default function ProfilePage() {
             Preferences
           </h2>
           <div className="border-2 border-cloud-gray rounded-3xl p-5 md:p-6 flex flex-col sm:flex-row items-center justify-between gap-6 bg-gradient-to-br from-duo-green-light/10 to-transparent mb-8">
-             <div className="flex items-center gap-4 text-left w-full sm:w-auto">
-                <div className="text-4xl shrink-0 select-none animate-[pulse_3s_infinite]">⏱️</div>
-                <div className="flex flex-col gap-0.5">
-                   <h3 className="font-bold text-[18px] text-white">Default Timer Duration</h3>
-                   <p className="text-silver text-xs font-semibold leading-tight">
-                     {savingTimer ? "Saving changes..." : "Adjust your practice exam length"}
-                   </p>
-                </div>
-             </div>
-             
-             <div className="relative w-full sm:w-[180px] shrink-0">
-               <select 
-                 value={timerDuration}
-                 onChange={handleTimerChange}
-                 disabled={savingTimer}
-                 className="w-full bg-[#131f24] text-white border-2 border-cloud-gray hover:border-sky-blue rounded-2xl px-4 py-3 font-bold text-sm tracking-wide select-none cursor-pointer focus:outline-none focus:border-sky-blue transition-colors appearance-none shadow-[0_4px_0_var(--color-cloud-gray)] active:translate-y-[2px] active:shadow-[0_2px_0_var(--color-cloud-gray)]"
-               >
-                 <option value={5}>5 Minutes</option>
-                 <option value={10}>10 Minutes</option>
-                 <option value={15}>15 Minutes</option>
-                 <option value={30}>30 Minutes</option>
-                 <option value={60}>1 Hour</option>
-               </select>
-               <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-silver font-bold text-[10px]">
-                 ▼
-               </div>
-             </div>
+            <div className="flex items-center gap-4 text-left w-full sm:w-auto">
+              <div className="text-4xl shrink-0 select-none animate-[pulse_3s_infinite]">⏱️</div>
+              <div className="flex flex-col gap-0.5">
+                <h3 className="font-bold text-[18px] text-white">Default Timer Duration</h3>
+                <p className="text-silver text-xs font-semibold leading-tight">
+                  {savingTimer ? "Saving changes..." : "Adjust your practice exam length"}
+                </p>
+              </div>
+            </div>
+
+            <div className="relative w-full sm:w-[180px] shrink-0">
+              <select
+                value={timerDuration}
+                onChange={handleTimerChange}
+                disabled={savingTimer}
+                className="w-full bg-[#131f24] text-white border-2 border-cloud-gray hover:border-sky-blue rounded-2xl px-4 py-3 font-bold text-sm tracking-wide select-none cursor-pointer focus:outline-none focus:border-sky-blue transition-colors appearance-none shadow-[0_4px_0_var(--color-cloud-gray)] active:translate-y-[2px] active:shadow-[0_2px_0_var(--color-cloud-gray)]"
+              >
+                <option value={5}>5 Minutes</option>
+                <option value={10}>10 Minutes</option>
+                <option value={15}>15 Minutes</option>
+                <option value={30}>30 Minutes</option>
+                <option value={60}>1 Hour</option>
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-silver font-bold text-[10px]">
+                ▼
+              </div>
+            </div>
           </div>
         </div>
 

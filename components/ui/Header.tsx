@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { useUser, UserButton } from "@clerk/nextjs";
 import { useStats } from "@/components/ui/StatsContext";
 import { usePathname } from "next/navigation";
+import { getStreakImage } from "@/lib/streak";
 
 export function Header() {
   const pathname = usePathname();
@@ -93,11 +94,12 @@ export function Header() {
                         <div className="flex sm:hidden items-center gap-3 mr-1">
                           <div title="Streak" className="flex items-center gap-1 cursor-help select-none">
                             <Image
-                              src="/img/gen_imgs/streak.webp"
+                              src={getStreakImage(streak)}
                               alt="Streak"
                               width={22}
                               height={22}
                               className="object-contain"
+                              style={{ height: 'auto' }}
                             />
                             <span className="text-orange-500 font-extrabold text-sm">{streak}</span>
                           </div>
@@ -108,6 +110,7 @@ export function Header() {
                               width={22}
                               height={22}
                               className="object-contain"
+                              style={{ height: 'auto' }}
                             />
                             <span className="font-extrabold text-sm">{hearts}</span>
                           </div>
@@ -128,11 +131,12 @@ export function Header() {
                       <div className="hidden sm:flex items-center gap-6 border-l pl-5 border-cloud-gray">
                         <div title="Streak" className="flex items-center gap-2 cursor-help select-none">
                           <Image
-                            src="/img/gen_imgs/streak.webp"
+                            src={getStreakImage(streak)}
                             alt="Streak"
                             width={32}
                             height={32}
                             className="object-contain"
+                            style={{ height: 'auto' }}
                           />
                           <span className="text-orange-500 font-black text-lg">{streak}</span>
                         </div>
@@ -143,6 +147,7 @@ export function Header() {
                             width={32}
                             height={32}
                             className="object-contain"
+                            style={{ height: 'auto' }}
                           />
                           <span className="text-amber-500 font-black text-lg">{xp} XP</span>
                         </div>
