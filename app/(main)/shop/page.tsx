@@ -105,8 +105,14 @@ export default function ShopPage() {
             
             <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl border-2 border-cloud-gray bg-snow-white gap-4">
               <div className="flex items-center gap-4 min-w-0">
-                <div className="w-14 h-14 rounded-2xl bg-red-500/10 flex items-center justify-center text-3xl shadow-sm shrink-0">
-                  ❤️
+                <div className="w-14 h-14 rounded-2xl bg-red-500/10 flex items-center justify-center shadow-sm shrink-0">
+                  <Image
+                    src="/img/gen_imgs/user_life.webp"
+                    alt="Life"
+                    width={36}
+                    height={36}
+                    className="object-contain"
+                  />
                 </div>
                 <div className="flex flex-col gap-1 min-w-0">
                   <span className="font-bold text-lg text-almost-black leading-tight">Refill Hearts</span>
@@ -246,7 +252,13 @@ export default function ShopPage() {
             
             {/* Hearts */}
             <div className="flex items-center gap-1.5 text-red-500 cursor-pointer hover:bg-duo-green-light p-2 rounded-xl transition-colors">
-              <span className="text-xl">❤️</span>
+              <Image
+                src="/img/gen_imgs/user_life.webp"
+                alt="Hearts"
+                width={24}
+                height={24}
+                className="object-contain"
+              />
               <span>{hearts}</span>
             </div>
           </div>

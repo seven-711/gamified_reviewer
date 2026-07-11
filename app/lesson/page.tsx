@@ -902,8 +902,14 @@ function LessonContent() {
 
           <div className="flex items-center gap-2 select-none">
             {/* Hearts Indicator */}
-            <div className="flex items-center gap-1.5 font-bold shrink-0 bg-cloud-gray/20 px-3 py-1.5 rounded-xl border-2 border-cloud-gray/40 text-red-500">
-              <span className="text-lg">❤️</span>
+            <div className="flex items-center gap-1.5 font-bold shrink-0 bg-cloud-gray/20 dark:bg-[#202f36] px-3 py-1.5 rounded-xl border-2 border-cloud-gray/40 dark:border-cloud-gray/15 text-red-500">
+              <Image
+                src="/img/gen_imgs/user_life.webp"
+                alt="Hearts"
+                width={20}
+                height={20}
+                className="object-contain"
+              />
               <span className="text-[17px]">{hearts}</span>
             </div>
 

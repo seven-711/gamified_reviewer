@@ -10,7 +10,7 @@ import { useStats } from "@/components/ui/StatsContext";
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
-  const { streak, xp, gems, isLoaded: isStatsLoaded } = useStats();
+  const { streak, xp, hearts, gems, isLoaded: isStatsLoaded } = useStats();
   const { user, isLoaded, isSignedIn } = useUser();
 
   useEffect(() => {
@@ -83,40 +83,77 @@ export function Header() {
             {/* Right Action/Stats (Fades out when scrolled) */}
             <div className={`col-start-1 row-start-1 flex items-center gap-4 transition-all duration-300 transform ${isScrolled ? 'opacity-0 translate-y-2 pointer-events-none' : 'opacity-100 translate-y-0 pointer-events-auto'}`}>
               {showStats ? (
-                <div className="flex items-center gap-4 font-bold text-sm tracking-wide">
+                <div className="flex items-center gap-3 sm:gap-4 font-bold text-sm tracking-wide">
                   {isStatsLoaded && (
-                    <div className="hidden sm:flex items-center gap-6 border-l pl-5 border-cloud-gray">
-                      <div title="Streak" className="flex items-center gap-2 cursor-help select-none">
-                        <Image
-                          src="/img/gen_imgs/streak.webp"
-                          alt="Streak"
-                          width={32}
-                          height={32}
-                          className="object-contain"
-                        />
-                        <span className="text-orange-500 font-black text-lg">{streak}</span>
+                    <>
+                      {/* Mobile stats (visible on mobile only, hidden on desktop) */}
+                      <div className="flex sm:hidden items-center gap-3 mr-1">
+                        <div title="Streak" className="flex items-center gap-1 cursor-help select-none">
+                          <Image
+                            src="/img/gen_imgs/streak.webp"
+                            alt="Streak"
+                            width={22}
+                            height={22}
+                            className="object-contain"
+                          />
+                          <span className="text-orange-500 font-extrabold text-sm">{streak}</span>
+                        </div>
+                        <div title="Hearts" className="flex items-center gap-1 cursor-help select-none text-red-500">
+                          <Image
+                            src="/img/gen_imgs/user_life.webp"
+                            alt="Hearts"
+                            width={22}
+                            height={22}
+                            className="object-contain"
+                          />
+                          <span className="font-extrabold text-sm">{hearts}</span>
+                        </div>
+                        <div title="Gems" className="flex items-center gap-1 cursor-help select-none">
+                          <Image
+                            src="/img/gen_imgs/diamond.webp"
+                            alt="Gems"
+                            width={22}
+                            height={22}
+                            className="object-contain"
+                          />
+                          <span className="text-blue-400 font-extrabold text-sm">{gems}</span>
+                        </div>
                       </div>
-                      <div title="XP" className="flex items-center gap-2 cursor-help select-none">
-                        <Image
-                          src="/img/gen_imgs/exp.webp"
-                          alt="XP"
-                          width={32}
-                          height={32}
-                          className="object-contain"
-                        />
-                        <span className="text-amber-500 font-black text-lg">{xp} XP</span>
+
+                      {/* Desktop stats (hidden on mobile, visible on desktop) */}
+                      <div className="hidden sm:flex items-center gap-6 border-l pl-5 border-cloud-gray">
+                        <div title="Streak" className="flex items-center gap-2 cursor-help select-none">
+                          <Image
+                            src="/img/gen_imgs/streak.webp"
+                            alt="Streak"
+                            width={32}
+                            height={32}
+                            className="object-contain"
+                          />
+                          <span className="text-orange-500 font-black text-lg">{streak}</span>
+                        </div>
+                        <div title="XP" className="flex items-center gap-2 cursor-help select-none">
+                          <Image
+                            src="/img/gen_imgs/exp.webp"
+                            alt="XP"
+                            width={32}
+                            height={32}
+                            className="object-contain"
+                          />
+                          <span className="text-amber-500 font-black text-lg">{xp} XP</span>
+                        </div>
+                        <div title="Gems" className="flex items-center gap-2 cursor-help select-none">
+                          <Image
+                            src="/img/gen_imgs/diamond.webp"
+                            alt="Gems"
+                            width={32}
+                            height={32}
+                            className="object-contain"
+                          />
+                          <span className="text-blue-400 font-black text-lg">{gems}</span>
+                        </div>
                       </div>
-                      <div title="Gems" className="flex items-center gap-2 cursor-help select-none">
-                        <Image
-                          src="/img/gen_imgs/diamond.webp"
-                          alt="Gems"
-                          width={32}
-                          height={32}
-                          className="object-contain"
-                        />
-                        <span className="text-blue-400 font-black text-lg">{gems}</span>
-                      </div>
-                    </div>
+                    </>
                   )}
                   {isSignedIn && user ? (
                     <div className="relative w-9 h-9 sm:w-10 sm:h-10 cursor-pointer">

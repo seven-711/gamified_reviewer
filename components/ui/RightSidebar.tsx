@@ -42,7 +42,13 @@ export default function RightSidebar() {
         </div>
         {/* Hearts */}
         <div className="flex items-center gap-2 text-red-500 cursor-pointer hover:bg-duo-green-light p-2 rounded-xl transition-colors">
-          <span className="text-xl">❤️</span>
+          <Image
+            src="/img/gen_imgs/user_life.webp"
+            alt="Hearts"
+            width={28}
+            height={28}
+            className="object-contain"
+          />
           <span>{hearts}</span>
         </div>
       </div>

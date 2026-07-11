@@ -324,7 +324,13 @@ export default function QuestsPage() {
 
             {/* Hearts */}
             <div className="flex items-center gap-1.5 text-red-500 cursor-pointer hover:bg-duo-green-light p-2 rounded-xl transition-colors">
-              <span className="text-xl">❤️</span>
+              <Image
+                src="/img/gen_imgs/user_life.webp"
+                alt="Hearts"
+                width={24}
+                height={24}
+                className="object-contain"
+              />
               <span>{hearts}</span>
             </div>
           </div>

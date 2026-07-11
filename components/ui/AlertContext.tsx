@@ -79,6 +79,37 @@ function getMascotForMessage(message: string, emoji?: string): string {
   return "/emoji/general.webp";
 }
 
+const renderAlertMessage = (msg: string) => {
+  const parts = msg.split(/(💎|❤️)/);
+  return parts.map((part, index) => {
+    if (part === "💎") {
+      return (
+        <Image
+          key={index}
+          src="/img/gen_imgs/diamond.webp"
+          alt="Gems"
+          width={18}
+          height={18}
+          className="inline-block object-contain align-middle -mt-0.5 mx-0.5"
+        />
+      );
+    }
+    if (part === "❤️") {
+      return (
+        <Image
+          key={index}
+          src="/img/gen_imgs/user_life.webp"
+          alt="Life"
+          width={18}
+          height={18}
+          className="inline-block object-contain align-middle -mt-0.5 mx-0.5"
+        />
+      );
+    }
+    return <span key={index}>{part}</span>;
+  });
+};
+
 export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [alertState, setAlertState] = useState<AlertState | null>(null);
 
@@ -117,7 +148,7 @@ export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       {children}
       {alertState && (
         <div className="dark-mode fixed inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center z-[100] p-4 animate-fade-in">
-          <div className="bg-snow-white border-2 border-cloud-gray border-b-8 rounded-[24px] w-full max-w-[420px] p-6 md:p-8 flex flex-col gap-6 md:gap-8 shadow-none animate-scale-in relative text-center font-din-round">
+          <div className="bg-snow-white dark:bg-[#202f36] border-2 border-cloud-gray dark:border-cloud-gray/15 border-b-8 rounded-[24px] w-full max-w-[420px] p-6 md:p-8 flex flex-col gap-6 md:gap-8 shadow-none animate-scale-in relative text-center font-din-round">
             
             {/* Mascot and Emoji Header */}
             <div className="flex flex-col items-center gap-5">
@@ -131,37 +162,30 @@ export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                   unoptimized
                 />
                 {alertState.emoji && (
-                  <span className="absolute -bottom-2 -right-2 text-3xl bg-snow-white p-2 rounded-full border-2 border-cloud-gray shadow-sm">
-                    {alertState.emoji}
+                  <span className="absolute -bottom-2 -right-2 text-3xl bg-snow-white dark:bg-[#1a2529] p-2 rounded-full border-2 border-cloud-gray dark:border-cloud-gray/15 shadow-sm flex items-center justify-center min-w-[48px] min-h-[48px]">
+                    {alertState.emoji === "❤️" ? (
+                      <Image
+                        src="/img/gen_imgs/user_life.webp"
+                        alt="Life"
+                        width={28}
+                        height={28}
+                        className="object-contain"
+                      />
+                    ) : (
+                      alertState.emoji
+                    )}
                   </span>
                 )}
               </div>
               
               <div className="flex flex-col gap-2 font-din-round">
                 {alertState.title && (
-                  <h3 className="font-feather text-2xl md:text-[26px] text-charcoal font-bold leading-tight tracking-wide">
+                  <h3 className="font-feather text-2xl md:text-[26px] text-charcoal dark:text-[#f1f5f9] font-bold leading-tight tracking-wide">
                     {alertState.title}
                   </h3>
                 )}
-                <p className="text-graphite text-body leading-relaxed max-w-[340px] mx-auto tracking-wide whitespace-pre-line">
-                  {alertState.message.includes("💎") ? (
-                    alertState.message.split("💎").map((part, i, arr) => (
-                      <React.Fragment key={i}>
-                        {part}
-                        {i < arr.length - 1 && (
-                          <Image
-                            src="/img/gen_imgs/diamond.webp"
-                            alt="Gems"
-                            width={18}
-                            height={18}
-                            className="inline-block object-contain align-middle -mt-0.5 mx-0.5"
-                          />
-                        )}
-                      </React.Fragment>
-                    ))
-                  ) : (
-                    alertState.message
-                  )}
+                <p className="text-graphite dark:text-silver text-body leading-relaxed max-w-[340px] mx-auto tracking-wide whitespace-pre-line">
+                  {renderAlertMessage(alertState.message)}
                 </p>
               </div>
             </div>

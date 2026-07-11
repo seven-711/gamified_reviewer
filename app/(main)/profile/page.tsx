@@ -22,13 +22,7 @@ export default function ProfilePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [timerDuration, setTimerDuration] = useState<number>(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("timer_duration");
-      if (saved) return parseInt(saved, 10);
-    }
-    return 5;
-  });
+  const [timerDuration, setTimerDuration] = useState<number>(5);
   const [savingTimer, setSavingTimer] = useState(false);
   const { user, isLoaded, isSignedIn } = useUser();
 

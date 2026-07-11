@@ -31,7 +31,7 @@ async function checkDailyStreakValidation(
   const profileId = dbProfile.id;
   const currentStreak = dbProfile.streak || 0;
   const lastLessonDateStr = dbProfile.last_lesson_date || null;
-  
+
   // Make sure we have a local streak freeze initialized in localStorage
   if (typeof window !== "undefined") {
     const localFreeze = localStorage.getItem("streak_freeze_count");
@@ -81,18 +81,18 @@ async function checkDailyStreakValidation(
     if (typeof window !== "undefined") {
       localStorage.setItem("streak_freeze_count", newFreezes.toString());
     }
-    
+
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
     const yesterdayStr = yesterday.toLocaleDateString("en-CA");
-    
+
     if (typeof window !== "undefined") {
       localStorage.setItem("last_lesson_completed_date", yesterdayStr);
     }
 
     await supabase
       .from("profiles")
-      .update({ 
+      .update({
         streak_freeze_count: newFreezes,
         last_lesson_date: yesterdayStr
       })
@@ -103,7 +103,7 @@ async function checkDailyStreakValidation(
   } else {
     await supabase
       .from("profiles")
-      .update({ 
+      .update({
         streak: 0,
         streak_freeze_count: 0
       })
@@ -198,14 +198,14 @@ export default function DashboardPage() {
             hearts: 5,
             gems: 50
           };
-        } catch (e) {}
+        } catch (e) { }
       }
     }
     return null;
   });
   const { user, isLoaded, isSignedIn } = useUser();
 
-  const [scores, setScores] = useState<Record<string, {score: number, total: number, previousBest?: number, lastScore?: number, attempts?: number}>>({});
+  const [scores, setScores] = useState<Record<string, { score: number, total: number, previousBest?: number, lastScore?: number, attempts?: number }>>({});
   const [unlockAll, setUnlockAll] = useState(false);
   const [testCount, setTestCount] = useState<number>(0);
 
@@ -253,7 +253,7 @@ export default function DashboardPage() {
   useEffect(() => {
     async function loadData() {
       if (!isLoaded) return;
-      
+
       try {
         const pendingPrefs = localStorage.getItem("onboarding_prefs");
         let activeProfile: UserProfile | null = null;
@@ -269,7 +269,7 @@ export default function DashboardPage() {
           if (guestDbProfile) {
             const streakInfo = await checkDailyStreakValidation(guestDbProfile, showAlert);
             const heartsInfo = await checkHeartsRegeneration(guestDbProfile);
-            
+
             let gGems = guestDbProfile.gems !== undefined && guestDbProfile.gems !== null ? guestDbProfile.gems : 50;
             gGems = await checkDailyLoginReward(guestSessionId, gGems, showAlert);
 
@@ -378,7 +378,7 @@ export default function DashboardPage() {
                   hearts: mergedHearts,
                   last_heart_lost_at: mergedLastHeartLostAt
                 });
-                
+
                 // Update local storage freeze count
                 localStorage.setItem("streak_freeze_count", mergedFreezes.toString());
               }
@@ -386,7 +386,7 @@ export default function DashboardPage() {
               // Cleanup guest session
               localStorage.removeItem("guest_session_id");
               localStorage.removeItem("onboarding_prefs");
-              
+
               // Delete guest profile from Supabase to keep DB clean
               await supabase.from("profiles").delete().eq("id", guestSessionId);
             } catch (mergeErr) {
@@ -424,7 +424,7 @@ export default function DashboardPage() {
 
           const streakInfo = await checkDailyStreakValidation(userProfile, showAlert);
           const heartsInfo = await checkHeartsRegeneration(userProfile);
-          
+
           let uGems = userProfile.gems !== undefined && userProfile.gems !== null ? userProfile.gems : 50;
           uGems = await checkDailyLoginReward(userProfile.id, uGems, showAlert);
 
@@ -455,7 +455,7 @@ export default function DashboardPage() {
               const fullTopic = activeProfile.sub_topic || "General Review";
               const topicName = fullTopic.split(" > ").pop() || fullTopic;
               const formattedTopic = topicName.toLowerCase().replace(/[^a-z0-9]+/g, '_');
-              
+
               const filtered = availableTestsKeys.filter((key: string) => key.startsWith(formattedTopic));
               setTestCount(Math.max(filtered.length, 1));
             } else {
@@ -487,8 +487,8 @@ export default function DashboardPage() {
       const fullTopic = profile?.sub_topic || "General Review";
       const topicName = fullTopic.split(" > ").pop() || fullTopic;
       const formattedTopic = topicName.toLowerCase().replace(/[^a-z0-9]+/g, '_');
-      
-      const loadedScores: Record<string, {score: number, total: number, previousBest?: number, lastScore?: number, attempts?: number}> = {};
+
+      const loadedScores: Record<string, { score: number, total: number, previousBest?: number, lastScore?: number, attempts?: number }> = {};
       for (let i = 1; i <= testCount; i++) {
         const testId = `${formattedTopic}_test${i}`;
         const scoreData = localStorage.getItem(`quiz_score_${testId}`);
@@ -499,7 +499,7 @@ export default function DashboardPage() {
               parsed.score = parsed.total;
             }
             loadedScores[testId] = parsed;
-          } catch(e){}
+          } catch (e) { }
         }
       }
       setTimeout(() => {
@@ -535,10 +535,10 @@ export default function DashboardPage() {
       return;
     }
     setSavingTimer(true);
-    
+
     // Save to local storage
     localStorage.setItem("timer_duration", modalTimerDuration.toString());
-    
+
     // If signed in, update Supabase in the background
     if (isSignedIn && user) {
       try {
@@ -550,13 +550,13 @@ export default function DashboardPage() {
         console.error("Failed to update profile timer_duration in DB", e);
       }
     }
-    
+
     if (selectedTestForTimer.testId !== "settings") {
       // Clear in-progress saved state so they start fresh with the new timer
       localStorage.removeItem(`quiz_state_${selectedTestForTimer.testId}`);
       router.push(`/lesson?testId=${selectedTestForTimer.testId}`);
     }
-    
+
     setSelectedTestForTimer(null);
     setSavingTimer(false);
   };
@@ -586,7 +586,7 @@ export default function DashboardPage() {
   const fullTopic = rawSubTopic;
   const topicName = fullTopic.split(" > ").pop() || fullTopic;
   const formattedTopic = topicName.toLowerCase().replace(/[^a-z0-9]+/g, '_');
-  
+
   let activeIndex = 0;
   for (let i = 1; i <= testCount; i++) {
     const tId = `${formattedTopic}_test${i}`;
@@ -637,13 +637,13 @@ export default function DashboardPage() {
               <div className="flex flex-col text-left">
                 <span className="text-[10px] text-silver font-black uppercase tracking-wider">Current Focus Area</span>
                 <span className="text-sm font-extrabold text-sky-blue uppercase">
-                  {quantSection === "part1" 
-                    ? "Part 1: Quantitative Aptitude" 
-                    : quantSection === "part2_secA" 
-                    ? "Part 2: Reasoning - Section A"
-                    : quantSection === "part2_secB"
-                    ? "Part 2: Reasoning - Section B"
-                    : "Part 2: Reasoning - Section C"}
+                  {quantSection === "part1"
+                    ? "Part 1: Quantitative Aptitude"
+                    : quantSection === "part2_secA"
+                      ? "Part 2: Reasoning - Section A"
+                      : quantSection === "part2_secB"
+                        ? "Part 2: Reasoning - Section B"
+                        : "Part 2: Reasoning - Section C"}
                 </span>
               </div>
               <button
@@ -664,10 +664,10 @@ export default function DashboardPage() {
               {/* Character mascot card */}
               <div className="flex gap-4 items-center bg-sky-blue/5 border-2 border-sky-blue/20 rounded-2xl p-4 md:p-5 shadow-sm text-left">
                 <div className="w-20 h-20 relative shrink-0">
-                  <Image 
-                    src="/emoji/suspicious.webp" 
-                    alt="Thinking Mascot" 
-                    fill 
+                  <Image
+                    src="/emoji/suspicious.webp"
+                    alt="Thinking Mascot"
+                    fill
                     className="object-contain drop-shadow-md"
                     unoptimized
                   />
@@ -799,15 +799,15 @@ export default function DashboardPage() {
               <div className="flex flex-col items-center gap-4 max-w-[450px]">
                 {/* Floating Mascot with shadow */}
                 <div className="w-28 h-28 relative shrink-0 animate-[float_3s_infinite] drop-shadow-[0_6px_12px_rgba(0,0,0,0.1)]">
-                  <Image 
-                    src="/emoji/hmm.webp" 
-                    alt="Thinking Mascot" 
-                    fill 
+                  <Image
+                    src="/emoji/hmm.webp"
+                    alt="Thinking Mascot"
+                    fill
                     className="object-contain"
                     unoptimized
                   />
                 </div>
-                
+
                 {/* Dialogue Speech Bubble with bottom pop-border */}
                 <div className="relative bg-snow-white border-2 border-cloud-gray border-b-8 rounded-[24px] p-6 shadow-none max-w-full text-center mt-2 before:content-[''] before:absolute before:top-[-10px] before:left-1/2 before:-translate-x-1/2 before:border-x-8 before:border-x-transparent before:border-b-8 before:border-b-cloud-gray after:content-[''] after:absolute after:-top-[8px] after:left-1/2 after:-translate-x-1/2 after:border-x-8 after:border-x-transparent after:border-b-8 after:border-b-snow-white">
                   <h3 className="font-feather text-lg md:text-xl font-black text-charcoal uppercase tracking-wider mb-2">
@@ -845,7 +845,7 @@ export default function DashboardPage() {
             <>
               {/* Settings / Controls Row */}
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between w-full px-4 md:px-0 gap-3">
-                <div 
+                <div
                   onClick={() => {
                     setSelectedTestForTimer({ testId: "settings", testTitle: "Practice Timer Settings" });
                     const saved = localStorage.getItem("timer_duration");
@@ -890,137 +890,137 @@ export default function DashboardPage() {
                   ))
                 ) : (
                   Array.from({ length: testCount }, (_, i) => i + 1).map((testNum, index) => {
-                  const isActive = index === activeIndex;
-                  const isLocked = !unlockAll && index > activeIndex;
-                  
-                  let testTitle = `${topicName} - Test ${testNum}`;
-                  if (formattedTopic === "quantitative_reasoning") {
-                    if (testNum === 1) testTitle = "Chapter 1: HCF and LCM";
-                    else if (testNum === 2) testTitle = "Chapter 2: Permutation and Combination";
-                    else if (testNum === 3) testTitle = "Chapter 3: Probability";
-                    else if (testNum === 4) testTitle = "Chapter 4: Ratio and Proportion";
-                    else if (testNum === 5) testTitle = "Chapter 5: Percentage";
-                    else if (testNum === 6) testTitle = "Chapter 6: Average";
-                    else if (testNum === 7) testTitle = "Chapter 7: Problems on Ages";
-                    else testTitle = `Chapter ${testNum}`;
-                  }
-                  const testId = `${formattedTopic}_test${testNum}`;
-                  const scoreData = scores[testId];
-              
-              let cardClass = "";
-              let titleClass = "";
-              let subtitleClass = "";
-              let badgeClass = "";
-              let badgeContent = null;
+                    const isActive = index === activeIndex;
+                    const isLocked = !unlockAll && index > activeIndex;
 
-              if (isActive) {
-                cardClass = "bg-duo-green border-2 border-transparent shadow-[0_6px_0_#3f8f01] hover:-translate-y-1 hover:shadow-[0_8px_0_#3f8f01] hover:brightness-105 active:translate-y-1 active:shadow-[0_2px_0_#3f8f01] text-white cursor-pointer";
-                titleClass = "text-white";
-                subtitleClass = "text-white/80";
-                badgeClass = "bg-white shadow-[0_4px_0_#e5e5e5]";
-                badgeContent = <Image src="/emoji/star.webp" alt="Start" width={22} height={22} className="object-contain drop-shadow-md" unoptimized />;
-              } else if (isLocked) {
-                cardClass = "bg-snow-white border-2 border-cloud-gray shadow-[0_6px_0_var(--color-cloud-gray)] opacity-50 cursor-not-allowed text-silver";
-                titleClass = "text-silver";
-                subtitleClass = "text-silver/60";
-                badgeClass = "bg-cloud-gray/20 border border-cloud-gray";
-                badgeContent = <span className="text-sm">🔒</span>;
-              } else {
-                cardClass = "bg-snow-white border-2 border-cloud-gray shadow-[0_6px_0_var(--color-cloud-gray)] hover:-translate-y-0.5 hover:shadow-[0_8px_0_var(--color-cloud-gray)] active:translate-y-1 active:shadow-[0_2px_0_var(--color-cloud-gray)] text-almost-black hover:bg-cloud-gray/10 cursor-pointer";
-                titleClass = "text-almost-black";
-                subtitleClass = "text-duo-green font-bold";
-                badgeClass = "bg-duo-green/10 border border-duo-green/30 text-duo-green";
-                badgeContent = <span className="font-bold text-base">✓</span>;
-              }
+                    let testTitle = `${topicName} - Test ${testNum}`;
+                    if (formattedTopic === "quantitative_reasoning") {
+                      if (testNum === 1) testTitle = "Chapter 1: HCF and LCM";
+                      else if (testNum === 2) testTitle = "Chapter 2: Permutation and Combination";
+                      else if (testNum === 3) testTitle = "Chapter 3: Probability";
+                      else if (testNum === 4) testTitle = "Chapter 4: Ratio and Proportion";
+                      else if (testNum === 5) testTitle = "Chapter 5: Percentage";
+                      else if (testNum === 6) testTitle = "Chapter 6: Average";
+                      else if (testNum === 7) testTitle = "Chapter 7: Problems on Ages";
+                      else testTitle = `Chapter ${testNum}`;
+                    }
+                    const testId = `${formattedTopic}_test${testNum}`;
+                    const scoreData = scores[testId];
 
-              return (
-                <div key={index} className="relative w-full">
-                  {/* Mascot near active node */}
-                  {isActive && (
-                    <div className="absolute -top-12 -right-2 md:-right-6 w-[70px] h-[70px] animate-[bounce_2.5s_infinite] z-20">
-                      <Image src="/emoji/awow.webp" alt="Mascot" fill className="object-contain drop-shadow-lg" sizes="(max-width: 768px) 100vw, 50vw" />
-                    </div>
-                  )}
-                  
-                  <button
-                    onClick={() => !isLocked && handleTopicClick(testTitle, testId)}
-                    className={`relative z-10 w-full flex items-center justify-between p-5 md:p-6 rounded-2xl transition-all duration-200 text-left ${cardClass}`}
-                  >
-                    <div className="flex flex-col gap-1.5 font-din-round">
-                      <h3 className={`font-feather text-base md:text-xl font-bold tracking-wide ${titleClass}`}>
-                        {testTitle}
-                      </h3>
-                      <div className={`text-xs md:text-sm ${subtitleClass}`}>
-                        {scoreData ? (
-                          <div className="flex flex-col gap-1 mt-1">
-                            <span>Highest Score: {scoreData.score}/{scoreData.total}</span>
-                            {scoreData.attempts ? (
-                              <span className="text-[10px] md:text-xs opacity-80 normal-case tracking-normal">
-                                Prev Best: {scoreData.previousBest || 0} | Last: {scoreData.lastScore || 0} | Attempts: {scoreData.attempts}
-                              </span>
-                            ) : null}
+                    let cardClass = "";
+                    let titleClass = "";
+                    let subtitleClass = "";
+                    let badgeClass = "";
+                    let badgeContent = null;
+
+                    if (isActive) {
+                      cardClass = "bg-duo-green border-2 border-transparent shadow-[0_6px_0_#3f8f01] hover:-translate-y-1 hover:shadow-[0_8px_0_#3f8f01] hover:brightness-105 active:translate-y-1 active:shadow-[0_2px_0_#3f8f01] text-white cursor-pointer";
+                      titleClass = "text-white";
+                      subtitleClass = "text-white/80";
+                      badgeClass = "bg-white shadow-[0_4px_0_#e5e5e5]";
+                      badgeContent = <Image src="/emoji/star.webp" alt="Start" width={22} height={22} className="object-contain drop-shadow-md" unoptimized />;
+                    } else if (isLocked) {
+                      cardClass = "bg-snow-white border-2 border-cloud-gray shadow-[0_6px_0_var(--color-cloud-gray)] opacity-50 cursor-not-allowed text-silver";
+                      titleClass = "text-silver";
+                      subtitleClass = "text-silver/60";
+                      badgeClass = "bg-cloud-gray/20 border border-cloud-gray";
+                      badgeContent = <span className="text-sm">🔒</span>;
+                    } else {
+                      cardClass = "bg-snow-white border-2 border-cloud-gray shadow-[0_6px_0_var(--color-cloud-gray)] hover:-translate-y-0.5 hover:shadow-[0_8px_0_var(--color-cloud-gray)] active:translate-y-1 active:shadow-[0_2px_0_var(--color-cloud-gray)] text-almost-black hover:bg-cloud-gray/10 cursor-pointer";
+                      titleClass = "text-almost-black";
+                      subtitleClass = "text-duo-green font-bold";
+                      badgeClass = "bg-duo-green/10 border border-duo-green/30 text-duo-green";
+                      badgeContent = <span className="font-bold text-base">✓</span>;
+                    }
+
+                    return (
+                      <div key={index} className="relative w-full">
+                        {/* Mascot near active node */}
+                        {isActive && (
+                          <div className="absolute -top-12 -right-2 md:-right-6 w-[70px] h-[70px] animate-[bounce_2.5s_infinite] z-20">
+                            <Image src="/emoji/awow.webp" alt="Mascot" fill className="object-contain drop-shadow-lg" sizes="(max-width: 768px) 100vw, 50vw" />
                           </div>
-                        ) : (
-                          <span>{profile?.difficulty || "Medium"}</span>
                         )}
+
+                        <button
+                          onClick={() => !isLocked && handleTopicClick(testTitle, testId)}
+                          className={`relative z-10 w-full flex items-center justify-between p-5 md:p-6 rounded-2xl transition-all duration-200 text-left ${cardClass}`}
+                        >
+                          <div className="flex flex-col gap-1.5 font-din-round">
+                            <h3 className={`font-feather text-base md:text-xl font-bold tracking-wide ${titleClass}`}>
+                              {testTitle}
+                            </h3>
+                            <div className={`text-xs md:text-sm ${subtitleClass}`}>
+                              {scoreData ? (
+                                <div className="flex flex-col gap-1 mt-1">
+                                  <span>Highest Score: {scoreData.score}/{scoreData.total}</span>
+                                  {scoreData.attempts ? (
+                                    <span className="text-[10px] md:text-xs opacity-80 normal-case tracking-normal">
+                                      Prev Best: {scoreData.previousBest || 0} | Last: {scoreData.lastScore || 0} | Attempts: {scoreData.attempts}
+                                    </span>
+                                  ) : null}
+                                </div>
+                              ) : (
+                                <span>{profile?.difficulty || "Medium"}</span>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${badgeClass}`}>
+                            {badgeContent}
+                          </div>
+                        </button>
                       </div>
+                    );
+                  })
+                )}
+
+                {/* Chest reward node mock */}
+                <div className="relative w-full mt-2">
+                  <button className="relative z-10 w-full flex items-center justify-between p-5 md:p-6 rounded-2xl bg-snow-white text-silver border-2 border-cloud-gray shadow-[0_6px_0_var(--color-cloud-gray)] opacity-50 cursor-not-allowed">
+                    <div className="flex flex-col gap-1.5 font-din-round">
+                      <h3 className="font-feather text-lg md:text-xl font-bold tracking-wide text-silver">
+                        Bonus Reward
+                      </h3>
+                      <span className="text-sm font-bold uppercase tracking-wider text-silver opacity-60">
+                        Complete all to unlock
+                      </span>
                     </div>
-                    
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${badgeClass}`}>
-                      {badgeContent}
+                    <div className="flex-shrink-0 ml-4">
+                      <div className="w-10 h-10 bg-cloud-gray/20 border border-cloud-gray rounded-full flex items-center justify-center">
+                        <Image src="/emoji/quest.webp" alt="Reward Chest" width={24} height={24} className="grayscale opacity-50 w-auto h-auto" unoptimized />
+                      </div>
                     </div>
                   </button>
                 </div>
-              );
-            })
-            )}
-
-            {/* Chest reward node mock */}
-            <div className="relative w-full mt-2">
-              <button className="relative z-10 w-full flex items-center justify-between p-5 md:p-6 rounded-2xl bg-snow-white text-silver border-2 border-cloud-gray shadow-[0_6px_0_var(--color-cloud-gray)] opacity-50 cursor-not-allowed">
-                <div className="flex flex-col gap-1.5 font-din-round">
-                  <h3 className="font-feather text-lg md:text-xl font-bold tracking-wide text-silver">
-                    Bonus Reward
-                  </h3>
-                  <span className="text-sm font-bold uppercase tracking-wider text-silver opacity-60">
-                    Complete all to unlock
-                  </span>
-                </div>
-                <div className="flex-shrink-0 ml-4">
-                  <div className="w-10 h-10 bg-cloud-gray/20 border border-cloud-gray rounded-full flex items-center justify-center">
-                    <Image src="/emoji/quest.webp" alt="Reward Chest" width={24} height={24} className="grayscale opacity-50 w-auto h-auto" unoptimized />
-                  </div>
-                </div>
-              </button>
-            </div>
-            {/* Reset Progress Button */}
-            <div className="w-full mt-8 flex justify-center">
-              <button 
-                onClick={async () => {
-                  if (window.confirm("Are you sure you want to reset all your progress? This cannot be undone.")) {
-                    const keysToRemove = [];
-                    for (let i = 0; i < localStorage.length; i++) {
-                      const key = localStorage.key(i);
-                      if (key && (key.startsWith("quiz_score_") || key.startsWith("quiz_state_"))) {
-                        keysToRemove.push(key);
+                {/* Reset Progress Button */}
+                <div className="w-full mt-8 flex justify-center">
+                  <button
+                    onClick={async () => {
+                      if (window.confirm("Are you sure you want to reset all your progress? This cannot be undone.")) {
+                        const keysToRemove = [];
+                        for (let i = 0; i < localStorage.length; i++) {
+                          const key = localStorage.key(i);
+                          if (key && (key.startsWith("quiz_score_") || key.startsWith("quiz_state_"))) {
+                            keysToRemove.push(key);
+                          }
+                        }
+                        keysToRemove.forEach(key => localStorage.removeItem(key));
+                        setScores({});
+                        await refreshStats();
                       }
-                    }
-                    keysToRemove.forEach(key => localStorage.removeItem(key));
-                    setScores({});
-                    await refreshStats();
-                  }
-                }}
-                className="text-graphite/50 hover:text-[#ea2b2b] font-bold text-sm underline transition-colors"
-              >
-                Reset All Progress
-              </button>
-            </div>
-          </div>
-          </>
+                    }}
+                    className="text-graphite/50 hover:text-[#ea2b2b] font-bold text-sm underline transition-colors"
+                  >
+                    Reset All Progress
+                  </button>
+                </div>
+              </div>
+            </>
           )}
         </div>
       </main>
-      
+
       <aside className="hidden lg:block w-[368px] shrink-0">
         <RightSidebar />
       </aside>
@@ -1028,14 +1028,14 @@ export default function DashboardPage() {
       {selectedTestForTimer && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center z-50 p-4 animate-[fadeIn_0.2s_ease-out]">
           <div className="bg-snow-white border-2 border-cloud-gray border-b-8 rounded-[24px] w-full max-w-[460px] p-4 md:p-6 flex flex-col gap-4 shadow-none animate-[scaleIn_0.2s_ease-out] relative">
-            
+
             {/* Mascot & Speech Bubble */}
             <div className="flex gap-3 md:gap-4 items-center mb-1">
               <div className="w-[56px] h-[56px] md:w-[72px] md:h-[72px] relative shrink-0">
-                <Image 
-                  src="/emoji/suspicious.webp" 
-                  alt="Thinking Mascot" 
-                  fill 
+                <Image
+                  src="/emoji/suspicious.webp"
+                  alt="Thinking Mascot"
+                  fill
                   className="object-contain drop-shadow-md"
                   unoptimized
                 />
@@ -1045,7 +1045,7 @@ export default function DashboardPage() {
                   {selectedTestForTimer.testTitle}
                 </h3>
                 <p className="text-graphite text-[10px] md:text-xs font-din-round mt-0.5 leading-snug">
-                  {selectedTestForTimer.testId === "settings" 
+                  {selectedTestForTimer.testId === "settings"
                     ? "Set the default duration for your practice tests."
                     : "How long do you want to give yourself for this test session?"}
                 </p>
@@ -1058,11 +1058,10 @@ export default function DashboardPage() {
                 <div
                   key={mins}
                   onClick={() => setModalTimerDuration(mins)}
-                  className={`flex items-center justify-between py-2.5 px-4 rounded-xl border-2 cursor-pointer transition-all duration-150 select-none active:translate-y-[4px] active:shadow-none ${
-                    modalTimerDuration === mins
+                  className={`flex items-center justify-between py-2.5 px-4 rounded-xl border-2 cursor-pointer transition-all duration-150 select-none active:translate-y-[4px] active:shadow-none ${modalTimerDuration === mins
                       ? "border-sky-blue bg-sky-blue/15 shadow-[0_4px_0_#189edc] text-sky-blue"
                       : "border-cloud-gray bg-snow-white shadow-[0_4px_0_var(--color-cloud-gray)] hover:bg-cloud-gray/20 text-almost-black"
-                  }`}
+                    }`}
                 >
                   <div className="flex flex-col font-din-round">
                     <span className="font-bold text-xs md:text-sm tracking-wide">
@@ -1092,8 +1091,8 @@ export default function DashboardPage() {
                 disabled={savingTimer}
                 className="flex-1 bg-duo-green text-white font-bold py-2 md:py-3 rounded-xl shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none hover:brightness-105 transition-all text-xs md:text-sm text-center cursor-pointer font-din-round"
               >
-                {savingTimer 
-                  ? (selectedTestForTimer.testId === "settings" ? "SAVING..." : "STARTING...") 
+                {savingTimer
+                  ? (selectedTestForTimer.testId === "settings" ? "SAVING..." : "STARTING...")
                   : (selectedTestForTimer.testId === "settings" ? "SAVE SETTING" : "START TEST")}
               </button>
             </div>
@@ -1104,13 +1103,13 @@ export default function DashboardPage() {
       {showHeartsBlocker && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center z-50 p-4 animate-[fadeIn_0.2s_ease-out]">
           <div className="bg-snow-white border-2 border-cloud-gray border-b-8 rounded-[24px] w-full max-w-[440px] p-6 md:p-8 flex flex-col gap-6 md:gap-8 shadow-none animate-[scaleIn_0.2s_ease-out] relative">
-            
+
             {/* Mascot / Broken Heart */}
             <div className="flex flex-col items-center text-center gap-5">
               <div className="w-[100px] h-[100px] bg-red-50 rounded-full flex items-center justify-center text-5xl relative shrink-0 shadow-inner">
                 💔
               </div>
-              
+
               <div className="flex flex-col gap-3 font-din-round">
                 <h3 className="font-feather text-2xl md:text-[28px] text-charcoal font-bold leading-tight tracking-wide">
                   Need Hearts to Practice!
@@ -1132,9 +1131,8 @@ export default function DashboardPage() {
               <button
                 disabled={!profile || profile.gems < 50 || refillingHearts}
                 onClick={handleRefillHeartsDashboard}
-                className={`w-full bg-[#1cb0f6] text-white font-bold py-3 rounded-2xl shadow-[0_4px_0_#189edc] active:translate-y-[4px] active:shadow-none hover:brightness-105 transition-all text-sm uppercase tracking-wide cursor-pointer ${
-                  (!profile || profile.gems < 50 || refillingHearts) ? "opacity-50 cursor-not-allowed shadow-none active:translate-y-0" : ""
-                }`}
+                className={`w-full bg-[#1cb0f6] text-white font-bold py-3 rounded-2xl shadow-[0_4px_0_#189edc] active:translate-y-[4px] active:shadow-none hover:brightness-105 transition-all text-sm uppercase tracking-wide cursor-pointer ${(!profile || profile.gems < 50 || refillingHearts) ? "opacity-50 cursor-not-allowed shadow-none active:translate-y-0" : ""
+                  }`}
               >
                 {refillingHearts ? (
                   "Refilling..."
@@ -1146,7 +1144,7 @@ export default function DashboardPage() {
                   </span>
                 )}
               </button>
-              
+
               {profile && profile.gems < 50 && (
                 <span className="text-[11px] text-[#ff4b4b] font-bold text-center -mt-1 leading-normal">
                   Requires 50 Gems. Practice lessons later as hearts regenerate automatically!

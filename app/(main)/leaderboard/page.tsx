@@ -18,6 +18,11 @@ export default function LeaderboardPage() {
   const [profiles, setProfiles] = useState<LeaderboardUser[]>([]);
   const [currentUserProfile, setCurrentUserProfile] = useState<LeaderboardUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
     async function fetchLeaderboard() {
@@ -60,7 +65,7 @@ export default function LeaderboardPage() {
       {/* Center Column */}
       <main className="flex-1 w-full max-w-[600px] mx-auto pb-24 pt-6 md:pt-10 px-0 sm:px-4 font-din-round">
 
-        {loading ? (
+        {!isMounted || loading ? (
           /* Shimmering Loading State */
           <div className="w-full flex flex-col items-center gap-6">
             <div className="w-48 h-48 rounded-full bg-cloud-gray/20 animate-pulse shrink-0" />
