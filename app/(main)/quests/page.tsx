@@ -9,6 +9,13 @@ import { useAlert } from "@/components/ui/AlertContext";
 import { useStats } from "@/components/ui/StatsContext";
 import { getStreakImage } from "@/lib/streak";
 
+const playSound = (src: string) => {
+  if (typeof window !== "undefined") {
+    const audio = new Audio(src);
+    audio.play().catch((err) => console.error("Error playing audio:", err));
+  }
+};
+
 export default function QuestsPage() {
   const { showAlert } = useAlert();
   const { user } = useUser();
@@ -135,6 +142,7 @@ export default function QuestsPage() {
           .eq("profile_id", profileId);
 
         if (!error) {
+          playSound("/videos/claimed_reward.webm");
           localStorage.setItem(`quest_${questNum}_claimed`, "true");
           updateStatsLocally({ gems: gems + gemReward });
           await refreshStats();
@@ -172,6 +180,7 @@ export default function QuestsPage() {
           .eq("profile_id", profileId);
 
         if (!gameError) {
+          playSound("/videos/claimed_reward.webm");
           if (isGuest) {
             if (typeof window !== "undefined") {
               const currentClaimed = localStorage.getItem("guest_claimed_achievements");
@@ -635,8 +644,8 @@ export default function QuestsPage() {
 
             {/* Card 3: Longest Streak */}
             <div className="col-span-2 md:col-span-1 p-4 bg-snow-white rounded-2xl flex flex-col items-center text-center">
-              <div className="w-25 h-25 relative mb-3">
-                <Image src="/img/gen_imgs/achievements/rainbow.webp" alt="Longest Streak" fill className="object-contain" unoptimized />
+              <div className="w-25 h-25 relative">
+                <Image src={getStreakImage(streak)} alt="Longest Streak" fill className="object-contain" unoptimized />
               </div>
               <span className="text-xl md:text-2xl font-black text-orange-500">{streak}</span>
               <span className="text-[11px] md:text-[12px] font-extrabold text-charcoal dark:text-white mt-1.5 leading-tight">Longest Streak</span>

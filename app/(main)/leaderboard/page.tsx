@@ -12,12 +12,137 @@ interface LeaderboardUser {
   name: string | null;
   total_score: number;
   streak: number;
+  lessons_completed?: number;
+}
+
+interface LeagueInfo {
+  name: string;
+  image: string;
+}
+
+export function getLeagueInfo(xp: number, lessonsCompleted: number, rank: number): LeagueInfo {
+  if (xp >= 8000 && rank === 1) {
+    return {
+      name: "Legend League",
+      image: "/img/gen_imgs/league_/legend_league.webp",
+    };
+  }
+  if (xp >= 6000 && rank <= 3) {
+    return {
+      name: "Champion League",
+      image: "/img/gen_imgs/league_/champion league.webp",
+    };
+  }
+  if (xp >= 4000 && rank <= 3) {
+    return {
+      name: "Master League",
+      image: "/img/gen_imgs/league_/master_league.webp",
+    };
+  }
+  if (xp >= 2500 && rank <= 5) {
+    return {
+      name: "Diamond League",
+      image: "/img/gen_imgs/league_/diamond_league.webp",
+    };
+  }
+  if (xp >= 1500 && rank <= 7) {
+    return {
+      name: "Crystal League",
+      image: "/img/gen_imgs/league_/crystal_league.webp",
+    };
+  }
+  if (xp >= 800 && rank <= 10) {
+    return {
+      name: "Gold League",
+      image: "/img/gen_imgs/league_/gold_league.webp",
+    };
+  }
+  if (xp >= 300 || lessonsCompleted >= 5) {
+    return {
+      name: "Silver League",
+      image: "/img/gen_imgs/league_/silver_league.webp",
+    };
+  }
+  return {
+    name: "Bronze League",
+    image: "/img/gen_imgs/league_/bronze_league.webp",
+  };
+}
+
+interface LeagueStyle {
+  bgClass: string;
+  borderClass: string;
+  shadowColor: string;
+  textColor: string;
+}
+
+export function getLeagueStyle(leagueName: string): LeagueStyle {
+  switch (leagueName) {
+    case "Legend League":
+      return {
+        bgClass: "bg-gradient-to-r from-red-600 to-red-700",
+        borderClass: "border-red-800",
+        shadowColor: "#450a0a",
+        textColor: "text-red-100",
+      };
+    case "Champion League":
+      return {
+        bgClass: "bg-gradient-to-r from-pink-500 to-pink-600",
+        borderClass: "border-pink-700",
+        shadowColor: "#500724",
+        textColor: "text-pink-100",
+      };
+    case "Master League":
+      return {
+        bgClass: "bg-gradient-to-r from-purple-600 to-purple-700",
+        borderClass: "border-purple-800",
+        shadowColor: "#3b0764",
+        textColor: "text-purple-100",
+      };
+    case "Diamond League":
+      return {
+        bgClass: "bg-gradient-to-r from-blue-500 to-blue-600",
+        borderClass: "border-blue-700",
+        shadowColor: "#172554",
+        textColor: "text-blue-100",
+      };
+    case "Crystal League":
+      return {
+        bgClass: "bg-gradient-to-r from-cyan-400 to-cyan-500",
+        borderClass: "border-cyan-700",
+        shadowColor: "#083344",
+        textColor: "text-cyan-100",
+      };
+    case "Gold League":
+      return {
+        bgClass: "bg-gradient-to-r from-amber-400 to-amber-500",
+        borderClass: "border-amber-600",
+        shadowColor: "#78350f",
+        textColor: "text-amber-950",
+      };
+    case "Silver League":
+      return {
+        bgClass: "bg-gradient-to-r from-zinc-400 to-zinc-500",
+        borderClass: "border-zinc-600",
+        shadowColor: "#27272a",
+        textColor: "text-zinc-100",
+      };
+    case "Bronze League":
+    default:
+      return {
+        bgClass: "bg-gradient-to-r from-[#cc348d] to-[#cc348d]",
+        borderClass: "border-[#b3247a]",
+        shadowColor: "#8c1c5e",
+        textColor: "text-pink-100",
+      };
+  }
 }
 
 export default function LeaderboardPage() {
   const { user, isLoaded } = useUser();
   const [profiles, setProfiles] = useState<LeaderboardUser[]>([]);
   const [currentUserProfile, setCurrentUserProfile] = useState<LeaderboardUser | null>(null);
+  const [currentUserRank, setCurrentUserRank] = useState<number>(1);
   const [loading, setLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
 
@@ -31,22 +156,28 @@ export default function LeaderboardPage() {
       try {
         const [profilesRes, progressRes, gameStateRes] = await Promise.all([
           supabase.from("profiles").select("id, name"),
-          supabase.from("profile_progress").select("profile_id, total_score"),
+          supabase.from("profile_progress").select("profile_id, total_score, lessons_completed"),
           supabase.from("profile_game_state").select("profile_id, streak"),
         ]);
 
         if (profilesRes.error) {
           console.error("Error fetching profiles:", profilesRes.error);
         } else if (profilesRes.data) {
-          const progressMap = new Map(progressRes.data?.map(p => [p.profile_id, p.total_score]) || []);
+          const progressMap = new Map(
+            progressRes.data?.map(p => [p.profile_id, { total_score: p.total_score, lessons_completed: p.lessons_completed }]) || []
+          );
           const streakMap = new Map(gameStateRes.data?.map(s => [s.profile_id, s.streak]) || []);
 
-          const mapped = profilesRes.data.map((p: any) => ({
-            id: p.id,
-            name: p.name,
-            total_score: progressMap.get(p.id) || 0,
-            streak: streakMap.get(p.id) || 0,
-          })).sort((a, b) => b.total_score - a.total_score);
+          const mapped = profilesRes.data.map((p: any) => {
+            const prog = progressMap.get(p.id) || { total_score: 0, lessons_completed: 0 };
+            return {
+              id: p.id,
+              name: p.name,
+              total_score: prog.total_score,
+              lessons_completed: prog.lessons_completed,
+              streak: streakMap.get(p.id) || 0,
+            };
+          }).sort((a, b) => b.total_score - a.total_score);
 
           // Filter out guest accounts from public leaderboard rankings
           const registeredProfiles = mapped.filter((p) => !p.id.startsWith("guest_"));
@@ -57,6 +188,10 @@ export default function LeaderboardPage() {
             const current = mapped.find((p) => p.id === profileId);
             if (current) {
               setCurrentUserProfile(current);
+            }
+            const rankIdx = registeredProfiles.findIndex((p) => p.id === profileId);
+            if (rankIdx !== -1) {
+              setCurrentUserRank(rankIdx + 1);
             }
           }
         }
@@ -71,6 +206,12 @@ export default function LeaderboardPage() {
 
   // Determine if unlocked (must be logged in AND has at least 1 lesson completed -> total_score > 0)
   const isUnlocked = !!user && currentUserProfile ? currentUserProfile.total_score > 0 : false;
+
+  const leagueInfo = currentUserProfile 
+    ? getLeagueInfo(currentUserProfile.total_score, currentUserProfile.lessons_completed || 0, currentUserRank)
+    : { name: "Bronze League", image: "/img/gen_imgs/league_/bronze_league.webp" };
+
+  const leagueStyle = getLeagueStyle(leagueInfo.name);
 
   const [activeTab, setActiveTab] = useState<"league" | "global">("league");
 
@@ -160,16 +301,22 @@ export default function LeaderboardPage() {
           /* Active Redesigned Gamified Leaderboard State */
           <div className="w-full flex flex-col items-center">
 
-            {/* League Status Bar - Wood / Pink Palette */}
-            <div className="w-full max-w-[440px] bg-[#cc348d] border-2 border-[#b3247a] rounded-2xl px-4 py-3.5 flex items-center justify-between shadow-[0_4px_0_#8c1c5e] mt-4 mb-4 relative z-10">
-              <span className="font-feather font-black text-sm text-pink-100 tracking-widest uppercase">
-                Bronze
+            {/* League Status Bar - Dynamic Palette */}
+            <div 
+              className={`w-full max-w-[440px] ${leagueStyle.bgClass} border-2 ${leagueStyle.borderClass} rounded-2xl px-4 py-3.5 flex items-center justify-between mt-4 mb-4 relative z-10`}
+              style={{ boxShadow: `0 4px 0 ${leagueStyle.shadowColor}` }}
+            >
+              <span className={`font-feather font-black text-sm ${leagueStyle.textColor} tracking-widest uppercase`}>
+                {leagueInfo.name}
               </span>
-              <div className="absolute left-1/2 -translate-x-1/2 -top-5 w-12 h-12 bg-[#ffc700] border-2 border-white rounded-2xl flex items-center justify-center shadow-lg transform hover:scale-105 transition-transform duration-300 p-2">
+              <div className="absolute left-1/2 -translate-x-1/2 -top-6 w-26 h-26 flex items-center justify-center transform hover:scale-105 transition-transform duration-300">
                 <div className="w-full h-full relative shrink-0">
-                  <Image src="/img/gen_imgs/trophy.webp" alt="Trophy Logo" fill className="object-contain" unoptimized />
+                  <Image src={leagueInfo.image} alt={leagueInfo.name} fill className="object-contain drop-shadow-md" unoptimized />
                 </div>
               </div>
+              <span className={`font-feather font-black text-xs ${leagueStyle.textColor} tracking-wider uppercase`}>
+                Rank #{currentUserRank}
+              </span>
             </div>
 
             {/* Podium Columns Container */}

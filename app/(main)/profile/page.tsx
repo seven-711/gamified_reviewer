@@ -18,6 +18,70 @@ interface UserProfile {
   total_score: number;
   streak: number;
   timer_duration?: number;
+  lessons_completed?: number;
+}
+
+interface LeagueInfo {
+  name: string;
+  image: string;
+}
+
+export function getLeagueInfo(xp: number, lessonsCompleted: number, rank: number): LeagueInfo {
+  if (xp >= 8000 && rank === 1) {
+    return {
+      name: "Legend League",
+      image: "/img/gen_imgs/league_/legend_league.webp",
+    };
+  }
+  if (xp >= 6000 && rank <= 3) {
+    return {
+      name: "Champion League",
+      image: "/img/gen_imgs/league_/champion league.webp",
+    };
+  }
+  if (xp >= 4000 && rank <= 3) {
+    return {
+      name: "Master League",
+      image: "/img/gen_imgs/league_/master_league.webp",
+    };
+  }
+  if (xp >= 2500 && rank <= 5) {
+    return {
+      name: "Diamond League",
+      image: "/img/gen_imgs/league_/diamond_league.webp",
+    };
+  }
+  if (xp >= 1500 && rank <= 7) {
+    return {
+      name: "Crystal League",
+      image: "/img/gen_imgs/league_/crystal_league.webp",
+    };
+  }
+  if (xp >= 800 && rank <= 10) {
+    return {
+      name: "Gold League",
+      image: "/img/gen_imgs/league_/gold_league.webp",
+    };
+  }
+  if (xp >= 300 || lessonsCompleted >= 5) {
+    return {
+      name: "Silver League",
+      image: "/img/gen_imgs/league_/silver_league.webp",
+    };
+  }
+  return {
+    name: "Bronze League",
+    image: "/img/gen_imgs/league_/bronze_league.webp",
+  };
+}
+
+export function getPerformanceBadge(percentile: number): string {
+  if (percentile <= 1) return "/img/gen_imgs/performance_percentile_badge/legend.webp";
+  if (percentile <= 10) return "/img/gen_imgs/performance_percentile_badge/master.webp";
+  if (percentile <= 25) return "/img/gen_imgs/performance_percentile_badge/elite.webp";
+  if (percentile <= 50) return "/img/gen_imgs/performance_percentile_badge/skilled.webp";
+  if (percentile <= 75) return "/img/gen_imgs/performance_percentile_badge/rising_.webp";
+  return "/img/gen_imgs/performance_percentile_badge/participant.webp";
 }
 
 export default function ProfilePage() {
@@ -26,6 +90,8 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [timerDuration, setTimerDuration] = useState<number>(5);
   const [savingTimer, setSavingTimer] = useState(false);
+  const [rank, setRank] = useState<number>(1);
+  const [totalUsers, setTotalUsers] = useState<number>(1);
   const { user, isLoaded, isSignedIn } = useUser();
 
   useEffect(() => {
@@ -58,6 +124,24 @@ export default function ProfilePage() {
             setTimerDuration(parseInt(saved, 10));
           }
         }
+
+        // Fetch rank and total users count
+        try {
+          const [{ count: rankCount }, { count: totalCount }] = await Promise.all([
+            supabase
+              .from("profile_progress")
+              .select("*", { count: "exact", head: true })
+              .gt("total_score", userProfile.total_score || 0),
+            supabase
+              .from("profile_progress")
+              .select("*", { count: "exact", head: true })
+          ]);
+          setRank((rankCount || 0) + 1);
+          setTotalUsers(totalCount || 1);
+        } catch (e) {
+          console.error("Failed to fetch rank or total users count", e);
+        }
+
         setLoading(false);
       } catch (err) {
         console.error("Profile load failed", err);
@@ -196,36 +280,54 @@ export default function ProfilePage() {
             Overview
           </h2>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4">
             {/* Streak */}
-            <div className="flex items-center gap-3 bg-gradient-to-br from-orange-500/5 to-transparent border border-orange-500/10 rounded-2xl p-3 hover:-translate-y-0.5 transition-transform">
-              <Image src={getStreakImage(profile?.streak || 0)} alt="Streak" width={28} height={28} className="object-contain" style={{ height: 'auto' }} />
+            <div className="flex flex-col items-center justify-center p-5 hover:-translate-y-0.5 transition-transform text-center gap-2">
+              <Image src={getStreakImage(profile?.streak || 0)} alt="Streak" width={100} height={100} className="object-contain" style={{ height: 'auto' }} priority />
               <span className="font-extrabold text-[16px] text-white">
                 {profile?.streak || 0} days
               </span>
             </div>
 
             {/* XP */}
-            <div className="flex items-center gap-3 bg-gradient-to-br from-yellow-500/5 to-transparent border border-yellow-500/10 rounded-2xl p-3 hover:-translate-y-0.5 transition-transform">
-              <Image src="/img/gen_imgs/exp.webp" alt="XP" width={28} height={28} className="object-contain" style={{ height: 'auto' }} />
+            <div className="flex flex-col items-center justify-center p-5 hover:-translate-y-0.5 transition-transform text-center gap-2">
+              <Image src="/img/gen_imgs/exp.webp" alt="XP" width={90} height={90} className="object-contain" style={{ height: 'auto' }} />
               <span className="font-extrabold text-[16px] text-white">
                 {profile?.total_score || 0} XP
               </span>
             </div>
 
             {/* League */}
-            <div className="flex items-center gap-3 bg-gradient-to-br from-amber-500/5 to-transparent border border-amber-500/10 rounded-2xl p-3 hover:-translate-y-0.5 transition-transform">
-              <span className="text-xl w-[28px] h-[28px] flex items-center justify-center select-none">🛡️</span>
+            <div className="flex flex-col items-center justify-center p-5 hover:-translate-y-0.5 transition-transform text-center gap-2">
+              <span className="text-2xl w-[90px] h-[90px] flex items-center justify-center select-none">
+                <Image 
+                  src={getLeagueInfo(profile?.total_score || 0, profile?.lessons_completed || 0, rank).image} 
+                  alt="League" 
+                  width={90} 
+                  height={90} 
+                  className="object-contain" 
+                  style={{ height: 'auto' }}
+                />
+              </span>
               <span className="font-extrabold text-[16px] text-white">
-                Bronze League
+                {getLeagueInfo(profile?.total_score || 0, profile?.lessons_completed || 0, rank).name}
               </span>
             </div>
 
             {/* Rank */}
-            <div className="flex items-center gap-3 bg-gradient-to-br from-sky-blue/5 to-transparent border border-sky-blue/10 rounded-2xl p-3 hover:-translate-y-0.5 transition-transform">
-              <span className="text-xl w-[28px] h-[28px] flex items-center justify-center select-none">🎯</span>
+            <div className="flex flex-col items-center justify-center p-5 hover:-translate-y-0.5 transition-transform text-center gap-2">
+              <span className="text-4xl w-[80px] h-[80px] flex items-center justify-center select-none">
+                <Image 
+                  src={getPerformanceBadge(Math.max(1, Math.min(100, Math.round((rank / totalUsers) * 100))))} 
+                  alt="Rank Badge" 
+                  width={70} 
+                  height={70} 
+                  className="object-contain" 
+                  style={{ height: 'auto' }}
+                />
+              </span>
               <span className="font-extrabold text-[16px] text-white">
-                Top 20%
+                {rank <= 3 ? `Rank #${rank}` : `Top ${Math.max(1, Math.min(100, Math.round((rank / totalUsers) * 100)))}%`}
               </span>
             </div>
           </div>
@@ -289,7 +391,7 @@ export default function ProfilePage() {
               <Image src="/img/gen_imgs/diamond.webp" alt="Badge" width={36} height={36} className="object-contain" />
             </div>
             <div className="w-14 h-14 rounded-full overflow-hidden bg-gradient-to-tr from-duo-green/20 to-emerald-500/20 border border-duo-green/30 flex items-center justify-center p-2 relative shadow-md hover:scale-105 transition-transform duration-300">
-              <Image src={getStreakImage(profile?.streak || 0)} alt="Badge" width={36} height={36} className="object-contain" style={{ height: 'auto' }} />
+              <Image src={getStreakImage(profile?.streak || 0)} alt="Badge" width={36} height={36} className="object-contain" />
             </div>
             <div className="w-14 h-14 rounded-full bg-cloud-gray/10 border border-cloud-gray/30 flex items-center justify-center text-silver text-xl select-none grayscale opacity-30">
               🔒
@@ -341,7 +443,7 @@ export default function ProfilePage() {
                 NEW
               </span>
               <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-500/10 to-transparent border-2 border-orange-500/30 flex items-center justify-center p-2 relative group-hover:scale-105 transition-all">
-                <Image src={getStreakImage(profile?.streak || 0)} alt="Streak" width={36} height={36} className="object-contain" style={{ height: 'auto' }} />
+                <Image src={getStreakImage(profile?.streak || 0)} alt="Streak" width={36} height={36} className="object-contain" />
               </div>
               <span className="text-[9px] font-extrabold text-orange-500 bg-orange-500/15 px-2 py-0.5 rounded-full select-none">
                 {profile?.streak || 0} days
