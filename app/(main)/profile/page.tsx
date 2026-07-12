@@ -282,23 +282,29 @@ export default function ProfilePage() {
 
           <div className="grid grid-cols-2 gap-4">
             {/* Streak */}
-            <div className="flex flex-col items-center justify-center p-5 hover:-translate-y-0.5 transition-transform text-center gap-2">
+            <div className="flex flex-col items-center justify-center p-5 hover:-translate-y-0.5 transition-transform text-center gap-1.5">
               <Image src={getStreakImage(profile?.streak || 0)} alt="Streak" width={100} height={100} className="object-contain" />
-              <span className="font-extrabold text-[16px] text-white">
-                {profile?.streak || 0} days
+              <span className="font-black text-2xl text-orange-400 dark:text-orange-500">
+                {profile?.streak || 0} Days
+              </span>
+              <span className="text-[11px] font-extrabold text-silver uppercase tracking-wider">
+                Daily Streak
               </span>
             </div>
 
             {/* XP */}
-            <div className="flex flex-col items-center justify-center p-5 hover:-translate-y-0.5 transition-transform text-center gap-2">
+            <div className="flex flex-col items-center justify-center p-5 hover:-translate-y-0.5 transition-transform text-center gap-1.5">
               <Image src="/img/gen_imgs/exp.webp" alt="XP" width={90} height={90} className="object-contain" />
-              <span className="font-extrabold text-[16px] text-white">
+              <span className="font-black text-2xl text-yellow-400">
                 {profile?.total_score || 0} XP
+              </span>
+              <span className="text-[11px] font-extrabold text-silver uppercase tracking-wider">
+                Total Score
               </span>
             </div>
 
             {/* League */}
-            <div className="flex flex-col items-center justify-center p-5 hover:-translate-y-0.5 transition-transform text-center gap-2">
+            <div className="flex flex-col items-center justify-center p-5 hover:-translate-y-0.5 transition-transform text-center gap-1.5">
               <span className="text-2xl w-[90px] h-[90px] flex items-center justify-center select-none">
                 <Image 
                   src={getLeagueInfo(profile?.total_score || 0, profile?.lessons_completed || 0, rank).image} 
@@ -308,13 +314,16 @@ export default function ProfilePage() {
                   className="object-contain" 
                 />
               </span>
-              <span className="font-extrabold text-[16px] text-white">
+              <span className="font-black text-2xl text-white tracking-wide">
                 {getLeagueInfo(profile?.total_score || 0, profile?.lessons_completed || 0, rank).name}
+              </span>
+              <span className="text-[11px] font-extrabold text-silver uppercase tracking-wider">
+                Active League
               </span>
             </div>
 
             {/* Rank */}
-            <div className="flex flex-col items-center justify-center p-5 hover:-translate-y-0.5 transition-transform text-center gap-2">
+            <div className="flex flex-col items-center justify-center p-5 hover:-translate-y-0.5 transition-transform text-center gap-1.5">
               <span className="text-4xl w-[80px] h-[80px] flex items-center justify-center select-none">
                 <Image 
                   src={getPerformanceBadge(Math.max(1, Math.min(100, Math.round((rank / totalUsers) * 100))))} 
@@ -324,8 +333,11 @@ export default function ProfilePage() {
                   className="object-contain" 
                 />
               </span>
-              <span className="font-extrabold text-[16px] text-white">
+              <span className="font-black text-2xl text-sky-400">
                 {rank <= 3 ? `Rank #${rank}` : `Top ${Math.max(1, Math.min(100, Math.round((rank / totalUsers) * 100)))}%`}
+              </span>
+              <span className="text-[11px] font-extrabold text-silver uppercase tracking-wider">
+                Global Standing
               </span>
             </div>
           </div>

@@ -74,58 +74,66 @@ interface LeagueStyle {
   borderClass: string;
   shadowColor: string;
   textColor: string;
+  glowColor: string;
 }
 
 export function getLeagueStyle(leagueName: string): LeagueStyle {
   switch (leagueName) {
     case "Legend League":
       return {
-        bgClass: "bg-gradient-to-r from-red-600 to-red-700",
+        bgClass: "bg-gradient-to-r from-red-600 to-rose-700",
         borderClass: "border-red-800",
         shadowColor: "#450a0a",
         textColor: "text-red-100",
+        glowColor: "rgba(239, 68, 68, 0.4)",
       };
     case "Champion League":
       return {
-        bgClass: "bg-gradient-to-r from-pink-500 to-pink-600",
+        bgClass: "bg-gradient-to-r from-pink-500 to-rose-600",
         borderClass: "border-pink-700",
         shadowColor: "#500724",
         textColor: "text-pink-100",
+        glowColor: "rgba(236, 72, 153, 0.4)",
       };
     case "Master League":
       return {
-        bgClass: "bg-gradient-to-r from-purple-600 to-purple-700",
+        bgClass: "bg-gradient-to-r from-purple-600 to-indigo-700",
         borderClass: "border-purple-800",
         shadowColor: "#3b0764",
         textColor: "text-purple-100",
+        glowColor: "rgba(168, 85, 247, 0.4)",
       };
     case "Diamond League":
       return {
-        bgClass: "bg-gradient-to-r from-blue-500 to-blue-600",
+        bgClass: "bg-gradient-to-r from-blue-500 to-sky-600",
         borderClass: "border-blue-700",
         shadowColor: "#172554",
         textColor: "text-blue-100",
+        glowColor: "rgba(59, 130, 246, 0.4)",
       };
     case "Crystal League":
       return {
-        bgClass: "bg-gradient-to-r from-cyan-400 to-cyan-500",
+        bgClass: "bg-gradient-to-r from-cyan-400 to-teal-500",
         borderClass: "border-cyan-700",
         shadowColor: "#083344",
-        textColor: "text-cyan-100",
+        textColor: "text-cyan-950 dark:text-cyan-100 font-extrabold",
+        glowColor: "rgba(34, 211, 238, 0.4)",
       };
     case "Gold League":
       return {
-        bgClass: "bg-gradient-to-r from-amber-400 to-amber-500",
+        bgClass: "bg-gradient-to-r from-amber-400 to-yellow-500",
         borderClass: "border-amber-600",
         shadowColor: "#78350f",
         textColor: "text-amber-950",
+        glowColor: "rgba(245, 158, 11, 0.4)",
       };
     case "Silver League":
       return {
-        bgClass: "bg-gradient-to-r from-zinc-400 to-zinc-500",
+        bgClass: "bg-gradient-to-r from-zinc-400 to-slate-500",
         borderClass: "border-zinc-600",
         shadowColor: "#27272a",
         textColor: "text-zinc-100",
+        glowColor: "rgba(156, 163, 175, 0.4)",
       };
     case "Bronze League":
     default:
@@ -134,6 +142,7 @@ export function getLeagueStyle(leagueName: string): LeagueStyle {
         borderClass: "border-[#b3247a]",
         shadowColor: "#8c1c5e",
         textColor: "text-pink-100",
+        glowColor: "rgba(204, 52, 141, 0.4)",
       };
   }
 }
@@ -206,6 +215,8 @@ export default function LeaderboardPage() {
 
   // Determine if unlocked (must be logged in AND has at least 1 lesson completed -> total_score > 0)
   const isUnlocked = !!user && currentUserProfile ? currentUserProfile.total_score > 0 : false;
+
+  const currentUserId = user ? user.id : (typeof window !== "undefined" ? localStorage.getItem("guest_session_id") : null);
 
   const leagueInfo = currentUserProfile 
     ? getLeagueInfo(currentUserProfile.total_score, currentUserProfile.lessons_completed || 0, currentUserRank)
@@ -303,18 +314,41 @@ export default function LeaderboardPage() {
 
             {/* League Status Bar - Dynamic Palette */}
             <div 
-              className={`w-full max-w-[440px] ${leagueStyle.bgClass} border-2 ${leagueStyle.borderClass} rounded-2xl px-4 py-3.5 flex items-center justify-between mt-4 mb-4 relative z-10`}
+              className={`w-full max-w-[440px] ${leagueStyle.bgClass} border-2 ${leagueStyle.borderClass} rounded-2xl px-5 py-4 flex items-center justify-between mt-4 mb-4 relative z-10 overflow-hidden`}
               style={{ boxShadow: `0 4px 0 ${leagueStyle.shadowColor}` }}
             >
-              <span className={`font-feather font-black text-sm ${leagueStyle.textColor} tracking-widest uppercase`}>
+              {/* Glossy Overlay Reflection */}
+              <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/10 to-white/0 pointer-events-none" />
+
+              <span 
+                className={`font-feather font-black text-base ${leagueStyle.textColor} tracking-widest uppercase select-none`}
+                style={{ textShadow: "0 2px 4px rgba(0,0,0,0.3)" }}
+              >
                 {leagueInfo.name}
               </span>
-              <div className="absolute left-1/2 -translate-x-1/2 -top-6 w-26 h-26 flex items-center justify-center transform hover:scale-105 transition-transform duration-300">
-                <div className="w-full h-full relative shrink-0">
-                  <Image src={leagueInfo.image} alt={leagueInfo.name} fill className="object-contain drop-shadow-md" unoptimized />
+
+              {/* Badge Container with Radial Glow and micro-animation */}
+              <div className="absolute left-1/2 -translate-x-1/2 -top-6 w-26 h-26 flex items-center justify-center transform hover:scale-110 active:scale-95 transition-all duration-300 cursor-pointer">
+                {/* Radial Glow */}
+                <div 
+                  className="absolute w-20 h-20 rounded-full blur-xl pointer-events-none"
+                  style={{ background: `radial-gradient(circle, ${leagueStyle.glowColor} 0%, transparent 70%)` }}
+                />
+                <div className="w-full h-full relative shrink-0 drop-shadow-[0_4px_6px_rgba(0,0,0,0.25)]">
+                  <Image 
+                    src={leagueInfo.image} 
+                    alt={leagueInfo.name} 
+                    fill 
+                    className="object-contain" 
+                    unoptimized 
+                  />
                 </div>
               </div>
-              <span className={`font-feather font-black text-xs ${leagueStyle.textColor} tracking-wider uppercase`}>
+
+              <span 
+                className={`font-feather font-black text-sm ${leagueStyle.textColor} tracking-wider uppercase select-none`}
+                style={{ textShadow: "0 2px 4px rgba(0,0,0,0.3)" }}
+              >
                 Rank #{currentUserRank}
               </span>
             </div>
@@ -327,11 +361,11 @@ export default function LeaderboardPage() {
                 {profiles[2] ? (
                   <>
                     <span className="font-din-round font-bold text-[10px] text-charcoal dark:text-silver truncate max-w-full mb-1">
-                      {profiles[2].name || (profiles[2].id.startsWith("guest_") ? `Guest_${profiles[2].id.substring(6, 11)}` : `Reviewer_${profiles[2].id.substring(5, 10)}`)}
+                      {profiles[2].id === currentUserId ? "You" : (profiles[2].name || (profiles[2].id.startsWith("guest_") ? `Guest_${profiles[2].id.substring(6, 11)}` : `Reviewer_${profiles[2].id.substring(5, 10)}`))}
                     </span>
                     <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-[#b3247a] bg-purple-900/40 p-0.5 mb-1.5 relative shadow-md shrink-0">
                       <img
-                        src={profiles[2].id === (user ? user.id : (typeof window !== "undefined" ? localStorage.getItem("guest_session_id") : null)) && user?.imageUrl ? user.imageUrl : "/emoji/profile.webp"}
+                        src={profiles[2].id === currentUserId && user?.imageUrl ? user.imageUrl : "/emoji/profile.webp"}
                         alt="Rank 3"
                         className="object-cover w-full h-full rounded-full"
                       />
@@ -356,11 +390,11 @@ export default function LeaderboardPage() {
                 {profiles[0] ? (
                   <>
                     <span className="font-din-round font-bold text-[11px] text-[#ffc700] truncate max-w-full mb-1 flex items-center gap-0.5">
-                      👑 {profiles[0].name || (profiles[0].id.startsWith("guest_") ? `Guest_${profiles[0].id.substring(6, 11)}` : `Reviewer_${profiles[0].id.substring(5, 10)}`)}
+                      👑 {profiles[0].id === currentUserId ? "You" : (profiles[0].name || (profiles[0].id.startsWith("guest_") ? `Guest_${profiles[0].id.substring(6, 11)}` : `Reviewer_${profiles[0].id.substring(5, 10)}`))}
                     </span>
                     <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-[#ffc700] bg-purple-900/40 p-0.5 mb-1.5 relative shadow-xl shrink-0">
                       <img
-                        src={profiles[0].id === (user ? user.id : (typeof window !== "undefined" ? localStorage.getItem("guest_session_id") : null)) && user?.imageUrl ? user.imageUrl : "/emoji/profile.webp"}
+                        src={profiles[0].id === currentUserId && user?.imageUrl ? user.imageUrl : "/emoji/profile.webp"}
                         alt="Rank 1"
                         className="object-cover w-full h-full rounded-full"
                       />
@@ -385,11 +419,11 @@ export default function LeaderboardPage() {
                 {profiles[1] ? (
                   <>
                     <span className="font-din-round font-bold text-[10px] text-charcoal dark:text-silver truncate max-w-full mb-1">
-                      {profiles[1].name || (profiles[1].id.startsWith("guest_") ? `Guest_${profiles[1].id.substring(6, 11)}` : `Reviewer_${profiles[1].id.substring(5, 10)}`)}
+                      {profiles[1].id === currentUserId ? "You" : (profiles[1].name || (profiles[1].id.startsWith("guest_") ? `Guest_${profiles[1].id.substring(6, 11)}` : `Reviewer_${profiles[1].id.substring(5, 10)}`))}
                     </span>
                     <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-[#1085ba] bg-purple-900/40 p-0.5 mb-1.5 relative shadow-md shrink-0">
                       <img
-                        src={profiles[1].id === (user ? user.id : (typeof window !== "undefined" ? localStorage.getItem("guest_session_id") : null)) && user?.imageUrl ? user.imageUrl : "/emoji/profile.webp"}
+                        src={profiles[1].id === currentUserId && user?.imageUrl ? user.imageUrl : "/emoji/profile.webp"}
                         alt="Rank 2"
                         className="object-cover w-full h-full rounded-full"
                       />
@@ -415,12 +449,13 @@ export default function LeaderboardPage() {
             <div className="w-full max-w-[440px] flex flex-col gap-3 z-10">
               {profiles.slice(3).map((profile, index) => {
                 const rank = index + 4;
-                const activeProfileId = user ? user.id : (typeof window !== "undefined" ? localStorage.getItem("guest_session_id") : null);
-                const isSelf = activeProfileId === profile.id;
+                const isSelf = currentUserId === profile.id;
 
                 // Get display username from name or fallback to profile ID substring
                 let displayName = "Anonymous User";
-                if (profile.name) {
+                if (isSelf) {
+                  displayName = "You";
+                } else if (profile.name) {
                   displayName = profile.name;
                 } else if (profile.id.startsWith("guest_")) {
                   displayName = `Guest_${profile.id.substring(6, 11)}`;
@@ -446,7 +481,7 @@ export default function LeaderboardPage() {
                     <div className="flex items-center gap-5 sm:gap-8 overflow-hidden">
                       {rankBadge}
                       <span className="font-din-round font-bold text-xs sm:text-sm md:text-base truncate max-w-[90px] min-[380px]:max-w-[120px] sm:max-w-[160px] md:max-w-[220px] tracking-[0.053em]">
-                        {displayName} {isSelf && <span className="text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded-full uppercase ml-1 bg-[#58cc02] text-white tracking-normal">You</span>}
+                        {displayName}
                       </span>
                     </div>
 
