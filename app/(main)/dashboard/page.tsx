@@ -615,7 +615,7 @@ export default function DashboardPage() {
             <div className="w-full bg-duo-green rounded-2xl p-3 md:p-5 flex items-center justify-between shadow-[0_4px_0_#3f8f01]">
               <div className="flex flex-col text-white min-w-0 pr-2">
                 <div className="flex items-center gap-2 mb-0.5">
-                  <span onClick={() => router.push("/onboarding")} className="text-lg font-bold cursor-pointer hover:opacity-80 transition-opacity">←</span>
+                  <span onClick={() => router.push("/onboarding?edit=true")} className="text-lg font-bold cursor-pointer hover:opacity-80 transition-opacity">←</span>
                   <span className="font-bold text-[10px] md:text-sm tracking-widest uppercase">
                     Section 1, Unit 1
                   </span>

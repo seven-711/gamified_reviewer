@@ -146,7 +146,8 @@ export default function OnboardingPage() {
         .eq("profile_id", user.id)
         .single();
 
-      if (settings && settings.exam_category) {
+      const isEditing = typeof window !== "undefined" && window.location.search.includes("edit=true");
+      if (settings && settings.exam_category && !isEditing) {
         router.replace("/dashboard");
         return;
       }
@@ -188,22 +189,42 @@ export default function OnboardingPage() {
 
     if (isSignedIn && userId) {
       try {
-        await upsertFullProfile({
-          id: userId,
-          name: user?.fullName || user?.username || null,
-          exam_category: category,
-          sub_topic: subTopic,
-          timer_duration: timerDuration,
-          study_style: "Flashcards",
-          difficulty: "Beginner",
-          total_score: 0,
-          current_level: 1,
-          lessons_completed: 0,
-          streak: 0,
-          streak_freeze_count: 1,
-          hearts: 5,
-          gems: 50,
-        });
+        const { data: existingProgress } = await supabase
+          .from("profile_progress")
+          .select("total_score")
+          .eq("profile_id", userId)
+          .maybeSingle();
+
+        if (existingProgress) {
+          const { error: settingsError } = await supabase
+            .from("profile_study_settings")
+            .upsert({
+              profile_id: userId,
+              exam_category: category,
+              sub_topic: subTopic,
+              study_style: "Flashcards",
+              difficulty: "Beginner",
+              timer_duration: timerDuration,
+            });
+          if (settingsError) throw settingsError;
+        } else {
+          await upsertFullProfile({
+            id: userId,
+            name: user?.fullName || user?.username || null,
+            exam_category: category,
+            sub_topic: subTopic,
+            timer_duration: timerDuration,
+            study_style: "Flashcards",
+            difficulty: "Beginner",
+            total_score: 0,
+            current_level: 1,
+            lessons_completed: 0,
+            streak: 0,
+            streak_freeze_count: 1,
+            hearts: 5,
+            gems: 50,
+          });
+        }
 
         localStorage.setItem("timer_duration", timerDuration.toString());
         router.push("/dashboard");
@@ -215,24 +236,44 @@ export default function OnboardingPage() {
     } else {
       try {
         const guestSessionId = getOrCreateGuestSessionId();
-        await upsertFullProfile({
-          id: guestSessionId,
-          name: "Guest",
-          exam_category: category,
-          sub_topic: subTopic,
-          timer_duration: timerDuration,
-          study_style: "Flashcards",
-          difficulty: "Beginner",
-          total_score: 0,
-          current_level: 1,
-          lessons_completed: 0,
-          streak: 0,
-          streak_freeze_count: 1,
-          hearts: 5,
-          gems: 50,
-        });
+        const { data: existingProgress } = await supabase
+          .from("profile_progress")
+          .select("total_score")
+          .eq("profile_id", guestSessionId)
+          .maybeSingle();
+
+        if (existingProgress) {
+          const { error: settingsError } = await supabase
+            .from("profile_study_settings")
+            .upsert({
+              profile_id: guestSessionId,
+              exam_category: category,
+              sub_topic: subTopic,
+              study_style: "Flashcards",
+              difficulty: "Beginner",
+              timer_duration: timerDuration,
+            });
+          if (settingsError) throw settingsError;
+        } else {
+          await upsertFullProfile({
+            id: guestSessionId,
+            name: "Guest",
+            exam_category: category,
+            sub_topic: subTopic,
+            timer_duration: timerDuration,
+            study_style: "Flashcards",
+            difficulty: "Beginner",
+            total_score: 0,
+            current_level: 1,
+            lessons_completed: 0,
+            streak: 0,
+            streak_freeze_count: 1,
+            hearts: 5,
+            gems: 50,
+          });
+        }
       } catch (dbErr) {
-        console.error("Failed to create guest profile in database:", dbErr);
+        console.error("Failed to update/create guest profile in database:", dbErr);
       }
 
       localStorage.setItem("timer_duration", timerDuration.toString());

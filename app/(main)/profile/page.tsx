@@ -200,7 +200,7 @@ export default function ProfilePage() {
               <span className="text-lg">📤</span>
             </button>
             <button
-              onClick={() => router.push("/onboarding")}
+              onClick={() => router.push("/onboarding?edit=true")}
               className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white transition-colors cursor-pointer select-none"
               title="Settings"
             >
