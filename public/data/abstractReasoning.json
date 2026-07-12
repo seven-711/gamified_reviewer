@@ -502,7 +502,7 @@
     {
       "id": 11,
       "type": "image",
-      "prompt": "Which figure completes the series?",
+      "prompt": "Which figure is the odd one out?",
       "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test2/q11.webp",
       "options": [
         "A",
@@ -517,7 +517,7 @@
     {
       "id": 12,
       "type": "image",
-      "prompt": "Which figure completes the series?",
+      "prompt": "Which figure is the odd one out?",
       "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test2/q12.webp",
       "options": [
         "A",
@@ -532,7 +532,7 @@
     {
       "id": 13,
       "type": "image",
-      "prompt": "Which figure completes the series?",
+      "prompt": "Which figure is the odd one out?",
       "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test2/q13.webp",
       "options": [
         "A",
@@ -547,7 +547,7 @@
     {
       "id": 14,
       "type": "image",
-      "prompt": "Which figure completes the series?",
+      "prompt": "Which figure is the odd one out?",
       "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test2/q14.webp",
       "options": [
         "A",
@@ -562,7 +562,7 @@
     {
       "id": 15,
       "type": "image",
-      "prompt": "Which figure completes the series?",
+      "prompt": "Which figure is the odd one out?",
       "image": "/img/afp_reviewer_imgs/abstract_reasoning/abstract_reasoning_test2/q15.webp",
       "options": [
         "A",
