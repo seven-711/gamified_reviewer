@@ -283,7 +283,7 @@ export default function ProfilePage() {
           <div className="grid grid-cols-2 gap-4">
             {/* Streak */}
             <div className="flex flex-col items-center justify-center p-5 hover:-translate-y-0.5 transition-transform text-center gap-2">
-              <Image src={getStreakImage(profile?.streak || 0)} alt="Streak" width={100} height={100} className="object-contain" style={{ height: 'auto' }} priority />
+              <Image src={getStreakImage(profile?.streak || 0)} alt="Streak" width={100} height={100} className="object-contain" />
               <span className="font-extrabold text-[16px] text-white">
                 {profile?.streak || 0} days
               </span>
@@ -291,7 +291,7 @@ export default function ProfilePage() {
 
             {/* XP */}
             <div className="flex flex-col items-center justify-center p-5 hover:-translate-y-0.5 transition-transform text-center gap-2">
-              <Image src="/img/gen_imgs/exp.webp" alt="XP" width={90} height={90} className="object-contain" style={{ height: 'auto' }} />
+              <Image src="/img/gen_imgs/exp.webp" alt="XP" width={90} height={90} className="object-contain" />
               <span className="font-extrabold text-[16px] text-white">
                 {profile?.total_score || 0} XP
               </span>
@@ -306,7 +306,6 @@ export default function ProfilePage() {
                   width={90} 
                   height={90} 
                   className="object-contain" 
-                  style={{ height: 'auto' }}
                 />
               </span>
               <span className="font-extrabold text-[16px] text-white">
@@ -323,7 +322,6 @@ export default function ProfilePage() {
                   width={70} 
                   height={70} 
                   className="object-contain" 
-                  style={{ height: 'auto' }}
                 />
               </span>
               <span className="font-extrabold text-[16px] text-white">
