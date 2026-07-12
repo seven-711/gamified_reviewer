@@ -8,7 +8,7 @@ import { QuizFooter } from "@/components/ui/QuizFooter";
 import Image from "next/image";
 import { parseMathText } from "@/lib/mathUtils";
 import { useUser } from "@clerk/nextjs";
-import { getOrCreateGuestSessionId, updateProfileStats, refillHeartsInDb } from "@/lib/session";
+import { getOrCreateGuestSessionId, updateProfileStats, refillHeartsInDb, upsertFullProfile } from "@/lib/session";
 import { supabase } from "@/lib/supabase";
 import { useAlert } from "@/components/ui/AlertContext";
 import { useStats } from "@/components/ui/StatsContext";
@@ -178,24 +178,33 @@ function LessonContent() {
         const profileId = isSignedIn && user ? user.id : getOrCreateGuestSessionId();
         if (profileId) {
           try {
-            const { data: dbProfile } = await supabase
-              .from("profiles")
-              .select("hearts, total_score, gems")
-              .eq("id", profileId)
-              .single();
-            if (dbProfile) {
-              const currentHearts = dbProfile.hearts !== undefined && dbProfile.hearts !== null ? dbProfile.hearts : 5;
-              setHearts(currentHearts);
-              setProfileXp(dbProfile.total_score || 0);
-              setProfileGems(dbProfile.gems !== undefined && dbProfile.gems !== null ? dbProfile.gems : 50);
-              setIsHeartsInitialized(true);
-              if (currentHearts === 0) {
-                setShowOutOfHeartsModal(true);
-              }
-            } else {
+          const [gameStateRes, progressRes] = await Promise.all([
+            supabase
+              .from("profile_game_state")
+              .select("hearts, gems")
+              .eq("profile_id", profileId)
+              .single(),
+            supabase
+              .from("profile_progress")
+              .select("total_score")
+              .eq("profile_id", profileId)
+              .single(),
+          ]);
+          const dbGameState = gameStateRes.data;
+          const dbProgress = progressRes.data;
+          if (dbGameState) {
+            const currentHearts = dbGameState.hearts !== undefined && dbGameState.hearts !== null ? dbGameState.hearts : 5;
+            setHearts(currentHearts);
+            setProfileGems(dbGameState.gems !== undefined && dbGameState.gems !== null ? dbGameState.gems : 50);
+            setProfileXp(dbProgress?.total_score || 0);
+            setIsHeartsInitialized(true);
+            if (currentHearts === 0) {
+              setShowOutOfHeartsModal(true);
+            }
+          } else {
               if (!isSignedIn) {
                 // Create guest profile if it does not exist in Supabase
-                await supabase.from("profiles").upsert({
+                await upsertFullProfile({
                   id: profileId,
                   name: "Guest",
                   exam_category: "General Review",
@@ -205,7 +214,7 @@ function LessonContent() {
                   lessons_completed: 0,
                   streak: 0,
                   hearts: 5,
-                  gems: 50
+                  gems: 50,
                 });
               }
               setHearts(5);
@@ -241,12 +250,12 @@ function LessonContent() {
       try {
         const lastHeartLostAt = hearts < 5 ? new Date().toISOString() : null;
         await supabase
-          .from("profiles")
+          .from("profile_game_state")
           .update({
             hearts,
             last_heart_lost_at: lastHeartLostAt
           })
-          .eq("id", profileId);
+          .eq("profile_id", profileId);
 
         updateStatsLocally({ hearts });
       } catch (err) {
@@ -622,10 +631,15 @@ function LessonContent() {
   }
 
   if (!isLoaded || loadingData) return (
-    <div className="min-h-screen flex items-center justify-center font-din-round bg-white">
-      <div className="flex flex-col items-center gap-4">
-        <div className="h-12 w-12 animate-spin rounded-full border-4 border-cloud-gray border-t-duo-green"></div>
-        <p className="text-graphite font-bold">Loading test...</p>
+    <div className="min-h-screen flex items-center justify-center bg-snow-white dark:bg-[#131f24] font-din-round transition-colors duration-300">
+      <div className="flex flex-col items-center gap-4 text-center px-6 animate-[fadeIn_0.5s_ease-out]">
+        <div className="relative flex items-center justify-center">
+          <div className="absolute h-8 w-8 rounded-full bg-duo-green/20 animate-ping"></div>
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-cloud-gray dark:border-cloud-gray/10 border-t-duo-green"></div>
+        </div>
+        <p className="text-[15px] font-bold text-charcoal dark:text-white tracking-wide mt-2">
+          Loading test...
+        </p>
       </div>
     </div>
   );
@@ -637,14 +651,19 @@ function LessonContent() {
         localStorage.removeItem(`quiz_state_${testId}`);
       }
       return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-white font-din-round text-almost-black px-6 text-center">
-          <div className="flex flex-col items-center gap-4">
-            <div className="h-12 w-12 animate-spin rounded-full border-4 border-cloud-gray border-t-duo-green"></div>
-            <p className="text-graphite font-bold">Recovering test session...</p>
+        <div className="min-h-screen flex flex-col items-center justify-center bg-snow-white dark:bg-[#131f24] font-din-round text-almost-black dark:text-white px-6 text-center transition-colors duration-300">
+          <div className="flex flex-col items-center gap-4 animate-[fadeIn_0.5s_ease-out]">
+            <div className="relative flex items-center justify-center">
+              <div className="absolute h-8 w-8 rounded-full bg-duo-green/20 animate-ping"></div>
+              <div className="h-12 w-12 animate-spin rounded-full border-4 border-cloud-gray dark:border-cloud-gray/10 border-t-duo-green"></div>
+            </div>
+            <p className="text-[15px] font-bold text-charcoal dark:text-white tracking-wide mt-2">
+              Recovering test session...
+            </p>
           </div>
           <button
             onClick={() => window.location.reload()}
-            className="mt-6 bg-duo-green text-white font-bold px-6 py-3 rounded-2xl shadow-[0_4px_0_#3f8f01] active:translate-y-1 active:shadow-none transition-all cursor-pointer"
+            className="mt-6 bg-duo-green hover:bg-duo-green/95 text-white font-extrabold px-6 py-3.5 rounded-2xl shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none transition-all cursor-pointer uppercase tracking-widest text-sm"
           >
             RELOAD SESSION
           </button>
@@ -797,10 +816,6 @@ function LessonContent() {
 
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-white font-din-round text-almost-black px-6 text-center">
-        <div className="w-48 h-48 md:w-56 md:h-56 relative mb-4">
-          <Image src={emojiSrc} alt="Score reaction" fill className="object-contain drop-shadow-lg" />
-        </div>
-
         <h1 className={`font-feather text-4xl mb-4 ${isTimeUp ? "text-[#ea2b2b]" : "text-duo-green"}`}>
           {isTimeUp ? "Time's Up!" : "Lesson Complete!"}
         </h1>
@@ -829,7 +844,14 @@ function LessonContent() {
               </div>
               <div className="flex justify-between items-center border-t border-dashed border-cloud-gray/50 pt-2 mt-1 text-sm">
                 <span className="text-almost-black">Total XP Earned:</span>
-                <span className="text-amber-500 font-black text-base md:text-lg">🏆 +{xpBreakdown.total} XP</span>
+                <span className="text-amber-500 font-black text-base md:text-lg">
+                  <Image
+                    src="/img/gen_imgs/exp.webp"
+                    alt="exp icon"
+                    width={35}
+                    height={35}
+                    className="inline mr-1"
+                  />{xpBreakdown.total} XP</span>
               </div>
             </div>
           )}
@@ -861,8 +883,8 @@ function LessonContent() {
               <div className="flex justify-between items-center border-t border-dashed border-cloud-gray/50 pt-2 mt-1 text-sm">
                 <span className="text-almost-black">Total Gems Earned:</span>
                 <span className="text-blue-500 font-black text-base md:text-lg flex items-center gap-1">
-                  <Image src="/img/gen_imgs/diamond.webp" alt="Gems" width={18} height={18} className="object-contain" />
-                  <span>+{gemsEarnedSummary.total} Gems</span>
+                  <Image src="/img/gen_imgs/diamond.webp" alt="Gems" width={35} height={35} className="object-contain" />
+                  <span>{gemsEarnedSummary.total} Gems</span>
                 </span>
               </div>
             </div>
@@ -919,7 +941,6 @@ function LessonContent() {
                 width={20}
                 height={20}
                 className="object-contain"
-                style={{ height: 'auto' }}
               />
               <span className="text-[17px]">{hearts}</span>
             </div>
@@ -1206,7 +1227,19 @@ function LessonContent() {
 
 export default function LessonPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center font-din-round bg-white text-graphite">Loading...</div>}>
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-snow-white dark:bg-[#131f24] font-din-round transition-colors duration-300">
+        <div className="flex flex-col items-center gap-4 text-center px-6 animate-[fadeIn_0.5s_ease-out]">
+          <div className="relative flex items-center justify-center">
+            <div className="absolute h-8 w-8 rounded-full bg-duo-green/20 animate-ping"></div>
+            <div className="h-12 w-12 animate-spin rounded-full border-4 border-cloud-gray dark:border-cloud-gray/10 border-t-duo-green"></div>
+          </div>
+          <p className="text-[15px] font-bold text-charcoal dark:text-white tracking-wide mt-2">
+            Loading...
+          </p>
+        </div>
+      </div>
+    }>
       <LessonContent />
     </Suspense>
   );

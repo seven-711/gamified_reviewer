@@ -31,19 +31,29 @@ export default function LeaderboardPage() {
       try {
         const { data, error } = await supabase
           .from("profiles")
-          .select("id, name, total_score, streak")
-          .order("total_score", { ascending: false });
+          .select(`
+            id, name,
+            profile_progress(total_score),
+            profile_game_state(streak)
+          `);
 
         if (error) {
           console.error("Error fetching profiles:", error);
         } else if (data) {
+          const mapped = data.map((p: any) => ({
+            id: p.id,
+            name: p.name,
+            total_score: p.profile_progress?.total_score || 0,
+            streak: p.profile_game_state?.streak || 0,
+          })).sort((a, b) => b.total_score - a.total_score);
+
           // Filter out guest accounts from public leaderboard rankings
-          const registeredProfiles = data.filter((p) => !p.id.startsWith("guest_"));
+          const registeredProfiles = mapped.filter((p) => !p.id.startsWith("guest_"));
           setProfiles(registeredProfiles);
 
           const profileId = user ? user.id : (typeof window !== "undefined" ? localStorage.getItem("guest_session_id") : null);
           if (profileId) {
-            const current = data.find((p) => p.id === profileId);
+            const current = mapped.find((p) => p.id === profileId);
             if (current) {
               setCurrentUserProfile(current);
             }

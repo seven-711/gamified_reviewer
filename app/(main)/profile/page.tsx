@@ -6,6 +6,7 @@ import Image from "next/image";
 import { supabase } from "@/lib/supabase";
 import { useUser, UserButton, SignOutButton } from "@clerk/nextjs";
 import { getStreakImage } from "@/lib/streak";
+import { fetchFullProfile } from "@/lib/session";
 
 interface UserProfile {
   id: string;
@@ -40,18 +41,14 @@ export default function ProfilePage() {
       }
 
       try {
-        const { data: userProfile, error } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", user.id)
-          .single();
+        const userProfile = await fetchFullProfile(user.id);
 
-        if (error || !userProfile) {
+        if (!userProfile) {
           router.replace("/onboarding");
           return;
         }
 
-        setProfile(userProfile);
+        setProfile(userProfile as UserProfile);
         if (userProfile.timer_duration) {
           setTimerDuration(userProfile.timer_duration);
           localStorage.setItem("timer_duration", userProfile.timer_duration.toString());
@@ -79,9 +76,9 @@ export default function ProfilePage() {
       setSavingTimer(true);
       try {
         await supabase
-          .from("profiles")
+          .from("profile_study_settings")
           .update({ timer_duration: value })
-          .eq("id", user.id);
+          .eq("profile_id", user.id);
       } catch (err) {
         console.error("Failed to update profile timer duration in DB", err);
       } finally {

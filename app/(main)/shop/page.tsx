@@ -68,12 +68,12 @@ export default function ShopPage() {
         const nextGems = Math.max(0, gems - 200);
         const nextFreeze = streakFreezeCount + 1;
         const { error } = await supabase
-          .from("profiles")
+          .from("profile_game_state")
           .update({
             gems: nextGems,
             streak_freeze_count: nextFreeze
           })
-          .eq("id", profileId);
+          .eq("profile_id", profileId);
 
         if (!error) {
           updateStatsLocally({ gems: nextGems, streakFreezeCount: nextFreeze });

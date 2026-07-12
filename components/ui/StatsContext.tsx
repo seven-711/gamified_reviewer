@@ -10,6 +10,7 @@ interface StatsContextProps {
   gems: number;
   hearts: number;
   streakFreezeCount: number;
+  lessonsCompleted: number;
   isLoaded: boolean;
   refreshStats: () => Promise<void>;
   updateStatsLocally: (updates: Partial<{
@@ -18,6 +19,7 @@ interface StatsContextProps {
     gems: number;
     hearts: number;
     streakFreezeCount: number;
+    lessonsCompleted: number;
   }>) => void;
 }
 
@@ -38,6 +40,7 @@ export const StatsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [gems, setGems] = useState(50);
   const [hearts, setHearts] = useState(5);
   const [streakFreezeCount, setStreakFreezeCount] = useState(0);
+  const [lessonsCompleted, setLessonsCompleted] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
 
   const fetchStats = useCallback(async () => {
@@ -56,27 +59,37 @@ export const StatsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setGems(50);
       setHearts(5);
       setStreakFreezeCount(0);
+      setLessonsCompleted(0);
       setIsLoaded(true);
       return;
     }
 
     try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("streak, total_score, hearts, last_heart_lost_at, gems, streak_freeze_count")
-        .eq("id", profileId)
-        .single();
+      const [gameStateRes, progressRes] = await Promise.all([
+        supabase
+          .from("profile_game_state")
+          .select("streak, hearts, last_heart_lost_at, gems, streak_freeze_count")
+          .eq("profile_id", profileId)
+          .single(),
+        supabase
+          .from("profile_progress")
+          .select("total_score, lessons_completed")
+          .eq("profile_id", profileId)
+          .single(),
+      ]);
 
-      if (!error && data) {
-        setStreak(data.streak || 0);
-        setXp(data.total_score || 0);
-        setGems(data.gems !== undefined && data.gems !== null ? data.gems : 50);
-        setStreakFreezeCount(data.streak_freeze_count || 0);
+      const gameState = gameStateRes.data;
+      const progress = progressRes.data;
 
-        let h = data.hearts !== undefined && data.hearts !== null ? data.hearts : 5;
-        if (h < 5 && data.last_heart_lost_at) {
+      if (gameState) {
+        setStreak(gameState.streak || 0);
+        setGems(gameState.gems !== undefined && gameState.gems !== null ? gameState.gems : 50);
+        setStreakFreezeCount(gameState.streak_freeze_count || 0);
+
+        let h = gameState.hearts !== undefined && gameState.hearts !== null ? gameState.hearts : 5;
+        if (h < 5 && gameState.last_heart_lost_at) {
           const now = new Date().getTime();
-          const lastLost = new Date(data.last_heart_lost_at).getTime();
+          const lastLost = new Date(gameState.last_heart_lost_at).getTime();
           const hoursPassed = (now - lastLost) / (1000 * 60 * 60);
           const regenerated = Math.floor(hoursPassed / 4);
           if (regenerated > 0) {
@@ -84,6 +97,11 @@ export const StatsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           }
         }
         setHearts(h);
+      }
+
+      if (progress) {
+        setXp(progress.total_score || 0);
+        setLessonsCompleted(progress.lessons_completed || 0);
       }
     } catch (err) {
       console.error("Error loading stats in StatsProvider:", err);
@@ -102,12 +120,14 @@ export const StatsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     gems: number;
     hearts: number;
     streakFreezeCount: number;
+    lessonsCompleted: number;
   }>) => {
     if (updates.streak !== undefined) setStreak(updates.streak);
     if (updates.xp !== undefined) setXp(updates.xp);
     if (updates.gems !== undefined) setGems(updates.gems);
     if (updates.hearts !== undefined) setHearts(updates.hearts);
     if (updates.streakFreezeCount !== undefined) setStreakFreezeCount(updates.streakFreezeCount);
+    if (updates.lessonsCompleted !== undefined) setLessonsCompleted(updates.lessonsCompleted);
   }, []);
 
   return (
@@ -118,6 +138,7 @@ export const StatsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         gems,
         hearts,
         streakFreezeCount,
+        lessonsCompleted,
         isLoaded,
         refreshStats: fetchStats,
         updateStatsLocally,

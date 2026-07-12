@@ -149,7 +149,7 @@ export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       {children}
       {alertState && (
         <div className="dark-mode fixed inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center z-[100] p-4 animate-fade-in">
-          <div className="bg-snow-white dark:bg-[#202f36] border-2 border-cloud-gray dark:border-cloud-gray/15 border-b-8 rounded-[24px] w-full max-w-[420px] p-6 md:p-8 flex flex-col gap-6 md:gap-8 shadow-none animate-scale-in relative text-center font-din-round">
+          <div className="bg-snow-white dark:bg-[#131f24] border-2 border-cloud-gray dark:border-cloud-gray/15 border-b-8 rounded-[24px] w-full max-w-[420px] p-6 md:p-8 flex flex-col gap-6 md:gap-8 shadow-none animate-scale-in relative text-center font-din-round">
             
             {/* Mascot and Emoji Header */}
             <div className="flex flex-col items-center gap-5">
@@ -163,7 +163,7 @@ export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                   unoptimized
                 />
                 {alertState.emoji && (
-                  <span className="absolute -bottom-2 -right-2 text-3xl bg-snow-white dark:bg-[#1a2529] p-2 rounded-full border-2 border-cloud-gray dark:border-cloud-gray/15 shadow-sm flex items-center justify-center min-w-[48px] min-h-[48px]">
+                  <span className="absolute -bottom-2 -right-2 text-3xl bg-snow-white dark:bg-[#131f24] p-2 rounded-full border-2 border-cloud-gray dark:border-cloud-gray/15 shadow-sm flex items-center justify-center min-w-[48px] min-h-[48px]">
                     {alertState.emoji === "❤️" ? (
                       <Image
                         src="/img/gen_imgs/user_life.webp"

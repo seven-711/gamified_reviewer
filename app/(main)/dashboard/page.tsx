@@ -6,7 +6,7 @@ import Image from "next/image";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@clerk/nextjs";
 import RightSidebar from "@/components/ui/RightSidebar";
-import { getOrCreateGuestSessionId, refillHeartsInDb } from "@/lib/session";
+import { getOrCreateGuestSessionId, refillHeartsInDb, upsertFullProfile, fetchFullProfile } from "@/lib/session";
 import { useAlert } from "@/components/ui/AlertContext";
 import { useStats } from "@/components/ui/StatsContext";
 // Data metadata fetched via API
@@ -29,6 +29,9 @@ async function checkDailyStreakValidation(
   showAlert: (msg: string) => Promise<void>
 ): Promise<{ streak: number; last_lesson_date: string | null }> {
   const profileId = dbProfile.id;
+  if (profileId.startsWith("guest_")) {
+    return { streak: 0, last_lesson_date: null };
+  }
   const currentStreak = dbProfile.streak || 0;
   const lastLessonDateStr = dbProfile.last_lesson_date || null;
 
@@ -38,7 +41,7 @@ async function checkDailyStreakValidation(
     if (localFreeze === null) {
       const dbFreeze = dbProfile.streak_freeze_count !== undefined && dbProfile.streak_freeze_count !== null ? dbProfile.streak_freeze_count : 1;
       localStorage.setItem("streak_freeze_count", dbFreeze.toString());
-      await supabase.from("profiles").update({ streak_freeze_count: dbFreeze }).eq("id", profileId);
+      await supabase.from("profile_game_state").update({ streak_freeze_count: dbFreeze }).eq("profile_id", profileId);
     }
   }
 
@@ -53,11 +56,11 @@ async function checkDailyStreakValidation(
   }
 
   const todayStr = new Date().toLocaleDateString("en-CA");
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const lastDate = new Date(lastLessonDateStr + "T00:00:00");
-  const diffTime = today.getTime() - lastDate.getTime();
+  const [y1, m1, d1] = todayStr.split("-").map(Number);
+  const [y2, m2, d2] = lastLessonDateStr.split("-").map(Number);
+  const todayDate = new Date(y1, m1 - 1, d1);
+  const lastDate = new Date(y2, m2 - 1, d2);
+  const diffTime = todayDate.getTime() - lastDate.getTime();
   const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
 
   if (typeof window !== "undefined") {
@@ -82,7 +85,7 @@ async function checkDailyStreakValidation(
       localStorage.setItem("streak_freeze_count", newFreezes.toString());
     }
 
-    const yesterday = new Date(today);
+    const yesterday = new Date(todayDate);
     yesterday.setDate(yesterday.getDate() - 1);
     const yesterdayStr = yesterday.toLocaleDateString("en-CA");
 
@@ -91,23 +94,21 @@ async function checkDailyStreakValidation(
     }
 
     await supabase
-      .from("profiles")
-      .update({
-        streak_freeze_count: newFreezes,
-        last_lesson_date: yesterdayStr
-      })
-      .eq("id", profileId);
+      .from("profile_game_state")
+      .update({ streak_freeze_count: newFreezes })
+      .eq("profile_id", profileId);
+    await supabase
+      .from("profile_progress")
+      .update({ last_lesson_date: yesterdayStr })
+      .eq("profile_id", profileId);
 
     await showAlert("❄️ Streak Freeze used! Your daily streak was saved from resetting.");
     return { streak: currentStreak, last_lesson_date: yesterdayStr };
   } else {
     await supabase
-      .from("profiles")
-      .update({
-        streak: 0,
-        streak_freeze_count: 0
-      })
-      .eq("id", profileId);
+      .from("profile_game_state")
+      .update({ streak: 0, streak_freeze_count: 0 })
+      .eq("profile_id", profileId);
 
     await showAlert("😢 Oh no! You missed a day and your streak reset to 0.");
     return { streak: 0, last_lesson_date: lastLessonDateStr };
@@ -124,17 +125,17 @@ async function checkDailyLoginReward(
   const lastLoginRewardDate = localStorage.getItem("last_login_reward_date");
   if (lastLoginRewardDate !== todayStr) {
     const newGems = currentGems + 10;
-    try {
-      await supabase
-        .from("profiles")
-        .update({ gems: newGems })
-        .eq("id", profileId);
-      localStorage.setItem("last_login_reward_date", todayStr);
-      await showAlert("🌅 Daily Login Reward! You received 💎 10 Gems.");
-      return newGems;
-    } catch (e) {
-      console.error("Failed to update daily login gems reward", e);
-    }
+  try {
+    await supabase
+      .from("profile_game_state")
+      .update({ gems: newGems })
+      .eq("profile_id", profileId);
+    localStorage.setItem("last_login_reward_date", todayStr);
+    await showAlert("🌅 Daily Login Reward! You received 💎 10 Gems.");
+    return newGems;
+  } catch (e) {
+    console.error("Failed to update daily login gems reward", e);
+  }
   }
   return currentGems;
 }
@@ -161,12 +162,12 @@ async function checkHeartsRegeneration(dbProfile: any): Promise<{ hearts: number
       }
 
       await supabase
-        .from("profiles")
+        .from("profile_game_state")
         .update({
           hearts: newHearts,
           last_heart_lost_at: newLastHeartLostAt
         })
-        .eq("id", profileId);
+        .eq("profile_id", profileId);
 
       return { hearts: newHearts, last_heart_lost_at: newLastHeartLostAt };
     }
@@ -260,11 +261,7 @@ export default function DashboardPage() {
         if (!isSignedIn || !user) {
           const guestSessionId = getOrCreateGuestSessionId();
           // Query the guest profile from Supabase profiles
-          const { data: guestDbProfile } = await supabase
-            .from("profiles")
-            .select("*")
-            .eq("id", guestSessionId)
-            .single();
+          const guestDbProfile = await fetchFullProfile(guestSessionId);
 
           if (guestDbProfile) {
             const streakInfo = await checkDailyStreakValidation(guestDbProfile, showAlert);
@@ -316,52 +313,63 @@ export default function DashboardPage() {
           const guestSessionId = localStorage.getItem("guest_session_id");
           if (guestSessionId) {
             try {
-              // 1. Fetch guest profile stats from Supabase
               const { data: guestProfile } = await supabase
                 .from("profiles")
-                .select("*")
+                .select("id, name, profile_study_settings(exam_category, sub_topic, study_style, difficulty, timer_duration), profile_progress(total_score, lessons_completed, last_lesson_date), profile_game_state(streak, streak_freeze_count, hearts, last_heart_lost_at, gems)")
                 .eq("id", guestSessionId)
                 .single();
+              const guestFlat = guestProfile ? {
+                ...guestProfile,
+                ...(guestProfile as any).profile_study_settings,
+                ...(guestProfile as any).profile_progress,
+                ...(guestProfile as any).profile_game_state,
+              } : null;
 
               // 2. Fetch registered user profile if it already exists
-              const { data: userProfile } = await supabase
+              const { data: userProfileRaw } = await supabase
                 .from("profiles")
-                .select("*")
+                .select("id, name, profile_study_settings(exam_category, sub_topic, study_style, difficulty, timer_duration), profile_progress(total_score, lessons_completed, last_lesson_date), profile_game_state(streak, streak_freeze_count, hearts, last_heart_lost_at, gems)")
                 .eq("id", user.id)
                 .single();
+              const userProfile = userProfileRaw ? {
+                ...userProfileRaw,
+                ...(userProfileRaw as any).profile_study_settings,
+                ...(userProfileRaw as any).profile_progress,
+                ...(userProfileRaw as any).profile_game_state,
+              } : null;
 
-              const mergedXp = (userProfile?.total_score || 0) + (guestProfile?.total_score || 0);
-              const mergedLessons = (userProfile?.lessons_completed || 0) + (guestProfile?.lessons_completed || 0);
-              const mergedStreak = Math.max(userProfile?.streak || 0, guestProfile?.streak || 0);
-              const mergedGems = (userProfile?.gems || 50) + (guestProfile?.gems || 0);
+              const mergedXp = (userProfile?.total_score || 0) + (guestFlat?.total_score || 0);
+              const mergedLessons = (userProfile?.lessons_completed || 0) + (guestFlat?.lessons_completed || 0);
+              const mergedStreak = Math.max(userProfile?.streak || 0, guestFlat?.streak || 0);
+              const mergedGems = (userProfile?.gems || 50) + (guestFlat?.gems || 0);
 
-              const category = userProfile?.exam_category || guestProfile?.exam_category || (pendingPrefs ? JSON.parse(pendingPrefs).category : null);
-              const subTopic = userProfile?.sub_topic || guestProfile?.sub_topic || (pendingPrefs ? JSON.parse(pendingPrefs).subTopic : null);
-              const timerDuration = userProfile?.timer_duration || guestProfile?.timer_duration || (pendingPrefs ? JSON.parse(pendingPrefs).timerDuration : 5);
+              const category = userProfile?.exam_category || guestFlat?.exam_category || (pendingPrefs ? JSON.parse(pendingPrefs).category : null);
+              const subTopic = userProfile?.sub_topic || guestFlat?.sub_topic || (pendingPrefs ? JSON.parse(pendingPrefs).subTopic : null);
+              const timerDuration = userProfile?.timer_duration || guestFlat?.timer_duration || (pendingPrefs ? JSON.parse(pendingPrefs).timerDuration : 5);
 
               // Merge last_lesson_date (use the newer one)
-              let mergedLastLessonDate = userProfile?.last_lesson_date || guestProfile?.last_lesson_date || null;
-              if (userProfile?.last_lesson_date && guestProfile?.last_lesson_date) {
+              let mergedLastLessonDate = userProfile?.last_lesson_date || guestFlat?.last_lesson_date || null;
+              if (userProfile?.last_lesson_date && guestFlat?.last_lesson_date) {
                 const userDate = new Date(userProfile.last_lesson_date);
-                const guestDate = new Date(guestProfile.last_lesson_date);
-                mergedLastLessonDate = userDate.getTime() > guestDate.getTime() ? userProfile.last_lesson_date : guestProfile.last_lesson_date;
+                const guestDate = new Date(guestFlat.last_lesson_date);
+                mergedLastLessonDate = userDate.getTime() > guestDate.getTime() ? userProfile.last_lesson_date : guestFlat.last_lesson_date;
               }
 
               // Merge streak freezes (max or sum up to 2)
               const mergedFreezes = Math.min(
-                Math.max(userProfile?.streak_freeze_count ?? 1, guestProfile?.streak_freeze_count ?? 1),
+                Math.max(userProfile?.streak_freeze_count ?? 1, guestFlat?.streak_freeze_count ?? 1),
                 2
               );
 
-              const guestHearts = guestProfile?.hearts !== undefined && guestProfile?.hearts !== null ? guestProfile.hearts : null;
-              const guestLastHeartLostAt = guestProfile?.last_heart_lost_at || null;
+              const guestHearts = guestFlat?.hearts !== undefined && guestFlat?.hearts !== null ? guestFlat.hearts : null;
+              const guestLastHeartLostAt = guestFlat?.last_heart_lost_at || null;
 
-              // Merge hearts (prioritize guest hearts since they represent the active quiz state, falling back to registered user's)
+              // Merge hearts (prioritize guest hearts since they represent the active quiz state)
               const mergedHearts = guestHearts !== null ? guestHearts : (userProfile?.hearts ?? 5);
               const mergedLastHeartLostAt = guestHearts !== null ? guestLastHeartLostAt : (userProfile?.last_heart_lost_at || null);
 
               if (category) {
-                await supabase.from("profiles").upsert({
+                await upsertFullProfile({
                   id: user.id,
                   name: user.fullName || user.username || null,
                   exam_category: category,
@@ -376,10 +384,8 @@ export default function DashboardPage() {
                   streak_freeze_count: mergedFreezes,
                   gems: mergedGems,
                   hearts: mergedHearts,
-                  last_heart_lost_at: mergedLastHeartLostAt
+                  last_heart_lost_at: mergedLastHeartLostAt,
                 });
-
-                // Update local storage freeze count
                 localStorage.setItem("streak_freeze_count", mergedFreezes.toString());
               }
 
@@ -396,7 +402,7 @@ export default function DashboardPage() {
             // Check for pending onboarding preferences from pre-signup flow (fallback if guestSessionId was missing)
             try {
               const prefs = JSON.parse(pendingPrefs);
-              await supabase.from("profiles").upsert({
+              await upsertFullProfile({
                 id: user.id,
                 name: user.fullName || user.username || null,
                 exam_category: prefs.category,
@@ -411,13 +417,9 @@ export default function DashboardPage() {
             }
           }
 
-          const { data: userProfile, error } = await supabase
-            .from("profiles")
-            .select("*")
-            .eq("id", user.id)
-            .single();
+          const userProfile = await fetchFullProfile(user.id);
 
-          if (error || !userProfile || !userProfile.exam_category) {
+          if (!userProfile || !userProfile.exam_category) {
             router.replace("/onboarding");
             return;
           }
@@ -543,9 +545,9 @@ export default function DashboardPage() {
     if (isSignedIn && user) {
       try {
         await supabase
-          .from("profiles")
+          .from("profile_study_settings")
           .update({ timer_duration: modalTimerDuration })
-          .eq("id", user.id);
+          .eq("profile_id", user.id);
       } catch (e) {
         console.error("Failed to update profile timer_duration in DB", e);
       }
