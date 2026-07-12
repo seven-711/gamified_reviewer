@@ -29,9 +29,7 @@ async function checkDailyStreakValidation(
   showAlert: (msg: string) => Promise<void>
 ): Promise<{ streak: number; last_lesson_date: string | null }> {
   const profileId = dbProfile.id;
-  if (profileId.startsWith("guest_")) {
-    return { streak: 0, last_lesson_date: null };
-  }
+  const isGuest = profileId.startsWith("guest_");
   const currentStreak = dbProfile.streak || 0;
   const lastLessonDateStr = dbProfile.last_lesson_date || null;
 
@@ -102,7 +100,9 @@ async function checkDailyStreakValidation(
       .update({ last_lesson_date: yesterdayStr })
       .eq("profile_id", profileId);
 
-    await showAlert("❄️ Streak Freeze used! Your daily streak was saved from resetting.");
+    if (!isGuest) {
+      await showAlert("❄️ Streak Freeze used! Your daily streak was saved from resetting.");
+    }
     return { streak: currentStreak, last_lesson_date: yesterdayStr };
   } else {
     await supabase
@@ -110,7 +110,9 @@ async function checkDailyStreakValidation(
       .update({ streak: 0, streak_freeze_count: 0 })
       .eq("profile_id", profileId);
 
-    await showAlert("😢 Oh no! You missed a day and your streak reset to 0.");
+    if (!isGuest) {
+      await showAlert("😢 Oh no! You missed a day and your streak reset to 0.");
+    }
     return { streak: 0, last_lesson_date: lastLessonDateStr };
   }
 }
@@ -313,30 +315,10 @@ export default function DashboardPage() {
           const guestSessionId = localStorage.getItem("guest_session_id");
           if (guestSessionId) {
             try {
-              const { data: guestProfile } = await supabase
-                .from("profiles")
-                .select("id, name, profile_study_settings(exam_category, sub_topic, study_style, difficulty, timer_duration), profile_progress(total_score, lessons_completed, last_lesson_date), profile_game_state(streak, streak_freeze_count, hearts, last_heart_lost_at, gems)")
-                .eq("id", guestSessionId)
-                .single();
-              const guestFlat = guestProfile ? {
-                ...guestProfile,
-                ...(guestProfile as any).profile_study_settings,
-                ...(guestProfile as any).profile_progress,
-                ...(guestProfile as any).profile_game_state,
-              } : null;
+              const guestFlat = await fetchFullProfile(guestSessionId);
 
               // 2. Fetch registered user profile if it already exists
-              const { data: userProfileRaw } = await supabase
-                .from("profiles")
-                .select("id, name, profile_study_settings(exam_category, sub_topic, study_style, difficulty, timer_duration), profile_progress(total_score, lessons_completed, last_lesson_date), profile_game_state(streak, streak_freeze_count, hearts, last_heart_lost_at, gems)")
-                .eq("id", user.id)
-                .single();
-              const userProfile = userProfileRaw ? {
-                ...userProfileRaw,
-                ...(userProfileRaw as any).profile_study_settings,
-                ...(userProfileRaw as any).profile_progress,
-                ...(userProfileRaw as any).profile_game_state,
-              } : null;
+              const userProfile = await fetchFullProfile(user.id);
 
               const mergedXp = (userProfile?.total_score || 0) + (guestFlat?.total_score || 0);
               const mergedLessons = (userProfile?.lessons_completed || 0) + (guestFlat?.lessons_completed || 0);
@@ -387,6 +369,26 @@ export default function DashboardPage() {
                   last_heart_lost_at: mergedLastHeartLostAt,
                 });
                 localStorage.setItem("streak_freeze_count", mergedFreezes.toString());
+              }
+
+              // Merge claimed achievements from guest session
+              const guestClaimedStr = localStorage.getItem("guest_claimed_achievements");
+              if (guestClaimedStr) {
+                try {
+                  const guestClaimedIds = JSON.parse(guestClaimedStr) as string[];
+                  if (guestClaimedIds.length > 0) {
+                    const inserts = guestClaimedIds.map(achId => ({
+                      profile_id: user.id,
+                      event_type: `claimed_achievement_${achId}`,
+                      score_delta: 0,
+                      level_delta: 0
+                    }));
+                    await supabase.from("lesson_events").insert(inserts);
+                  }
+                } catch (e) {
+                  console.error("Error merging guest claimed achievements:", e);
+                }
+                localStorage.removeItem("guest_claimed_achievements");
               }
 
               // Cleanup guest session

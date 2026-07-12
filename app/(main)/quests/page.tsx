@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
@@ -16,6 +16,18 @@ export default function QuestsPage() {
 
   const [activeTab, setActiveTab] = useState<"achievements" | "quests">("achievements");
   const [dailyRewardsCount, setDailyRewardsCount] = useState(1);
+  const personalRecordsRef = useRef<HTMLDivElement>(null);
+
+  const scrollPersonalRecords = (direction: "left" | "right") => {
+    if (personalRecordsRef.current) {
+      const { scrollLeft, clientWidth } = personalRecordsRef.current;
+      const scrollAmount = clientWidth * 0.75;
+      personalRecordsRef.current.scrollTo({
+        left: direction === "left" ? scrollLeft - scrollAmount : scrollLeft + scrollAmount,
+        behavior: "smooth"
+      });
+    }
+  };
 
   const [dailyXp, setDailyXp] = useState(0);
   const [dailyLessons, setDailyLessons] = useState(0);
@@ -26,6 +38,50 @@ export default function QuestsPage() {
   const [quest3Claimed, setQuest3Claimed] = useState(false);
 
   const [claiming, setClaiming] = useState<number | null>(null);
+
+  const [claimedAchievements, setClaimedAchievements] = useState<string[]>([]);
+  const [claimingAchievementId, setClaimingAchievementId] = useState<string | null>(null);
+
+  const fetchClaimedAchievements = useCallback(async () => {
+    let profileId: string | null = null;
+    if (user) {
+      profileId = user.id;
+    } else if (typeof window !== "undefined") {
+      profileId = localStorage.getItem("guest_session_id");
+    }
+
+    if (!profileId) return;
+
+    const isGuest = profileId.startsWith("guest_");
+
+    if (isGuest) {
+      if (typeof window !== "undefined") {
+        const stored = localStorage.getItem("guest_claimed_achievements");
+        if (stored) {
+          try {
+            setClaimedAchievements(JSON.parse(stored));
+          } catch (e) {
+            setClaimedAchievements([]);
+          }
+        }
+      }
+    } else {
+      try {
+        const { data, error } = await supabase
+          .from("lesson_events")
+          .select("event_type")
+          .eq("profile_id", profileId)
+          .like("event_type", "claimed_achievement_%");
+
+        if (!error && data) {
+          const claimedIds = data.map((evt: any) => evt.event_type.replace("claimed_achievement_", ""));
+          setClaimedAchievements(claimedIds);
+        }
+      } catch (err) {
+        console.error("Error fetching claimed achievements:", err);
+      }
+    }
+  }, [user]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -57,7 +113,8 @@ export default function QuestsPage() {
       setQuest2Claimed(localStorage.getItem("quest_2_claimed") === "true");
       setQuest3Claimed(localStorage.getItem("quest_3_claimed") === "true");
     }
-  }, []);
+    fetchClaimedAchievements();
+  }, [fetchClaimedAchievements]);
 
   const handleClaimQuest = async (questNum: number, gemReward: number) => {
     setClaiming(questNum);
@@ -95,6 +152,69 @@ export default function QuestsPage() {
     setClaiming(null);
   };
 
+  const handleClaimAchievement = async (achievementId: string, gemReward: number) => {
+    setClaimingAchievementId(achievementId);
+    let profileId: string | null = null;
+    if (user) {
+      profileId = user.id;
+    } else if (typeof window !== "undefined") {
+      profileId = localStorage.getItem("guest_session_id");
+    }
+
+    if (profileId) {
+      const isGuest = profileId.startsWith("guest_");
+      try {
+        const { error: gameError } = await supabase
+          .from("profile_game_state")
+          .update({
+            gems: gems + gemReward
+          })
+          .eq("profile_id", profileId);
+
+        if (!gameError) {
+          if (isGuest) {
+            if (typeof window !== "undefined") {
+              const currentClaimed = localStorage.getItem("guest_claimed_achievements");
+              let claimedList: string[] = [];
+              if (currentClaimed) {
+                try { claimedList = JSON.parse(currentClaimed); } catch (e) {}
+              }
+              if (!claimedList.includes(achievementId)) {
+                claimedList.push(achievementId);
+              }
+              localStorage.setItem("guest_claimed_achievements", JSON.stringify(claimedList));
+              setClaimedAchievements(claimedList);
+            }
+          } else {
+            const { error: eventError } = await supabase
+              .from("lesson_events")
+              .insert({
+                profile_id: profileId,
+                event_type: `claimed_achievement_${achievementId}`,
+                score_delta: 0,
+                level_delta: 0
+              });
+
+            if (eventError) {
+              console.error("Failed to insert claim audit event:", eventError);
+            }
+            setClaimedAchievements(prev => [...prev, achievementId]);
+          }
+
+          updateStatsLocally({ gems: gems + gemReward });
+          await refreshStats();
+          await showAlert(`🎉 Achievement completed! You received 💎 ${gemReward} Gems.`);
+        } else {
+          await showAlert("❌ Claim failed: " + gameError.message);
+        }
+      } catch (err) {
+        console.error(err);
+        await showAlert("❌ Unexpected error occurred. Please try again.");
+      }
+    }
+    setClaimingAchievementId(null);
+  };
+
   const level = Math.floor(xp / 150) + 1;
   const kbCompleted = lessonsCompleted >= 1;
   const boCompleted = level >= 5;
@@ -109,7 +229,7 @@ export default function QuestsPage() {
     year: "numeric",
   });
 
-  const achievements = [
+  const rawAchievements = [
     {
       id: "knowledge_brew",
       name: "Knowledge Brew",
@@ -117,6 +237,7 @@ export default function QuestsPage() {
       icon: "/img/gen_imgs/achievements/blue_potion.webp",
       target: 1,
       current: lessonsCompleted >= 1 ? 1 : 0,
+      reward: 30,
     },
     {
       id: "blast_off",
@@ -125,6 +246,7 @@ export default function QuestsPage() {
       icon: "/img/gen_imgs/achievements/rocket.webp",
       target: 5,
       current: Math.min(5, level),
+      reward: 100,
     },
     {
       id: "rainbow_mind",
@@ -133,6 +255,7 @@ export default function QuestsPage() {
       icon: "/img/gen_imgs/achievements/rainbow.webp",
       target: 7,
       current: Math.min(7, streak),
+      reward: 100,
     },
     {
       id: "jack_of_all_topics",
@@ -141,6 +264,7 @@ export default function QuestsPage() {
       icon: "/img/gen_imgs/achievements/dice.webp",
       target: 3,
       current: Math.min(3, lessonsCompleted),
+      reward: 100,
     },
     {
       id: "first_victory",
@@ -149,6 +273,7 @@ export default function QuestsPage() {
       icon: "/img/gen_imgs/achievements/gold_shield.webp",
       target: 1,
       current: lessonsCompleted >= 1 ? 1 : 0,
+      reward: 30,
     },
     {
       id: "curious_explorer",
@@ -157,6 +282,7 @@ export default function QuestsPage() {
       icon: "/img/gen_imgs/achievements/magnifying_glass.webp",
       target: 1,
       current: lessonsCompleted >= 1 ? 1 : 0,
+      reward: 30,
     },
     {
       id: "heart_of_determination",
@@ -165,6 +291,7 @@ export default function QuestsPage() {
       icon: "/img/gen_imgs/achievements/crystal_potion.webp",
       target: 1,
       current: lessonsCompleted >= 2 ? 1 : 0,
+      reward: 100,
     },
     {
       id: "knowledge_magnet",
@@ -173,6 +300,7 @@ export default function QuestsPage() {
       icon: "/img/gen_imgs/achievements/magnet.webp",
       target: 100,
       current: Math.min(100, xp),
+      reward: 30,
     },
     {
       id: "growth_spiral",
@@ -181,6 +309,7 @@ export default function QuestsPage() {
       icon: "/img/gen_imgs/achievements/green_spiral.webp",
       target: 10,
       current: Math.min(10, Math.max(0, level - 1)),
+      reward: 100,
     },
     {
       id: "star_student",
@@ -189,6 +318,7 @@ export default function QuestsPage() {
       icon: "/img/gen_imgs/achievements/gold_star.webp",
       target: 1,
       current: lessonsCompleted >= 1 ? 1 : 0,
+      reward: 30,
     },
     {
       id: "daily_reward_hunter",
@@ -197,6 +327,7 @@ export default function QuestsPage() {
       icon: "/img/gen_imgs/achievements/gift_box.webp",
       target: 7,
       current: Math.min(7, dailyRewardsCount),
+      reward: 100,
     },
     {
       id: "quick_learner",
@@ -205,6 +336,7 @@ export default function QuestsPage() {
       icon: "/img/gen_imgs/achievements/boots.webp",
       target: 1,
       current: lessonsCompleted >= 1 ? 1 : 0,
+      reward: 30,
     },
     {
       id: "coin_collector",
@@ -213,6 +345,7 @@ export default function QuestsPage() {
       icon: "/img/gen_imgs/achievements/silver_coin.webp",
       target: 500,
       current: Math.min(500, gems),
+      reward: 100,
     },
     {
       id: "treasure_hunter",
@@ -221,6 +354,7 @@ export default function QuestsPage() {
       icon: "/img/gen_imgs/achievements/gold_coin.webp",
       target: 5000,
       current: Math.min(5000, gems),
+      reward: 100,
     },
     {
       id: "guardian_scholar",
@@ -229,318 +363,379 @@ export default function QuestsPage() {
       icon: "/img/gen_imgs/achievements/blue_shield.webp",
       target: 5,
       current: guardianProgress,
+      reward: 100,
     },
   ];
+
+  const achievements = rawAchievements
+    .map((ach) => {
+      const isCompleted = ach.current >= ach.target;
+      const isClaimed = claimedAchievements.includes(ach.id);
+      let weight = 0;
+      if (isCompleted && !isClaimed) {
+        weight = 4; // Finished & Claimable
+      } else if (isCompleted && isClaimed) {
+        weight = 3; // Finished & Claimed
+      } else if (ach.current > 0) {
+        weight = 2; // Ongoing / In Progress
+      } else {
+        weight = 1; // Locked / No progress
+      }
+      return {
+        ...ach,
+        isCompleted,
+        isClaimed,
+        weight,
+      };
+    })
+    .sort((a, b) => b.weight - a.weight);
 
   return (
     <>
       {/* Center Column */}
-      <main className="flex-1 w-full max-w-[600px] mx-auto pb-24 flex flex-col gap-6 pt-4 md:pt-8 px-4 font-din-round">
-        {/* Tab Selector */}
-        <div className="w-full flex border-b-2 border-cloud-gray dark:border-cloud-gray/15 font-bold uppercase tracking-wider text-xs md:text-sm select-none">
-          <button
-            onClick={() => setActiveTab("achievements")}
-            className={`flex-1 py-3 text-center transition-colors border-b-4 -mb-[4px] cursor-pointer ${activeTab === "achievements"
-              ? "border-sky-blue text-sky-blue"
-              : "border-transparent text-silver hover:text-charcoal dark:hover:text-white"
-              }`}
-          >
-            Achievements
-          </button>
-          <button
-            onClick={() => setActiveTab("quests")}
-            className={`flex-1 py-3 text-center transition-colors border-b-4 -mb-[4px] cursor-pointer ${activeTab === "quests"
-              ? "border-sky-blue text-sky-blue"
-              : "border-transparent text-silver hover:text-charcoal dark:hover:text-white"
-              }`}
-          >
-            Daily Quests
-          </button>
+      <main className="flex-1 w-full max-w-[600px] mx-auto pb-24 flex flex-col gap-8 pt-4 md:pt-8 px-4 font-din-round min-w-0">
+        {/* Page Header */}
+        <div className="w-full flex items-center gap-4 pb-2 border-b border-cloud-gray dark:border-cloud-gray/15">
+          <h1 className="font-feather text-xl md:text-2xl text-almost-black dark:text-white font-bold tracking-wide">
+            Quests
+          </h1>
         </div>
 
-        {/* Achievements Content Tab */}
-        {activeTab === "achievements" && (
-          <div className="flex flex-col gap-6 w-full">
-            {/* Personal Records */}
-            <div className="flex flex-col gap-3 w-full">
-              <h2 className="font-feather text-[17px] md:text-lg text-almost-black dark:text-white font-bold tracking-wide">
-                Personal Records
+        {/* 1. Daily Quests Section */}
+        <div className="flex flex-col gap-4 w-full">
+          {/* Welcome Card */}
+          <div className="w-full bg-[#58cc02] rounded-3xl p-6 relative overflow-hidden flex items-center justify-between min-h-[160px]">
+            <div className="flex flex-col text-white max-w-[60%] z-10">
+              <h2 className="font-feather text-2xl md:text-3xl font-bold tracking-wide mb-2">
+                Welcome!
               </h2>
-
-              <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-none snap-x snap-mandatory">
-                {/* Card 1: Perfect Lessons */}
-                <div className="flex-1 min-w-[150px] md:min-w-[170px] p-4 bg-snow-white flex flex-col items-center text-center shadow-none snap-start">
-                  <div className="w-18 h-18 relative mb-3">
-                    <Image src="/img/gen_imgs/achievements/green_spiral.webp" alt="Perfect Lessons" fill className="object-contain" unoptimized />
-                  </div>
-                  <span className="text-2xl font-black text-duo-green">{lessonsCompleted}</span>
-                  <span className="text-[12px] font-extrabold text-charcoal dark:text-white mt-1.5 leading-tight">Lessons Completed</span>
-                  <span className="text-[10px] text-silver font-semibold mt-1 uppercase">{todayDateStr}</span>
-                </div>
-
-                {/* Card 2: Most XP */}
-                <div className="flex-1 min-w-[150px] md:min-w-[170px] p-4 bg-snow-white flex flex-col items-center text-center shadow-none snap-start">
-                  <div className="w-18 h-18 relative mb-3">
-                    <Image src="/img/gen_imgs/achievements/gold_star.webp" alt="Most XP" fill className="object-contain" unoptimized />
-                  </div>
-                  <span className="text-2xl font-black text-sunshine-yellow">{xp}</span>
-                  <span className="text-[12px] font-extrabold text-charcoal dark:text-white mt-1.5 leading-tight">Total XP Earned</span>
-                  <span className="text-[10px] text-silver font-semibold mt-1 uppercase">{todayDateStr}</span>
-                </div>
-
-                {/* Card 3: Longest Streak */}
-                <div className="flex-1 min-w-[150px] md:min-w-[170px] p-4 bg-snow-white flex flex-col items-center text-center shadow-none snap-start">
-                  <div className="w-18 h-18 relative mb-3">
-                    <Image src="/img/gen_imgs/achievements/rainbow.webp" alt="Longest Streak" fill className="object-contain" unoptimized />
-                  </div>
-                  <span className="text-2xl font-black text-orange-500">{streak}</span>
-                  <span className="text-[12px] font-extrabold text-charcoal dark:text-white mt-1.5 leading-tight">Longest Streak</span>
-                  <span className="text-[10px] text-silver font-semibold mt-1 uppercase">{todayDateStr}</span>
-                </div>
-              </div>
+              <p className="text-white/90 text-sm md:text-base font-semibold leading-relaxed">
+                Complete quests to earn rewards! Quests refresh every day.
+              </p>
             </div>
 
-            {/* Awards - Horizontal Scroll */}
-            <div className="flex flex-col gap-4 w-full">
-              <h2 className="font-feather text-[17px] md:text-lg text-almost-black dark:text-white font-bold tracking-wide">
-                Awards
-              </h2>
-
-              {/* Mobile: horizontal scroll. Desktop (md+): 3-column grid */}
-              <div className="flex flex-row gap-4 overflow-x-auto pb-4 scrollbar-none snap-x snap-mandatory -mx-4 px-4 md:grid md:grid-cols-3 md:gap-y-8 md:gap-x-4 md:overflow-visible md:pb-0 md:mx-0 md:px-0 md:snap-none">
-                {achievements.map((achievement) => {
-                  const percent = Math.min(100, (achievement.current / achievement.target) * 100);
-                  const isCompleted = achievement.current >= achievement.target;
-
-                  return (
-                    <div
-                      key={achievement.id}
-                      className="flex flex-col items-center text-center shrink-0 w-[28vw] max-w-[110px] min-w-[90px] snap-start rounded-2xl p-2 transition-all select-none hover:bg-cloud-gray/5 dark:hover:bg-white/5 md:w-full md:max-w-none md:min-w-0 md:shrink md:snap-none"
-                    >
-                      {/* Badge */}
-                      <div className="relative w-[72px] h-[72px] md:w-36 md:h-36 flex items-center justify-center mb-2 shrink-0">
-                        <div className={`w-full h-full relative transition-all duration-300 ${!isCompleted ? "grayscale opacity-40" : "drop-shadow-md"}`}>
-                          <Image
-                            src={achievement.icon}
-                            alt={achievement.name}
-                            fill
-                            sizes="(max-width: 768px) 72px, 144px"
-                            className="object-contain"
-                            unoptimized
-                          />
-                        </div>
-                      </div>
-
-                      {/* Text stacked below badge */}
-                      <div className="flex flex-col items-center w-full gap-0.5">
-                        <span className="font-extrabold text-[11px] md:text-sm text-charcoal dark:text-white leading-tight w-full">
-                          {achievement.name}
-                        </span>
-                        <span className="text-[9px] md:text-xs font-bold text-silver tracking-tight">
-                          {achievement.current} of {achievement.target}
-                        </span>
-                        <p className="text-[9px] md:text-[11px] text-silver dark:text-silver/60 leading-snug mt-0.5 line-clamp-2 w-full">
-                          {achievement.condition}
-                        </p>
-                        {/* Progress bar */}
-                        <div className="w-full bg-cloud-gray dark:bg-cloud-gray/15 h-1.5 rounded-full overflow-hidden mt-1.5 shrink-0">
-                          <div
-                            className={`h-full rounded-full transition-all duration-300 ${isCompleted ? "bg-duo-green" : "bg-sky-blue"}`}
-                            style={{ width: `${percent}%` }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+            <div className="absolute -right-2 -bottom-2 w-36 h-36 sm:w-32 sm:h-32 md:w-36 md:h-36 z-0 flex items-end">
+              <div className="relative w-full h-full">
+                <Image
+                  src="/emoji/ohyeah.webp"
+                  alt="Welcome mascot"
+                  fill
+                  className="object-contain drop-shadow-lg"
+                  unoptimized
+                />
               </div>
             </div>
           </div>
-        )}
 
-        {/* Daily Quests Content Tab */}
-        {activeTab === "quests" && (
-          <div className="flex flex-col gap-4 w-full animate-[fadeIn_0.2s_ease-out]">
-            {/* Welcome Card */}
-            <div className="w-full bg-[#a570ff] rounded-3xl p-6 relative overflow-hidden flex items-center justify-between shadow-sm min-h-[160px]">
-              <div className="flex flex-col text-white max-w-[60%] z-10">
-                <h2 className="font-feather text-2xl md:text-3xl font-bold tracking-wide mb-2">
-                  Welcome!
-                </h2>
-                <p className="text-white/90 text-sm md:text-base font-semibold leading-relaxed">
-                  Complete quests to earn rewards! Quests refresh every day.
-                </p>
-              </div>
+          {/* Daily Quests Sub-Header */}
+          <div className="w-full flex items-center justify-between mt-2">
+            <h2 className="font-feather text-[17px] md:text-lg text-almost-black dark:text-white font-bold tracking-wide">
+              Daily Quests
+            </h2>
+            <div className="flex items-center gap-1.5 text-orange-500 font-bold text-xs md:text-sm tracking-wide">
+              <span>14 HOURS LEFT</span>
+            </div>
+          </div>
 
-              <div className="absolute right-4 bottom-2 w-32 h-32 md:w-36 md:h-36 z-0 flex items-end">
-                <div className="relative w-full h-full">
-                  <Image
-                    src="/emoji/ohyeah.webp"
-                    alt="Welcome mascot"
-                    fill
-                    className="object-contain drop-shadow-lg"
-                    unoptimized
-                  />
-                </div>
-              </div>
+          {/* Quest 1: Earn 30 XP */}
+          <div className="p-4 flex items-center gap-4 bg-snow-white rounded-2xl w-full">
+            <div className="w-22 h-22 flex items-center justify-center shrink-0 relative">
+              <Image src="/img/gen_imgs/exp.webp" alt="Most XP" fill className="object-contain" unoptimized />
             </div>
 
-            {/* Daily Quests Sub-Header */}
-            <div className="w-full flex items-center justify-between mt-2">
-              <h2 className="font-feather text-lg md:text-xl text-almost-black dark:text-white font-bold tracking-wide">
-                Daily Quests
-              </h2>
-              <div className="flex items-center gap-1.5 text-orange-500 font-bold text-xs md:text-sm tracking-wide">
-                <span>⏱️</span>
-                <span>14 HOURS LEFT</span>
-              </div>
-            </div>
-
-            {/* Quest 1: Earn 30 XP */}
-            <div className="p-5 flex items-center gap-5 bg-snow-white">
-              <div className="w-12 h-12 rounded-xl bg-sunshine-yellow flex items-center justify-center shrink-0 shadow-sm relative">
-                <span className="text-2xl text-white font-bold">⚡</span>
-              </div>
-
-              <div className="flex flex-col w-full gap-2">
-                <div className="flex justify-between items-start">
-                  <div className="flex flex-col">
-                    <span className="font-bold text-base md:text-lg text-almost-black dark:text-white">Daily Sprint</span>
-                    <span className="text-xs text-silver font-semibold flex items-center gap-1.5 mt-0.5">
-                      <span>Earn 30 XP today • Reward:</span>
-                      <Image src="/img/gen_imgs/diamond.webp" alt="Gems" width={14} height={14} className="object-contain" />
+            <div className="flex flex-col w-full gap-2 min-w-0">
+              <div className="flex justify-between items-start gap-2 w-full">
+                <div className="flex flex-col min-w-0">
+                  <span className="font-bold text-sm sm:text-base md:text-lg text-almost-black dark:text-white truncate">Daily Sprint</span>
+                  <div className="text-[10px] sm:text-xs text-silver font-semibold flex flex-wrap items-center gap-1.5 mt-0.5 leading-tight">
+                    <span>Earn 30 XP today </span>
+                    <span className="inline-flex items-center gap-1">
+                      <Image src="/img/gen_imgs/diamond.webp" alt="Gems" width={12} height={12} className="object-contain" />
                       <span>5 Gems</span>
                     </span>
                   </div>
-                  {dailyXp >= 30 && !quest1Claimed && (
-                    <button
-                      disabled={claiming !== null}
-                      onClick={() => handleClaimQuest(1, 5)}
-                      className="bg-duo-green hover:brightness-105 text-white font-bold text-xs uppercase tracking-wide px-3 py-1.5 rounded-xl shadow-[0_3px_0_#3f8f01] active:translate-y-[3px] active:shadow-none transition-all cursor-pointer shrink-0"
-                    >
-                      {claiming === 1 ? "Claiming..." : "Claim"}
-                    </button>
-                  )}
-                  {quest1Claimed && (
-                    <span className="bg-duo-green/15 text-duo-green text-xs font-bold px-2.5 py-1 rounded-xl shrink-0">
-                      Claimed ✓
-                    </span>
-                  )}
                 </div>
-
-                {!quest1Claimed && (
-                  <div className="w-full flex items-center gap-4">
-                    <div className="h-6 w-full bg-cloud-gray dark:bg-cloud-gray/10 rounded-full overflow-hidden relative flex items-center justify-center">
-                      <div
-                        className="absolute left-0 top-0 h-full bg-sunshine-yellow rounded-full transition-all duration-300"
-                        style={{ width: `${Math.min(100, (dailyXp / 30) * 100)}%` }}
-                      ></div>
-                      <span className="relative z-10 text-almost-black dark:text-white font-extrabold text-xs">
-                        {Math.min(30, dailyXp)} / 30
-                      </span>
-                    </div>
-                  </div>
+                {dailyXp >= 30 && !quest1Claimed && (
+                  <button
+                    disabled={claiming !== null}
+                    onClick={() => handleClaimQuest(1, 5)}
+                    className="bg-duo-green hover:brightness-105 text-white font-bold text-[10px] sm:text-xs uppercase tracking-wide px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-xl shadow-[0_3px_0_#3f8f01] active:translate-y-[3px] active:shadow-none transition-all cursor-pointer shrink-0"
+                  >
+                    {claiming === 1 ? "Claiming..." : "Claim"}
+                  </button>
+                )}
+                {quest1Claimed && (
+                  <span className="bg-duo-green/15 text-duo-green text-[10px] sm:text-xs font-bold px-2.5 py-1 rounded-xl shrink-0">
+                    Claimed 
+                  </span>
                 )}
               </div>
+
+              {!quest1Claimed && (
+                <div className="w-full flex items-center gap-4">
+                  <div className="h-6 w-full bg-cloud-gray dark:bg-cloud-gray/10 rounded-full overflow-hidden relative flex items-center justify-center">
+                    <div
+                      className="absolute left-0 top-0 h-full bg-sunshine-yellow rounded-full transition-all duration-300"
+                      style={{ width: `${Math.min(100, (dailyXp / 30) * 100)}%` }}
+                    ></div>
+                    <span className="relative z-10 text-almost-black dark:text-white font-extrabold text-xs">
+                      {Math.min(30, dailyXp)} / 30
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Quest 2: Complete 1 Lesson */}
+          <div className="p-4 flex items-center gap-4 bg-snow-white rounded-2xl w-full">
+            <div className="w-22 h-22 flex items-center justify-center shrink-0 relative">
+              <Image src="/img/gen_imgs/achievements/gold_star.webp" alt="Complete 1 Lesson" fill className="object-contain" unoptimized />
             </div>
 
-            {/* Quest 2: Complete 1 Lesson */}
-            <div className="p-5 flex items-center gap-5 bg-snow-white">
-              <div className="w-12 h-12 rounded-xl bg-duo-green flex items-center justify-center shrink-0 shadow-sm relative">
-                <span className="text-2xl text-white font-bold">📚</span>
-              </div>
-
-              <div className="flex flex-col w-full gap-2">
-                <div className="flex justify-between items-start">
-                  <div className="flex flex-col">
-                    <span className="font-bold text-base md:text-lg text-almost-black dark:text-white">First Steps</span>
-                    <span className="text-xs text-silver font-semibold flex items-center gap-1.5 mt-0.5">
-                      <span>Complete 1 lesson today • Reward:</span>
-                      <Image src="/img/gen_imgs/diamond.webp" alt="Gems" width={14} height={14} className="object-contain" />
+            <div className="flex flex-col w-full gap-2 min-w-0">
+              <div className="flex justify-between items-start gap-2 w-full">
+                <div className="flex flex-col min-w-0">
+                  <span className="font-bold text-sm sm:text-base md:text-lg text-almost-black dark:text-white truncate">First Steps</span>
+                  <div className="text-[10px] sm:text-xs text-silver font-semibold flex flex-wrap items-center gap-1.5 mt-0.5 leading-tight">
+                    <span>Complete 1 lesson today </span>
+                    <span className="inline-flex items-center gap-1">
+                      <Image src="/img/gen_imgs/diamond.webp" alt="Gems" width={12} height={12} className="object-contain" />
                       <span>5 Gems</span>
                     </span>
                   </div>
-                  {dailyLessons >= 1 && !quest2Claimed && (
-                    <button
-                      disabled={claiming !== null}
-                      onClick={() => handleClaimQuest(2, 5)}
-                      className="bg-duo-green hover:brightness-105 text-white font-bold text-xs uppercase tracking-wide px-3 py-1.5 rounded-xl shadow-[0_3px_0_#3f8f01] active:translate-y-[3px] active:shadow-none transition-all cursor-pointer shrink-0"
-                    >
-                      {claiming === 2 ? "Claiming..." : "Claim"}
-                    </button>
-                  )}
-                  {quest2Claimed && (
-                    <span className="bg-duo-green/15 text-duo-green text-xs font-bold px-2.5 py-1 rounded-xl shrink-0">
-                      Claimed ✓
-                    </span>
-                  )}
                 </div>
-
-                {!quest2Claimed && (
-                  <div className="w-full flex items-center gap-4">
-                    <div className="h-6 w-full bg-cloud-gray dark:bg-cloud-gray/10 rounded-full overflow-hidden relative flex items-center justify-center">
-                      <div
-                        className="absolute left-0 top-0 h-full bg-duo-green rounded-full transition-all duration-300"
-                        style={{ width: `${Math.min(100, (dailyLessons / 1) * 100)}%` }}
-                      ></div>
-                      <span className="relative z-10 text-almost-black dark:text-white font-extrabold text-xs">
-                        {Math.min(1, dailyLessons)} / 1
-                      </span>
-                    </div>
-                  </div>
+                {dailyLessons >= 1 && !quest2Claimed && (
+                  <button
+                    disabled={claiming !== null}
+                    onClick={() => handleClaimQuest(2, 5)}
+                    className="bg-duo-green hover:brightness-105 text-white font-bold text-[10px] sm:text-xs uppercase tracking-wide px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-xl shadow-[0_3px_0_#3f8f01] active:translate-y-[3px] active:shadow-none transition-all cursor-pointer shrink-0"
+                  >
+                    {claiming === 2 ? "Claiming..." : "Claim"}
+                  </button>
+                )}
+                {quest2Claimed && (
+                  <span className="bg-duo-green/15 text-duo-green text-[10px] sm:text-xs font-bold px-2.5 py-1 rounded-xl shrink-0">
+                    Claimed 
+                  </span>
                 )}
               </div>
+
+              {!quest2Claimed && (
+                <div className="w-full flex items-center gap-4">
+                  <div className="h-6 w-full bg-cloud-gray dark:bg-cloud-gray/10 rounded-full overflow-hidden relative flex items-center justify-center">
+                    <div
+                      className="absolute left-0 top-0 h-full bg-duo-green rounded-full transition-all duration-300"
+                      style={{ width: `${Math.min(100, (dailyLessons / 1) * 100)}%` }}
+                    ></div>
+                    <span className="relative z-10 text-almost-black dark:text-white font-extrabold text-xs">
+                      {Math.min(1, dailyLessons)} / 1
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Quest 3: Pass a test with >= 80% */}
+          <div className="p-4 flex items-center gap-4 bg-snow-white rounded-2xl w-full">
+            <div className="w-22 h-22 flex items-center justify-center shrink-0 relative">
+              <Image src="/img/gen_imgs/trophy.webp" alt="Complete 1 Lesson" fill className="object-contain" unoptimized />
             </div>
 
-            {/* Quest 3: Pass a test with >= 80% */}
-            <div className="p-5 flex items-center gap-5 bg-snow-white">
-              <div className="w-12 h-12 rounded-xl bg-sky-blue flex items-center justify-center shrink-0 shadow-sm relative">
-                <span className="text-2xl text-white font-bold">🏆</span>
-              </div>
-
-              <div className="flex flex-col w-full gap-2">
-                <div className="flex justify-between items-start">
-                  <div className="flex flex-col">
-                    <span className="font-bold text-base md:text-lg text-almost-black dark:text-white">High Achiever</span>
-                    <span className="text-xs text-silver font-semibold flex items-center gap-1.5 mt-0.5">
-                      <span>Pass a test with &gt;= 80% score • Reward:</span>
-                      <Image src="/img/gen_imgs/diamond.webp" alt="Gems" width={14} height={14} className="object-contain" />
+            <div className="flex flex-col w-full gap-2 min-w-0">
+              <div className="flex justify-between items-start gap-2 w-full">
+                <div className="flex flex-col min-w-0">
+                  <span className="font-bold text-sm sm:text-base md:text-lg text-almost-black dark:text-white truncate">High Achiever</span>
+                  <div className="text-[10px] sm:text-xs text-silver font-semibold flex flex-wrap items-center gap-1.5 mt-0.5 leading-tight">
+                    <span>Pass a test with 80% score</span>
+                    <span className="inline-flex items-center gap-1">
+                      <Image src="/img/gen_imgs/diamond.webp" alt="Gems" width={12} height={12} className="object-contain" />
                       <span>10 Gems</span>
                     </span>
                   </div>
-                  {dailyPassed >= 1 && !quest3Claimed && (
-                    <button
-                      disabled={claiming !== null}
-                      onClick={() => handleClaimQuest(3, 10)}
-                      className="bg-duo-green hover:brightness-105 text-white font-bold text-xs uppercase tracking-wide px-3 py-1.5 rounded-xl shadow-[0_3px_0_#3f8f01] active:translate-y-[3px] active:shadow-none transition-all cursor-pointer shrink-0"
-                    >
-                      {claiming === 3 ? "Claiming..." : "Claim"}
-                    </button>
-                  )}
-                  {quest3Claimed && (
-                    <span className="bg-duo-green/15 text-duo-green text-xs font-bold px-2.5 py-1 rounded-xl shrink-0">
-                      Claimed ✓
-                    </span>
-                  )}
                 </div>
-
-                {!quest3Claimed && (
-                  <div className="w-full flex items-center gap-4">
-                    <div className="h-6 w-full bg-cloud-gray dark:bg-cloud-gray/10 rounded-full overflow-hidden relative flex items-center justify-center">
-                      <div
-                        className="absolute left-0 top-0 h-full bg-sky-blue rounded-full transition-all duration-300"
-                        style={{ width: `${Math.min(100, (dailyPassed / 1) * 100)}%` }}
-                      ></div>
-                      <span className="relative z-10 text-almost-black dark:text-white font-extrabold text-xs">
-                        {Math.min(1, dailyPassed)} / 1
-                      </span>
-                    </div>
-                  </div>
+                {dailyPassed >= 1 && !quest3Claimed && (
+                  <button
+                    disabled={claiming !== null}
+                    onClick={() => handleClaimQuest(3, 10)}
+                    className="relative overflow-hidden
+                              bg-gradient-to-b from-[#58cc02] to-[#46a302]
+                              hover:brightness-110
+                              text-white
+                              font-extrabold
+                              text-[10px] sm:text-xs
+                              uppercase
+                              tracking-wide
+                              px-3 py-1.5 sm:px-4 sm:py-2
+                              rounded-xl
+                              border-b-[4px] border-[#3f8f01]
+                              shadow-[0_2px_0_rgba(0,0,0,0.15)]
+                              transition-all duration-150
+                              active:border-b-0
+                              active:translate-y-[4px]
+                              disabled:opacity-60
+                              disabled:cursor-not-allowed
+                              shrink-0
+                              flex items-center gap-1
+                            "
+                  >
+                    {claiming === 3 ? "Claiming..." : "Claim"}
+                  </button>
+                )}
+                {quest3Claimed && (
+                  <span className="bg-duo-green/15 text-duo-green text-[10px] sm:text-xs font-bold px-2.5 py-1 rounded-xl shrink-0">
+                    Claimed
+                  </span>
                 )}
               </div>
+
+              {!quest3Claimed && (
+                <div className="w-full flex items-center gap-4">
+                  <div className="h-6 w-full bg-cloud-gray dark:bg-cloud-gray/10 rounded-full overflow-hidden relative flex items-center justify-center">
+                    <div
+                      className="absolute left-0 top-0 h-full bg-sky-blue rounded-full transition-all duration-300"
+                      style={{ width: `${Math.min(100, (dailyPassed / 1) * 100)}%` }}
+                    ></div>
+                    <span className="relative z-10 text-almost-black dark:text-white font-extrabold text-xs">
+                      {Math.min(1, dailyPassed)} / 1
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
-        )}
+        </div>
+
+        {/* 2. Personal Records Section */}
+        <div className="flex flex-col gap-3 w-full min-w-0">
+          <h2 className="font-feather text-[17px] md:text-lg text-almost-black dark:text-white font-bold tracking-wide">
+            Personal Records
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 w-full">
+            {/* Card 1: Perfect Lessons */}
+            <div className="col-span-1 p-4 bg-snow-white rounded-2xl flex flex-col items-center text-center">
+              <div className="w-25 h-25 relative mb-3">
+                <Image src="/img/gen_imgs/achievements/green_spiral.webp" alt="Perfect Lessons" fill className="object-contain" unoptimized />
+              </div>
+              <span className="text-xl md:text-2xl font-black text-duo-green">{lessonsCompleted}</span>
+              <span className="text-[11px] md:text-[12px] font-extrabold text-charcoal dark:text-white mt-1.5 leading-tight">Lessons Completed</span>
+              <span className="text-[9px] md:text-[10px] text-silver font-semibold mt-1 uppercase">{todayDateStr}</span>
+            </div>
+
+            {/* Card 2: Most XP */}
+            <div className="col-span-1 p-4 bg-snow-white rounded-2xl flex flex-col items-center text-center">
+              <div className="w-25 h-25 relative mb-3">
+                <Image src="/img/gen_imgs/achievements/gold_star.webp" alt="Most XP" fill className="object-contain" unoptimized />
+              </div>
+              <span className="text-xl md:text-2xl font-black text-sunshine-yellow">{xp}</span>
+              <span className="text-[11px] md:text-[12px] font-extrabold text-charcoal dark:text-white mt-1.5 leading-tight">Total XP Earned</span>
+              <span className="text-[9px] md:text-[10px] text-silver font-semibold mt-1 uppercase">{todayDateStr}</span>
+            </div>
+
+            {/* Card 3: Longest Streak */}
+            <div className="col-span-2 md:col-span-1 p-4 bg-snow-white rounded-2xl flex flex-col items-center text-center">
+              <div className="w-25 h-25 relative mb-3">
+                <Image src="/img/gen_imgs/achievements/rainbow.webp" alt="Longest Streak" fill className="object-contain" unoptimized />
+              </div>
+              <span className="text-xl md:text-2xl font-black text-orange-500">{streak}</span>
+              <span className="text-[11px] md:text-[12px] font-extrabold text-charcoal dark:text-white mt-1.5 leading-tight">Longest Streak</span>
+              <span className="text-[9px] md:text-[10px] text-silver font-semibold mt-1 uppercase">{todayDateStr}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* 3. Awards Section */}
+        <div className="flex flex-col gap-4 w-full">
+          <h2 className="font-feather text-[17px] md:text-lg text-almost-black dark:text-white font-bold tracking-wide">
+            Awards
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 w-full">
+            {achievements.map((achievement) => {
+              const percent = Math.min(100, (achievement.current / achievement.target) * 100);
+              const isCompleted = achievement.current >= achievement.target;
+
+              return (
+                <div
+                  key={achievement.id}
+                  className="flex flex-col items-center text-center rounded-2xl p-4 bg-snow-white transition-all select-none hover:bg-cloud-gray/5 dark:hover:bg-white/5 w-full"
+                >
+                  {/* Badge */}
+                  <div className="relative w-26 h-26 md:w-28 md:h-28 flex items-center justify-center mb-3 shrink-0">
+                    <div className={`w-full h-full relative transition-all duration-300 ${!isCompleted ? "grayscale opacity-40" : "drop-shadow-md"}`}>
+                      <Image
+                        src={achievement.icon}
+                        alt={achievement.name}
+                        fill
+                        sizes="(max-width: 768px) 64px, 112px"
+                        className="object-contain"
+                        unoptimized
+                      />
+                    </div>
+                  </div>
+
+                  {/* Text stacked below badge */}
+                  <div className="flex flex-col items-center w-full gap-1 grow">
+                    <span className="font-extrabold text-xs md:text-sm text-charcoal dark:text-white leading-tight w-full">
+                      {achievement.name}
+                    </span>
+                    <span className="text-[10px] md:text-xs font-bold text-silver tracking-tight">
+                      {achievement.current} of {achievement.target}
+                    </span>
+                    <p className="text-[10px] md:text-xs text-silver dark:text-silver/60 leading-snug mt-1 line-clamp-2 w-full">
+                      {achievement.condition}
+                    </p>
+                  </div>
+                  {/* Progress bar or Claim Button */}
+                  {achievement.isCompleted && !achievement.isClaimed ? (
+                    <button
+                      disabled={claimingAchievementId !== null}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleClaimAchievement(achievement.id, achievement.reward);
+                      }}
+                      className="mt-3 relative overflow-hidden w-full
+                                 bg-gradient-to-b from-[#58cc02] to-[#46a302]
+                                 hover:brightness-110
+                                 text-white
+                                 font-extrabold
+                                 text-[10px] md:text-xs
+                                 uppercase
+                                 tracking-wide
+                                 py-1.5 rounded-xl
+                                 border-b-[4px] border-[#3f8f01]
+                                 shadow-[0_2px_0_rgba(0,0,0,0.15)]
+                                 transition-all duration-150
+                                 active:border-b-0
+                                 active:translate-y-[4px]
+                                 disabled:opacity-60
+                                 disabled:cursor-not-allowed
+                                 shrink-0
+                                 flex items-center justify-center gap-1"
+                    >
+                      {claimingAchievementId === achievement.id ? "Claiming..." : (
+                        <>
+                          <span className="text-[13px] md:text-xs font-bold text-white tracking-tight">Claim </span> 
+                        </>
+                      )}
+                    </button>
+                  ) : achievement.isCompleted && achievement.isClaimed ? (
+                    <div className="mt-3 w-full text-center py-1.5 bg-duo-green/15 text-duo-green text-[10px] md:text-xs font-bold rounded-xl shrink-0">
+                      Claimed
+                    </div>
+                  ) : (
+                    <div className="w-full bg-cloud-gray dark:bg-cloud-gray/15 h-1.5 rounded-full overflow-hidden mt-3 shrink-0">
+                      <div
+                        className="h-full rounded-full transition-all duration-300 bg-sky-blue"
+                        style={{ width: `${percent}%` }}
+                      />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </main>
 
       {/* Right Sidebar */}

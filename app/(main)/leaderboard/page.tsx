@@ -29,22 +29,23 @@ export default function LeaderboardPage() {
     async function fetchLeaderboard() {
       if (!isLoaded) return;
       try {
-        const { data, error } = await supabase
-          .from("profiles")
-          .select(`
-            id, name,
-            profile_progress(total_score),
-            profile_game_state(streak)
-          `);
+        const [profilesRes, progressRes, gameStateRes] = await Promise.all([
+          supabase.from("profiles").select("id, name"),
+          supabase.from("profile_progress").select("profile_id, total_score"),
+          supabase.from("profile_game_state").select("profile_id, streak"),
+        ]);
 
-        if (error) {
-          console.error("Error fetching profiles:", error);
-        } else if (data) {
-          const mapped = data.map((p: any) => ({
+        if (profilesRes.error) {
+          console.error("Error fetching profiles:", profilesRes.error);
+        } else if (profilesRes.data) {
+          const progressMap = new Map(progressRes.data?.map(p => [p.profile_id, p.total_score]) || []);
+          const streakMap = new Map(gameStateRes.data?.map(s => [s.profile_id, s.streak]) || []);
+
+          const mapped = profilesRes.data.map((p: any) => ({
             id: p.id,
             name: p.name,
-            total_score: p.profile_progress?.total_score || 0,
-            streak: p.profile_game_state?.streak || 0,
+            total_score: progressMap.get(p.id) || 0,
+            streak: streakMap.get(p.id) || 0,
           })).sort((a, b) => b.total_score - a.total_score);
 
           // Filter out guest accounts from public leaderboard rankings

@@ -40,9 +40,13 @@ export async function upsertFullProfile(params: {
 }): Promise<void> {
   const { id, name } = params;
 
-  await supabase.from("profiles").upsert({ id, name: name ?? null });
+  const res1 = await supabase.from("profiles").upsert({ id, name: name ?? null });
+  if (res1.error) {
+    console.error("Error upserting profiles:", res1.error);
+    throw new Error(`profiles table: ${res1.error.message}`);
+  }
 
-  await supabase.from("profile_study_settings").upsert({
+  const res2 = await supabase.from("profile_study_settings").upsert({
     profile_id: id,
     exam_category: params.exam_category ?? null,
     sub_topic: params.sub_topic ?? null,
@@ -50,16 +54,24 @@ export async function upsertFullProfile(params: {
     difficulty: params.difficulty ?? "Beginner",
     timer_duration: params.timer_duration ?? 5,
   });
+  if (res2.error) {
+    console.error("Error upserting profile_study_settings:", res2.error);
+    throw new Error(`profile_study_settings table: ${res2.error.message}`);
+  }
 
-  await supabase.from("profile_progress").upsert({
+  const res3 = await supabase.from("profile_progress").upsert({
     profile_id: id,
     total_score: params.total_score ?? 0,
     current_level: params.current_level ?? 1,
     lessons_completed: params.lessons_completed ?? 0,
     last_lesson_date: params.last_lesson_date ?? null,
   });
+  if (res3.error) {
+    console.error("Error upserting profile_progress:", res3.error);
+    throw new Error(`profile_progress table: ${res3.error.message}`);
+  }
 
-  await supabase.from("profile_game_state").upsert({
+  const res4 = await supabase.from("profile_game_state").upsert({
     profile_id: id,
     streak: params.streak ?? 0,
     streak_freeze_count: params.streak_freeze_count ?? 1,
@@ -67,39 +79,45 @@ export async function upsertFullProfile(params: {
     last_heart_lost_at: params.last_heart_lost_at ?? null,
     gems: params.gems ?? 50,
   });
+  if (res4.error) {
+    console.error("Error upserting profile_game_state:", res4.error);
+    throw new Error(`profile_game_state table: ${res4.error.message}`);
+  }
 }
 
 /**
  * Fetches a full merged profile object for a given profile ID.
  * Returns null if not found.
  */
+
+
 export async function fetchFullProfile(profileId: string): Promise<Record<string, any> | null> {
-  const { data, error } = await supabase
-    .from("profiles")
-    .select(`
-      id, name, created_at,
-      profile_study_settings(exam_category, sub_topic, study_style, difficulty, timer_duration),
-      profile_progress(total_score, current_level, lessons_completed, last_lesson_date),
-      profile_game_state(streak, streak_freeze_count, hearts, last_heart_lost_at, gems)
-    `)
-    .eq("id", profileId)
-    .single();
+  try {
+    const [profileRes, settingsRes, progressRes, gameStateRes] = await Promise.all([
+      supabase.from("profiles").select("id, name, created_at").eq("id", profileId).maybeSingle(),
+      supabase.from("profile_study_settings").select("*").eq("profile_id", profileId).maybeSingle(),
+      supabase.from("profile_progress").select("*").eq("profile_id", profileId).maybeSingle(),
+      supabase.from("profile_game_state").select("*").eq("profile_id", profileId).maybeSingle(),
+    ]);
 
-  if (error || !data) return null;
+    if (profileRes.error) {
+      console.error("fetchFullProfile profiles query error:", profileRes.error.message);
+      return null;
+    }
+    if (!profileRes.data) return null;
 
-  // Flatten all sub-tables into a single flat object for compatibility
-  const settings = (data as any).profile_study_settings || {};
-  const progress = (data as any).profile_progress || {};
-  const gameState = (data as any).profile_game_state || {};
-
-  return {
-    id: data.id,
-    name: data.name,
-    created_at: data.created_at,
-    ...settings,
-    ...progress,
-    ...gameState,
-  };
+    return {
+      id: profileRes.data.id,
+      name: profileRes.data.name,
+      created_at: profileRes.data.created_at,
+      ...(settingsRes.data || {}),
+      ...(progressRes.data || {}),
+      ...(gameStateRes.data || {}),
+    };
+  } catch (err) {
+    console.error("fetchFullProfile unexpected error:", err);
+    return null;
+  }
 }
 
 /**
@@ -176,36 +194,34 @@ export async function updateProfileStats(
 
     const todayStr = new Date().toLocaleDateString("en-CA"); // "YYYY-MM-DD"
     const isGuest = profileId.startsWith("guest_");
-    let newStreak = isGuest ? 0 : currentStreak;
-    let finalFreezes = isGuest ? 0 : currentFreezes;
+    let newStreak = currentStreak;
+    let finalFreezes = currentFreezes;
 
-    if (!isGuest) {
-      if (lastLessonDateStr) {
-        const [y1, m1, d1] = todayStr.split("-").map(Number);
-        const [y2, m2, d2] = lastLessonDateStr.split("-").map(Number);
-        const todayDate = new Date(y1, m1 - 1, d1);
-        const lastDate = new Date(y2, m2 - 1, d2);
-        const diffTime = todayDate.getTime() - lastDate.getTime();
-        const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+    if (lastLessonDateStr) {
+      const [y1, m1, d1] = todayStr.split("-").map(Number);
+      const [y2, m2, d2] = lastLessonDateStr.split("-").map(Number);
+      const todayDate = new Date(y1, m1 - 1, d1);
+      const lastDate = new Date(y2, m2 - 1, d2);
+      const diffTime = todayDate.getTime() - lastDate.getTime();
+      const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
 
-        if (diffDays === 1) {
+      if (diffDays === 1) {
+        newStreak = currentStreak + 1;
+      } else if (diffDays === 0) {
+        newStreak = currentStreak === 0 ? 1 : currentStreak;
+      } else if (diffDays > 1) {
+        if (currentFreezes > 0) {
+          finalFreezes = currentFreezes - 1;
           newStreak = currentStreak + 1;
-        } else if (diffDays === 0) {
-          newStreak = currentStreak === 0 ? 1 : currentStreak;
-        } else if (diffDays > 1) {
-          if (currentFreezes > 0) {
-            finalFreezes = currentFreezes - 1;
-            newStreak = currentStreak + 1;
-            if (typeof window !== "undefined") {
-              localStorage.setItem("streak_freeze_count", finalFreezes.toString());
-            }
-          } else {
-            newStreak = 1;
+          if (typeof window !== "undefined") {
+            localStorage.setItem("streak_freeze_count", finalFreezes.toString());
           }
+        } else {
+          newStreak = 1;
         }
-      } else {
-        newStreak = 1;
       }
+    } else {
+      newStreak = 1;
     }
 
     // 7-day streak milestone check
