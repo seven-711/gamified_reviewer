@@ -84,6 +84,114 @@ export function getPerformanceBadge(percentile: number): string {
   return "/img/gen_imgs/performance_percentile_badge/participant.webp";
 }
 
+interface MonthlyBadge {
+  monthIndex: number;
+  monthName: string;
+  badgeName: string;
+  description: string;
+  image: string;
+  target: number;
+}
+
+const MONTHLY_BADGES: MonthlyBadge[] = [
+  {
+    monthIndex: 0,
+    monthName: "January",
+    badgeName: "Fresh Start",
+    description: "Complete at least one lesson during January.",
+    image: "/img/gen_imgs/monthly_badge/january.webp",
+    target: 1,
+  },
+  {
+    monthIndex: 1,
+    monthName: "February",
+    badgeName: "Steady Heart",
+    description: "Stay consistent throughout February.",
+    image: "/img/gen_imgs/monthly_badge/february.webp",
+    target: 3,
+  },
+  {
+    monthIndex: 2,
+    monthName: "March",
+    badgeName: "Spring Scholar",
+    description: "Continue your learning journey in March.",
+    image: "/img/gen_imgs/monthly_badge/march.webp",
+    target: 1,
+  },
+  {
+    monthIndex: 3,
+    monthName: "April",
+    badgeName: "Blooming Mind",
+    description: "Complete your monthly learning goal.",
+    image: "/img/gen_imgs/monthly_badge/april.webp",
+    target: 5,
+  },
+  {
+    monthIndex: 4,
+    monthName: "May",
+    badgeName: "Knowledge Blossom",
+    description: "Keep your streak alive throughout May.",
+    image: "/img/gen_imgs/monthly_badge/may.webp",
+    target: 3,
+  },
+  {
+    monthIndex: 5,
+    monthName: "June",
+    badgeName: "Midyear Momentum",
+    description: "Reach your June activity target.",
+    image: "/img/gen_imgs/monthly_badge/june.webp",
+    target: 4,
+  },
+  {
+    monthIndex: 6,
+    monthName: "July",
+    badgeName: "Summer Sprint",
+    description: "Stay active during July.",
+    image: "/img/gen_imgs/monthly_badge/july.webp",
+    target: 2,
+  },
+  {
+    monthIndex: 7,
+    monthName: "August",
+    badgeName: "Back to Learning",
+    description: "Return stronger and complete August challenges.",
+    image: "/img/gen_imgs/monthly_badge/august.webp",
+    target: 3,
+  },
+  {
+    monthIndex: 8,
+    monthName: "September",
+    badgeName: "Peak Performer",
+    description: "Finish your September goals.",
+    image: "/img/gen_imgs/monthly_badge/september_.webp",
+    target: 5,
+  },
+  {
+    monthIndex: 9,
+    monthName: "October",
+    badgeName: "Master Explorer",
+    description: "Continue exploring new lessons.",
+    image: "/img/gen_imgs/monthly_badge/october.webp",
+    target: 3,
+  },
+  {
+    monthIndex: 10,
+    monthName: "November",
+    badgeName: "Wisdom Harvest",
+    description: "Collect your November learning rewards.",
+    image: "/img/gen_imgs/monthly_badge/november.webp",
+    target: 3,
+  },
+  {
+    monthIndex: 11,
+    monthName: "December",
+    badgeName: "Year-End Champion",
+    description: "Finish the year with consistent learning.",
+    image: "/img/gen_imgs/monthly_badge/december.webp",
+    target: 5,
+  },
+];
+
 export default function ProfilePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -92,6 +200,7 @@ export default function ProfilePage() {
   const [savingTimer, setSavingTimer] = useState(false);
   const [rank, setRank] = useState<number>(1);
   const [totalUsers, setTotalUsers] = useState<number>(1);
+  const [lessonEvents, setLessonEvents] = useState<{ created_at: string }[]>([]);
   const { user, isLoaded, isSignedIn } = useUser();
 
   useEffect(() => {
@@ -142,6 +251,21 @@ export default function ProfilePage() {
           console.error("Failed to fetch rank or total users count", e);
         }
 
+        // Fetch completed lesson events
+        try {
+          const { data: eventsData, error: eventsError } = await supabase
+            .from("lesson_events")
+            .select("created_at")
+            .eq("profile_id", user.id)
+            .eq("event_type", "lesson_completed");
+
+          if (!eventsError && eventsData) {
+            setLessonEvents(eventsData || []);
+          }
+        } catch (e) {
+          console.error("Failed to fetch lesson events", e);
+        }
+
         setLoading(false);
       } catch (err) {
         console.error("Profile load failed", err);
@@ -185,6 +309,141 @@ export default function ProfilePage() {
       </main>
     );
   }
+
+  const currentMonthIndex = new Date().getMonth();
+  const currentYear = new Date().getFullYear();
+  const currentBadge = MONTHLY_BADGES[currentMonthIndex];
+  const currentMonthLessons = lessonEvents.filter((event) => {
+    const d = new Date(event.created_at);
+    return d.getMonth() === currentMonthIndex && d.getFullYear() === currentYear;
+  });
+  const currentMonthCount = currentMonthLessons.length;
+  const isBadgeAchieved = currentMonthCount >= currentBadge.target;
+
+  // Compute achievements
+  const xp = profile?.total_score || 0;
+  const lessonsCompleted = profile?.lessons_completed || 0;
+  const streak = profile?.streak || 0;
+  const level = Math.floor(xp / 150) + 1;
+
+  const kbCompleted = lessonsCompleted >= 1;
+  const boCompleted = level >= 5;
+  const fvCompleted = lessonsCompleted >= 1;
+  const ceCompleted = lessonsCompleted >= 1;
+  const kmCompleted = xp >= 100;
+  const guardianProgress = [kbCompleted, boCompleted, fvCompleted, ceCompleted, kmCompleted].filter(Boolean).length;
+
+  const rawAchievements = [
+    {
+      id: "knowledge_brew",
+      name: "Knowledge Brew",
+      condition: "Complete your first lesson.",
+      icon: "/img/gen_imgs/achievements/blue_potion.webp",
+      target: 1,
+      current: lessonsCompleted >= 1 ? 1 : 0,
+    },
+    {
+      id: "blast_off",
+      name: "Blast Off!",
+      condition: "Reach Level 5.",
+      icon: "/img/gen_imgs/achievements/rocket.webp",
+      target: 5,
+      current: Math.min(5, level),
+    },
+    {
+      id: "rainbow_mind",
+      name: "Rainbow Mind",
+      condition: "Study 7 consecutive days.",
+      icon: "/img/gen_imgs/achievements/rainbow.webp",
+      target: 7,
+      current: Math.min(7, streak),
+    },
+    {
+      id: "jack_of_all_topics",
+      name: "Jack of All Topics",
+      condition: "Complete lessons from every subject.",
+      icon: "/img/gen_imgs/achievements/dice.webp",
+      target: 3,
+      current: Math.min(3, lessonsCompleted),
+    },
+    {
+      id: "first_victory",
+      name: "First Victory",
+      condition: "Pass your first quiz.",
+      icon: "/img/gen_imgs/achievements/gold_shield.webp",
+      target: 1,
+      current: lessonsCompleted >= 1 ? 1 : 0,
+    },
+    {
+      id: "curious_explorer",
+      name: "Curious Explorer",
+      condition: "View all learning materials in one lesson.",
+      icon: "/img/gen_imgs/achievements/magnifying_glass.webp",
+      target: 1,
+      current: lessonsCompleted >= 1 ? 1 : 0,
+    },
+    {
+      id: "heart_of_determination",
+      name: "Heart of Determination",
+      condition: "Finish a difficult challenge.",
+      icon: "/img/gen_imgs/achievements/crystal_potion.webp",
+      target: 1,
+      current: lessonsCompleted >= 2 ? 1 : 0,
+    },
+    {
+      id: "knowledge_magnet",
+      name: "Knowledge Magnet",
+      condition: "Collect 100 Learning Points (LP).",
+      icon: "/img/gen_imgs/achievements/magnet.webp",
+      target: 100,
+      current: Math.min(100, xp),
+    },
+    {
+      id: "growth_spiral",
+      name: "Growth Spiral",
+      condition: "Level up 10 times.",
+      icon: "/img/gen_imgs/achievements/green_spiral.webp",
+      target: 10,
+      current: Math.min(10, Math.max(0, level - 1)),
+    },
+    {
+      id: "star_student",
+      name: "Star Student",
+      condition: "Earn a perfect score on any quiz.",
+      icon: "/img/gen_imgs/achievements/gold_star.webp",
+      target: 1,
+      current: lessonsCompleted >= 1 ? 1 : 0,
+    },
+    {
+      id: "quick_learner",
+      name: "Quick Learner",
+      condition: "Finish a lesson within the target time.",
+      icon: "/img/gen_imgs/achievements/boots.webp",
+      target: 1,
+      current: lessonsCompleted >= 1 ? 1 : 0,
+    },
+    {
+      id: "guardian_scholar",
+      name: "Guardian Scholar",
+      condition: "Complete all beginner achievements.",
+      icon: "/img/gen_imgs/achievements/blue_shield.webp",
+      target: 5,
+      current: guardianProgress,
+    },
+  ];
+
+  const userAchievements = rawAchievements
+    .map((ach) => ({
+      ...ach,
+      isCompleted: ach.current >= ach.target,
+    }))
+    .sort((a, b) => {
+      // Completed achievements first
+      if (a.isCompleted && !b.isCompleted) return -1;
+      if (!a.isCompleted && b.isCompleted) return 1;
+      return 0;
+    })
+    .slice(0, 4);
 
   return (
     <>
@@ -270,7 +529,7 @@ export default function ProfilePage() {
 
           {/* Add Friends Button */}
           <button className="w-full mt-5 bg-transparent hover:bg-white/5 border-2 border-cloud-gray hover:border-white text-white font-extrabold py-3 rounded-2xl transition-all uppercase tracking-widest text-xs flex items-center justify-center gap-2 cursor-pointer active:translate-y-0.5">
-            <span>👤➕</span> Add Friends
+            Add Friends
           </button>
         </div>
 
@@ -388,23 +647,55 @@ export default function ProfilePage() {
             <h2 className="font-feather text-xs font-black tracking-widest text-silver uppercase select-none">
               Monthly Badges
             </h2>
-            <span className="text-sky-blue font-bold text-xs uppercase tracking-wider cursor-pointer hover:underline select-none">
-              View All &gt;
+            <span 
+              onClick={() => router.push("/profile/achievements?tab=badges")}
+              className="text-sky-blue font-bold text-xs uppercase tracking-wider cursor-pointer hover:text-white hover:-translate-y-0.5 transition-all duration-300 select-none"
+            >
+              View All
             </span>
           </div>
 
-          <div className="flex items-center gap-5">
-            <div className="w-14 h-14 rounded-full overflow-hidden bg-gradient-to-tr from-orange-500/20 to-yellow-500/20 border border-orange-500/30 flex items-center justify-center p-2 relative shadow-md hover:scale-105 transition-transform duration-300">
-              <Image src="/img/gen_imgs/trophy.webp" alt="Badge" width={36} height={36} className="object-contain" />
+          <div className="border-0 border-cloud-gray rounded-3xl p-5 md:p-6 bg-gradient-to-br from-duo-green-light/10 to-transparent flex items-center gap-5 sm:gap-6 relative hover:border-duo-green transition-all duration-300">
+            {/* Badge Icon */}
+            <div className={`relative w-34 h-34 sm:w-32 sm:h-32 md:w-36 md:h-36 shrink-0 transition-transform hover:scale-105 duration-300 ${!isBadgeAchieved ? "grayscale opacity-40" : "drop-shadow-[0_0_15px_rgba(253,164,175,0.35)] animate-[pulse_4s_infinite]"}`}>
+              <Image
+                src={currentBadge.image}
+                alt={currentBadge.badgeName}
+                width={144}
+                height={144}
+                className="object-contain"
+              />
             </div>
-            <div className="w-14 h-14 rounded-full overflow-hidden bg-gradient-to-tr from-sky-blue/20 to-blue-500/20 border border-sky-blue/30 flex items-center justify-center p-2 relative shadow-md hover:scale-105 transition-transform duration-300">
-              <Image src="/img/gen_imgs/diamond.webp" alt="Badge" width={36} height={36} className="object-contain" />
-            </div>
-            <div className="w-14 h-14 rounded-full overflow-hidden bg-gradient-to-tr from-duo-green/20 to-emerald-500/20 border border-duo-green/30 flex items-center justify-center p-2 relative shadow-md hover:scale-105 transition-transform duration-300">
-              <Image src={getStreakImage(profile?.streak || 0)} alt="Badge" width={36} height={36} className="object-contain" />
-            </div>
-            <div className="w-14 h-14 rounded-full bg-cloud-gray/10 border border-cloud-gray/30 flex items-center justify-center text-silver text-xl select-none grayscale opacity-30">
-              🔒
+
+            {/* Info details */}
+            <div className="flex flex-col flex-1 min-w-0">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[10px] font-black text-sunshine-yellow tracking-widest uppercase">
+                  {currentBadge.monthName} Badge
+                </span>
+                <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase ${isBadgeAchieved ? "bg-duo-green/20 text-duo-green border border-duo-green/30" : "bg-cloud-gray/20 text-silver border border-cloud-gray/30"}`}>
+                  {isBadgeAchieved ? "Achieved" : "In Progress"}
+                </span>
+              </div>
+              <h3 className="font-feather text-lg sm:text-xl text-white font-bold tracking-wide mt-0.5 leading-tight">
+                {currentBadge.badgeName}
+              </h3>
+              <p className="text-silver text-xs sm:text-sm font-semibold mt-1 leading-tight">
+                {currentBadge.description}
+              </p>
+
+              {/* Progress bar */}
+              <div className="mt-3.5 w-full flex items-center gap-3">
+                <div className="h-4 flex-1 bg-cloud-gray/20 dark:bg-cloud-gray/10 rounded-full overflow-hidden relative flex items-center justify-center border border-cloud-gray/30">
+                  <div
+                    className={`absolute left-0 top-0 h-full rounded-full transition-all duration-500 bg-gradient-to-r ${isBadgeAchieved ? "from-[#58cc02] to-[#46a302]" : "from-sky-blue to-sky-blue/80"}`}
+                    style={{ width: `${Math.min(100, (currentMonthCount / currentBadge.target) * 100)}%` }}
+                  ></div>
+                  <span className="relative z-10 text-white font-black text-[9px] sm:text-[10px]">
+                    {currentMonthCount} / {currentBadge.target}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -415,60 +706,34 @@ export default function ProfilePage() {
             <h2 className="font-feather text-xs font-black tracking-widest text-silver uppercase select-none">
               Achievements
             </h2>
-            <span className="text-sky-blue font-bold text-xs uppercase tracking-wider cursor-pointer hover:underline select-none">
-              View All &gt;
+            <span 
+              onClick={() => router.push("/profile/achievements?tab=achievements")}
+              className="text-sky-blue font-bold text-xs uppercase tracking-wider cursor-pointer hover:text-white hover:-translate-y-0.5 transition-all select-none"
+            >
+              View All
             </span>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            {/* Achievement 1 */}
-            <div className="flex flex-col items-center gap-2 relative group cursor-pointer">
-              <span className="absolute -top-1.5 bg-[#ff4b4b] text-white text-[7px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider scale-90 z-10 select-none shadow-sm">
-                NEW
-              </span>
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-duo-green/10 to-transparent border-2 border-duo-green/30 flex items-center justify-center p-2 relative group-hover:scale-105 transition-all">
-                <Image src="/emoji/quest.webp" alt="Quest" width={36} height={36} className="object-contain" unoptimized />
+            {userAchievements.map((ach) => (
+              <div 
+                key={ach.id} 
+                onClick={() => router.push("/profile/achievements?tab=achievements")}
+                className={`flex flex-col items-center gap-2 relative group cursor-pointer ${!ach.isCompleted ? "grayscale opacity-45" : ""}`}
+              >
+                {ach.isCompleted && (
+                  <span className="absolute -top-1.5 bg-duo-green text-white text-[7px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider scale-90 z-10 select-none shadow-sm">
+                    Done
+                  </span>
+                )}
+                <div className={`w-35 h-30 rounded-2xl bg-gradient-to-br ${ach.isCompleted ? "from-sunshine-green/10 to-transparent" : "from-cloud-gray/10 to-transparent"} flex items-center justify-center p-2 relative group-hover:scale-105 transition-all`}>
+                  <Image src={ach.icon} alt={ach.name} width={106} height={106} className="object-contain" />
+                </div>
+                <span className={`text-[9px] font-extrabold px-2 py-0.5 rounded-full select-none text-center ${ach.isCompleted ? "text-sunshine-white bg-sunshine-green/15" : "text-silver bg-cloud-gray/20"}`}>
+                  {ach.name}
+                </span>
               </div>
-              <span className="text-[9px] font-extrabold text-[#58cc02] bg-[#58cc02]/15 px-2 py-0.5 rounded-full select-none">
-                Lvl 1
-              </span>
-            </div>
-
-            {/* Achievement 2 */}
-            <div className="flex flex-col items-center gap-2 relative group cursor-pointer">
-              <span className="absolute -top-1.5 bg-[#ff4b4b] text-white text-[7px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider scale-90 z-10 select-none shadow-sm">
-                NEW
-              </span>
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-yellow-500/10 to-transparent border-2 border-yellow-500/30 flex items-center justify-center p-2 relative group-hover:scale-105 transition-all">
-                <Image src="/img/gen_imgs/trophy.webp" alt="Trophy" width={36} height={36} className="object-contain" />
-              </div>
-              <span className="text-[9px] font-extrabold text-yellow-500 bg-yellow-500/15 px-2 py-0.5 rounded-full select-none">
-                {profile?.total_score || 0} XP
-              </span>
-            </div>
-
-            {/* Achievement 3 */}
-            <div className="flex flex-col items-center gap-2 relative group cursor-pointer">
-              <span className="absolute -top-1.5 bg-[#ff4b4b] text-white text-[7px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider scale-90 z-10 select-none shadow-sm">
-                NEW
-              </span>
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-500/10 to-transparent border-2 border-orange-500/30 flex items-center justify-center p-2 relative group-hover:scale-105 transition-all">
-                <Image src={getStreakImage(profile?.streak || 0)} alt="Streak" width={36} height={36} className="object-contain" />
-              </div>
-              <span className="text-[9px] font-extrabold text-orange-500 bg-orange-500/15 px-2 py-0.5 rounded-full select-none">
-                {profile?.streak || 0} days
-              </span>
-            </div>
-
-            {/* Achievement 4 */}
-            <div className="flex flex-col items-center gap-2 relative group cursor-pointer grayscale opacity-45">
-              <div className="w-14 h-14 rounded-2xl bg-cloud-gray/10 border-2 border-cloud-gray/30 flex items-center justify-center p-2 relative">
-                <span className="text-lg">🏆</span>
-              </div>
-              <span className="text-[9px] font-extrabold text-silver bg-cloud-gray/20 px-2 py-0.5 rounded-full select-none">
-                Locked
-              </span>
-            </div>
+            ))}
           </div>
         </div>
 

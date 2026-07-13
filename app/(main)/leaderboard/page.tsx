@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { supabase } from "@/lib/supabase";
 import { getStreakImage } from "@/lib/streak";
@@ -148,6 +149,7 @@ export function getLeagueStyle(leagueName: string): LeagueStyle {
 }
 
 export default function LeaderboardPage() {
+  const router = useRouter();
   const { user, isLoaded } = useUser();
   const [profiles, setProfiles] = useState<LeaderboardUser[]>([]);
   const [currentUserProfile, setCurrentUserProfile] = useState<LeaderboardUser | null>(null);
@@ -363,7 +365,10 @@ export default function LeaderboardPage() {
                     <span className="font-din-round font-bold text-[10px] text-charcoal dark:text-silver truncate max-w-full mb-1">
                       {profiles[2].id === currentUserId ? "You" : (profiles[2].name || (profiles[2].id.startsWith("guest_") ? `Guest_${profiles[2].id.substring(6, 11)}` : `Reviewer_${profiles[2].id.substring(5, 10)}`))}
                     </span>
-                    <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-[#b3247a] bg-purple-900/40 p-0.5 mb-1.5 relative shadow-md shrink-0">
+                    <div 
+                      onClick={() => router.push(`/profile/${profiles[2].id}`)}
+                      className="w-20 h-20 rounded-full overflow-hidden border-2 border-[#b3247a] bg-purple-900/40 p-0.5 mb-1.5 relative shadow-md shrink-0 cursor-pointer hover:scale-105 active:scale-95 transition-all"
+                    >
                       <img
                         src={profiles[2].id === currentUserId && user?.imageUrl ? user.imageUrl : "/emoji/profile.webp"}
                         alt="Rank 3"
@@ -375,7 +380,10 @@ export default function LeaderboardPage() {
                   <div className="w-20 h-20 rounded-full border-2 border-dashed border-purple-800 flex items-center justify-center text-purple-600 mb-2">3</div>
                 )}
                 {/* Podium Block */}
-                <div className="w-full bg-gradient-to-t from-[#b3247a] to-[#cc348d] border-t-4 border-[#e066b1] rounded-t-xl py-2 flex flex-col items-center shadow-lg h-[110px] justify-end pb-3 relative">
+                <div 
+                  onClick={() => profiles[2] && router.push(`/profile/${profiles[2].id}`)}
+                  className="w-full bg-gradient-to-t from-[#b3247a] to-[#cc348d] border-t-4 border-[#e066b1] rounded-t-xl py-2 flex flex-col items-center shadow-lg h-[110px] justify-end pb-3 relative cursor-pointer hover:brightness-105 active:scale-[0.99] transition-all"
+                >
                   <div className="absolute -top-3.5 bg-[#8c1c5e]/80 text-[#fecdd3] text-[8px] font-black px-2 py-0.5 rounded-full select-none flex items-center gap-0.5 border border-[#cc348d]/40 uppercase tracking-wider">
                     {profiles[2]?.total_score || 0} XP
                   </div>
@@ -392,7 +400,10 @@ export default function LeaderboardPage() {
                     <span className="font-din-round font-bold text-[11px] text-[#ffc700] truncate max-w-full mb-1 flex items-center gap-0.5">
                       👑 {profiles[0].id === currentUserId ? "You" : (profiles[0].name || (profiles[0].id.startsWith("guest_") ? `Guest_${profiles[0].id.substring(6, 11)}` : `Reviewer_${profiles[0].id.substring(5, 10)}`))}
                     </span>
-                    <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-[#ffc700] bg-purple-900/40 p-0.5 mb-1.5 relative shadow-xl shrink-0">
+                    <div 
+                      onClick={() => router.push(`/profile/${profiles[0].id}`)}
+                      className="w-20 h-20 rounded-full overflow-hidden border-4 border-[#ffc700] bg-purple-900/40 p-0.5 mb-1.5 relative shadow-xl shrink-0 cursor-pointer hover:scale-105 active:scale-95 transition-all"
+                    >
                       <img
                         src={profiles[0].id === currentUserId && user?.imageUrl ? user.imageUrl : "/emoji/profile.webp"}
                         alt="Rank 1"
@@ -404,7 +415,10 @@ export default function LeaderboardPage() {
                   <div className="w-20 h-20 rounded-full border-2 border-dashed border-purple-800 flex items-center justify-center text-purple-600 mb-2">1</div>
                 )}
                 {/* Podium Block */}
-                <div className="w-full bg-gradient-to-t from-[#d97706] to-[#ffc700] border-t-4 border-[#ffe066] rounded-t-xl py-3 flex flex-col items-center shadow-2xl h-[140px] justify-end pb-3 relative">
+                <div 
+                  onClick={() => profiles[0] && router.push(`/profile/${profiles[0].id}`)}
+                  className="w-full bg-gradient-to-t from-[#d97706] to-[#ffc700] border-t-4 border-[#ffe066] rounded-t-xl py-3 flex flex-col items-center shadow-2xl h-[140px] justify-end pb-3 relative cursor-pointer hover:brightness-105 active:scale-[0.99] transition-all"
+                >
                   <div className="absolute -top-3.5 bg-[#ffc700] text-purple-950 text-[9px] font-black px-2.5 py-0.5 rounded-full select-none flex items-center gap-0.5 shadow-md uppercase tracking-wider">
                     {profiles[0]?.total_score || 0} XP
                   </div>
@@ -421,7 +435,10 @@ export default function LeaderboardPage() {
                     <span className="font-din-round font-bold text-[10px] text-charcoal dark:text-silver truncate max-w-full mb-1">
                       {profiles[1].id === currentUserId ? "You" : (profiles[1].name || (profiles[1].id.startsWith("guest_") ? `Guest_${profiles[1].id.substring(6, 11)}` : `Reviewer_${profiles[1].id.substring(5, 10)}`))}
                     </span>
-                    <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-[#1085ba] bg-purple-900/40 p-0.5 mb-1.5 relative shadow-md shrink-0">
+                    <div 
+                      onClick={() => router.push(`/profile/${profiles[1].id}`)}
+                      className="w-20 h-20 rounded-full overflow-hidden border-2 border-[#1085ba] bg-purple-900/40 p-0.5 mb-1.5 relative shadow-md shrink-0 cursor-pointer hover:scale-105 active:scale-95 transition-all"
+                    >
                       <img
                         src={profiles[1].id === currentUserId && user?.imageUrl ? user.imageUrl : "/emoji/profile.webp"}
                         alt="Rank 2"
@@ -433,7 +450,10 @@ export default function LeaderboardPage() {
                   <div className="w-20 h-20 rounded-full border-2 border-dashed border-purple-800 flex items-center justify-center text-[#1085ba] mb-2">2</div>
                 )}
                 {/* Podium Block */}
-                <div className="w-full bg-gradient-to-t from-[#1085ba] to-[#1cb0f6] border-t-4 border-[#6bcaf6] rounded-t-xl py-2 flex flex-col items-center shadow-lg h-[125px] justify-end pb-3 relative">
+                <div 
+                  onClick={() => profiles[1] && router.push(`/profile/${profiles[1].id}`)}
+                  className="w-full bg-gradient-to-t from-[#1085ba] to-[#1cb0f6] border-t-4 border-[#6bcaf6] rounded-t-xl py-2 flex flex-col items-center shadow-lg h-[125px] justify-end pb-3 relative cursor-pointer hover:brightness-105 active:scale-[0.99] transition-all"
+                >
                   <div className="absolute -top-3.5 bg-[#0c9bdc] text-white text-[8px] font-black px-2 py-0.5 rounded-full select-none flex items-center gap-0.5 border border-[#1cb0f6]/40 uppercase tracking-wider">
                     {profiles[1]?.total_score || 0} XP
                   </div>
@@ -476,7 +496,8 @@ export default function LeaderboardPage() {
                 return (
                   <div
                     key={profile.id}
-                    className={`flex items-center justify-between border-2 rounded-xl p-3.5 sm:p-4.5 transition-all duration-150 ${rowBgClass}`}
+                    onClick={() => router.push(`/profile/${profile.id}`)}
+                    className={`flex items-center justify-between border-2 rounded-xl p-3.5 sm:p-4.5 transition-all duration-150 cursor-pointer hover:bg-white/5 active:scale-[0.99] ${rowBgClass}`}
                   >
                     <div className="flex items-center gap-5 sm:gap-8 overflow-hidden">
                       {rankBadge}
