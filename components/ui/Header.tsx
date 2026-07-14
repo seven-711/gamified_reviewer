@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { useUser, UserButton } from "@clerk/nextjs";
 import { useStats } from "@/components/ui/StatsContext";
 import { usePathname } from "next/navigation";
-import { getStreakImage } from "@/lib/streak";
+import { StreakAsset } from "@/components/ui/StreakAsset";
 
 export function Header() {
   const pathname = usePathname();
@@ -93,13 +93,11 @@ export function Header() {
                       {pathname !== "/" && (
                         <div className="flex sm:hidden items-center gap-3 mr-1">
                           <div title="Streak" className="flex items-center gap-1 cursor-help select-none">
-                            <Image
-                              src={getStreakImage(streak)}
-                              alt="Streak"
+                            <StreakAsset
+                              streak={streak}
                               width={22}
                               height={22}
                               className="object-contain"
-                              style={{ height: 'auto' }}
                             />
                             <span className="text-orange-500 font-extrabold text-sm">{streak}</span>
                           </div>
@@ -130,13 +128,11 @@ export function Header() {
                       {/* Desktop stats (hidden on mobile, visible on desktop) */}
                       <div className="hidden sm:flex items-center gap-6 border-l pl-5 border-cloud-gray">
                         <div title="Streak" className="flex items-center gap-2 cursor-help select-none">
-                          <Image
-                            src={getStreakImage(streak)}
-                            alt="Streak"
+                          <StreakAsset
+                            streak={streak}
                             width={32}
                             height={32}
                             className="object-contain"
-                            style={{ height: 'auto' }}
                           />
                           <span className="text-orange-500 font-black text-lg">{streak}</span>
                         </div>

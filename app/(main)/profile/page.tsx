@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { supabase } from "@/lib/supabase";
 import { useUser, UserButton, SignOutButton } from "@clerk/nextjs";
-import { getStreakImage } from "@/lib/streak";
+import { StreakAsset } from "@/components/ui/StreakAsset";
 import { fetchFullProfile } from "@/lib/session";
 
 interface UserProfile {
@@ -542,7 +542,7 @@ export default function ProfilePage() {
           <div className="grid grid-cols-2 gap-4">
             {/* Streak */}
             <div className="flex flex-col items-center justify-center p-5 hover:-translate-y-0.5 transition-transform text-center gap-1.5">
-              <Image src={getStreakImage(profile?.streak || 0)} alt="Streak" width={100} height={100} className="object-contain" />
+              <StreakAsset streak={profile?.streak || 0} width={100} height={100} className="object-contain" />
               <span className="font-black text-2xl text-orange-400 dark:text-orange-500">
                 {profile?.streak || 0} Days
               </span>

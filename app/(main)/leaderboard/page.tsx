@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { supabase } from "@/lib/supabase";
-import { getStreakImage } from "@/lib/streak";
+import { StreakAsset } from "@/components/ui/StreakAsset";
 
 interface LeaderboardUser {
   id: string;
@@ -509,7 +509,7 @@ export default function LeaderboardPage() {
                     <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
                       {profile.streak > 0 && (
                         <span title={`${profile.streak} Day Streak`} className="font-din-round font-bold text-[10px] sm:text-xs md:text-sm flex items-center gap-0.5 sm:gap-1 select-none text-[#f97316] tracking-[0.053em]">
-                          <Image src={getStreakImage(profile.streak)} alt="Streak" width={20} height={20} className="object-contain" style={{ height: 'auto' }} />
+                          <StreakAsset streak={profile.streak} width={20} height={20} className="object-contain" />
                           <span>{profile.streak}</span>
                         </span>
                       )}

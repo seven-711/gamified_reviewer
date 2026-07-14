@@ -8,7 +8,7 @@ import { supabase } from "@/lib/supabase";
 import { refillHeartsInDb } from "@/lib/session";
 import { useAlert } from "@/components/ui/AlertContext";
 import { useStats } from "@/components/ui/StatsContext";
-import { getStreakImage } from "@/lib/streak";
+import { StreakAsset } from "@/components/ui/StreakAsset";
 
 export default function ShopPage() {
   const { showAlert } = useAlert();
@@ -230,13 +230,11 @@ export default function ShopPage() {
 
             {/* Streak */}
             <div className="flex items-center gap-1.5 text-orange-500 cursor-pointer hover:bg-duo-green-light p-2 rounded-xl transition-colors">
-              <Image
-                src={getStreakImage(streak)}
-                alt="Streak"
+              <StreakAsset
+                streak={streak}
                 width={28}
                 height={28}
                 className="object-contain"
-                style={{ height: 'auto' }}
               />
               <span>{streak}</span>
             </div>

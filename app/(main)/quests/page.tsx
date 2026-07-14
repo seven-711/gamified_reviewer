@@ -7,7 +7,7 @@ import { useUser } from "@clerk/nextjs";
 import { supabase } from "@/lib/supabase";
 import { useAlert } from "@/components/ui/AlertContext";
 import { useStats } from "@/components/ui/StatsContext";
-import { getStreakImage } from "@/lib/streak";
+import { StreakAsset } from "@/components/ui/StreakAsset";
 
 const playSound = (src: string) => {
   if (typeof window !== "undefined") {
@@ -645,7 +645,7 @@ export default function QuestsPage() {
             {/* Card 3: Longest Streak */}
             <div className="col-span-2 md:col-span-1 p-4 bg-snow-white rounded-2xl flex flex-col items-center text-center">
               <div className="w-25 h-25 relative">
-                <Image src={getStreakImage(streak)} alt="Longest Streak" fill className="object-contain" unoptimized />
+                <StreakAsset streak={streak} alt="Longest Streak" fill className="object-contain" unoptimized />
               </div>
               <span className="text-xl md:text-2xl font-black text-orange-500">{streak}</span>
               <span className="text-[11px] md:text-[12px] font-extrabold text-charcoal dark:text-white mt-1.5 leading-tight">Longest Streak</span>
@@ -761,13 +761,11 @@ export default function QuestsPage() {
 
             {/* Streak */}
             <div className="flex items-center gap-1.5 text-orange-500 cursor-pointer hover:bg-duo-green-light dark:hover:bg-white/5 p-2 rounded-xl transition-colors">
-              <Image
-                src={getStreakImage(streak)}
-                alt="Streak"
+              <StreakAsset
+                streak={streak}
                 width={28}
                 height={28}
                 className="object-contain"
-                style={{ height: 'auto' }}
               />
               <span>{streak}</span>
             </div>

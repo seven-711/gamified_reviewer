@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useStats } from "@/components/ui/StatsContext";
 import { useUser, UserButton } from "@clerk/nextjs";
-import { getStreakImage } from "@/lib/streak";
+import { StreakAsset } from "@/components/ui/StreakAsset";
 
 export default function MobileHeader() {
   const { streak, hearts, gems, isLoaded: isStatsLoaded } = useStats();
@@ -35,13 +35,11 @@ export default function MobileHeader() {
           <>
             {/* Streak */}
             <div title="Streak" className="flex items-center gap-1">
-              <Image
-                src={getStreakImage(streak)}
-                alt="Streak"
+              <StreakAsset
+                streak={streak}
                 width={22}
                 height={22}
                 className="object-contain"
-                style={{ height: 'auto' }}
               />
               <span className="text-orange-500 font-extrabold text-sm">{streak}</span>
             </div>
