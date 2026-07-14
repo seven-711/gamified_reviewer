@@ -3,6 +3,7 @@ import Script from "next/script";
 import { ClerkProvider } from '@clerk/nextjs'
 import { Fredoka, Nunito } from "next/font/google";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next";
 
 import { AlertProvider } from "@/components/ui/AlertContext";
 import { StatsProvider } from "@/components/ui/StatsContext";
@@ -48,6 +49,7 @@ export default function RootLayout({
           <AlertProvider>
             <StatsProvider>
               {children}
+              <Analytics />
             </StatsProvider>
           </AlertProvider>
         </body>
