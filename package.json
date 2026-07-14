@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^7.4.1",
+    "@dotlottie/react-player": "^1.6.19",
     "@supabase/supabase-js": "^2.106.2",
     "alasql": "^4.17.3",
     "next": "16.2.6",

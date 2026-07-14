@@ -132,7 +132,7 @@ export async function updateProfileStats(
   timerDurationMinutes: number,
   heartsRemaining?: number,
   totalQuestions?: number
-): Promise<{ xpEarned: number; gemsEarned: number }> {
+): Promise<{ xpEarned: number; gemsEarned: number; streakIncreased: boolean; newStreak: number }> {
   // Calculate XP using the cumulative formula:
   const totalSeconds = timerDurationMinutes * 60;
   const baseScoreXp = correctAnswers * 15;
@@ -140,6 +140,9 @@ export async function updateProfileStats(
   const speedBonus = Math.floor(speedFactor * timerDurationMinutes * 8);
   const durationBaseXp = timerDurationMinutes * 5;
   const xpEarned = baseScoreXp + speedBonus + durationBaseXp;
+
+  let streakIncreased = false;
+  let finalStreakVal = 0;
 
   // Calculate Gems using the new rewards schedule
   const questionsCount = totalQuestions || 10;
@@ -224,6 +227,9 @@ export async function updateProfileStats(
       newStreak = 1;
     }
 
+    streakIncreased = newStreak > currentStreak;
+    finalStreakVal = newStreak;
+
     // 7-day streak milestone check
     if (newStreak > 0 && newStreak % 7 === 0 && (lastLessonDateStr !== todayStr)) {
       gemsEarned += 50;
@@ -292,7 +298,7 @@ export async function updateProfileStats(
     console.error("Error in updateProfileStats:", err);
   }
 
-  return { xpEarned, gemsEarned };
+  return { xpEarned, gemsEarned, streakIncreased, newStreak: finalStreakVal };
 }
 
 /**

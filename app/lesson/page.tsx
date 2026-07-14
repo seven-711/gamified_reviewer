@@ -12,6 +12,12 @@ import { getOrCreateGuestSessionId, updateProfileStats, refillHeartsInDb, upsert
 import { supabase } from "@/lib/supabase";
 import { useAlert } from "@/components/ui/AlertContext";
 import { useStats } from "@/components/ui/StatsContext";
+import dynamic from "next/dynamic";
+
+const DotLottiePlayer = dynamic(
+  () => import("@dotlottie/react-player").then((mod) => mod.DotLottiePlayer),
+  { ssr: false }
+);
 
 type QuizStatus = "none" | "selected" | "correct" | "wrong" | "completed";
 
@@ -57,7 +63,7 @@ function LessonContent() {
   const [timeLeft, setTimeLeft] = useState<number>(300);
   const [correctAnswers, setCorrectAnswers] = useState(0);
   const [consecutiveCorrect, setConsecutiveCorrect] = useState<number>(0);
-  const [showAwoooVideo, setShowAwoooVideo] = useState<boolean>(false);
+  const [streakVideo, setStreakVideo] = useState<{ src: string; title: string } | null>(null);
   const [showHowToAnswer, setShowHowToAnswer] = useState(true);
   const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -80,6 +86,11 @@ function LessonContent() {
     streakBonus: number;
     total: number;
   } | null>(null);
+
+  const [showStreakPage, setShowStreakPage] = useState<boolean>(false);
+  const [streakIncreased, setStreakIncreased] = useState<boolean>(false);
+  const [newStreakCount, setNewStreakCount] = useState<number>(0);
+  const [weekProgress, setWeekProgress] = useState<boolean[]>([false, false, false, false, false, false, false]);
 
   const handleRefillHearts = async () => {
     if (profileGems < 50) return;
@@ -397,6 +408,49 @@ function LessonContent() {
               streakBonus: (res.gemsEarned - 5 - (isPassed ? 10 : 0) - (correctAnswers === questions.length ? 5 : 0)),
               total: res.gemsEarned
             });
+            setStreakIncreased(res.streakIncreased);
+            setNewStreakCount(res.newStreak);
+
+            // Fetch weekly progress
+            const today = new Date();
+            const currentDayOfWeek = today.getDay(); // 0 is Sunday, 1 is Monday, etc.
+            const startOfWeek = new Date(today);
+            startOfWeek.setDate(today.getDate() - currentDayOfWeek);
+            startOfWeek.setHours(0, 0, 0, 0);
+
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(startOfWeek.getDate() + 6);
+            endOfWeek.setHours(23, 59, 59, 999);
+
+            try {
+              const { data, error: err } = await supabase
+                .from("lesson_events")
+                .select("created_at")
+                .eq("profile_id", profileId)
+                .eq("event_type", "lesson_completed")
+                .gte("created_at", startOfWeek.toISOString())
+                .lte("created_at", endOfWeek.toISOString());
+
+              if (!err && data) {
+                const progress = [false, false, false, false, false, false, false];
+                data.forEach((evt: any) => {
+                  const d = new Date(evt.created_at);
+                  progress[d.getDay()] = true;
+                });
+                progress[today.getDay()] = true; // Make sure today is checked since we just finished
+                setWeekProgress(progress);
+              } else {
+                // fallback: check only today as true
+                const progress = [false, false, false, false, false, false, false];
+                progress[today.getDay()] = true;
+                setWeekProgress(progress);
+              }
+            } catch (e) {
+              const progress = [false, false, false, false, false, false, false];
+              progress[today.getDay()] = true;
+              setWeekProgress(progress);
+            }
+
             await refreshStats();
           }
         };
@@ -423,10 +477,10 @@ function LessonContent() {
       // Ignore if user is typing in an input
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
 
-      if (showAwoooVideo) {
+      if (streakVideo) {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
-          setShowAwoooVideo(false);
+          setStreakVideo(null);
         }
         return;
       }
@@ -491,7 +545,17 @@ function LessonContent() {
             setConsecutiveCorrect((prev) => {
               const next = prev + 1;
               if (next === 3) {
-                setShowAwoooVideo(true);
+                setStreakVideo({
+                  src: "/videos/awooo.webm",
+                  title: "3 Correct Streak! 🔥"
+                });
+                return next;
+              }
+              if (next === 5) {
+                setStreakVideo({
+                  src: "/img/gen_imgs/Streak/5_straight_correct.webm",
+                  title: "5 Correct Streak! 🔥"
+                });
                 return 0;
               }
               return next;
@@ -538,7 +602,7 @@ function LessonContent() {
     showOutOfHeartsModal,
     showExitModal,
     hearts,
-    showAwoooVideo
+    streakVideo
   ]);
 
   const handleOptionSelect = (index: number) => {
@@ -558,7 +622,17 @@ function LessonContent() {
       setConsecutiveCorrect((prev) => {
         const next = prev + 1;
         if (next === 3) {
-          setShowAwoooVideo(true);
+          setStreakVideo({
+            src: "/videos/awooo.webm",
+            title: "3 Correct Streak! 🔥"
+          });
+          return next;
+        }
+        if (next === 5) {
+          setStreakVideo({
+            src: "/img/gen_imgs/Streak/5_straight_correct.webm",
+            title: "5 Correct Streak! 🔥"
+          });
           return 0;
         }
         return next;
@@ -606,6 +680,16 @@ function LessonContent() {
     const savedDuration = localStorage.getItem("timer_duration");
     setTimeLeft((savedDuration ? parseInt(savedDuration, 10) : 5) * 60);
   };
+
+  if (showStreakPage) {
+    return (
+      <StreakPage
+        streak={newStreakCount}
+        weekProgress={weekProgress}
+        onContinue={() => router.push("/dashboard")}
+      />
+    );
+  }
 
   if (error) {
     return (
@@ -899,7 +983,13 @@ function LessonContent() {
 
         <div className="flex flex-col gap-4 w-full max-w-xs">
           <button
-            onClick={() => router.push("/dashboard")}
+            onClick={() => {
+              if (streakIncreased) {
+                setShowStreakPage(true);
+              } else {
+                router.push("/dashboard");
+              }
+            }}
             className="bg-duo-green text-white font-bold text-[17px] h-[50px] px-8 rounded-2xl shadow-[0_4px_0_#3f8f01] active:translate-y-1 active:shadow-none transition-all"
           >
             BACK TO DASHBOARD
@@ -1177,30 +1267,31 @@ function LessonContent() {
         </div>
       )}
 
-      {showAwoooVideo && (
+      {streakVideo && (
         <div className="fixed inset-0 bg-black flex flex-col items-center justify-center z-[100] p-4 animate-[fadeIn_0.2s_ease-out]">
           <div className="w-full max-w-[480px] flex flex-col items-center gap-6 animate-[scaleIn_0.2s_ease-out]">
             <div className="flex flex-col items-center text-center gap-2">
               <h3 className="font-feather font-black text-3xl md:text-4xl text-[#ffc700] tracking-wide uppercase select-none">
-                3 Correct Streak! 🔥
+                {streakVideo.title}
               </h3>
             </div>
 
             <div className="w-full aspect-video relative bg-black flex items-center justify-center">
               <video
-                src="/videos/awooo.webm"
+                key={streakVideo.src}
+                src={streakVideo.src}
                 autoPlay
                 playsInline
                 className="w-full h-full object-contain"
-                onEnded={() => setShowAwoooVideo(false)}
+                onEnded={() => setStreakVideo(null)}
                 onError={(e) => {
-                  console.error("Awooo video failed to play:", e);
+                  console.error("Streak video failed to play:", e);
                 }}
               />
             </div>
 
             <button
-              onClick={() => setShowAwoooVideo(false)}
+              onClick={() => setStreakVideo(null)}
               className="w-full max-w-[240px] bg-duo-green text-white font-bold py-3 px-6 rounded-2xl shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none hover:brightness-105 transition-all text-body text-center cursor-pointer font-din-round"
             >
               CONTINUE
@@ -1242,5 +1333,149 @@ export default function LessonPage() {
     }>
       <LessonContent />
     </Suspense>
+  );
+}
+
+interface StreakPageProps {
+  streak: number;
+  weekProgress: boolean[];
+  onContinue: () => void;
+}
+
+function StreakPage({ streak, weekProgress, onContinue }: StreakPageProps) {
+  const daysOfWeek = ["Su", "M", "Tu", "W", "Th", "F", "Sa"];
+  const [todayIndex, setTodayIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    setTodayIndex(new Date().getDay());
+  }, []);
+
+  const isHydrated = todayIndex !== null;
+
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-between bg-[#131f24] text-white font-din-round px-6 py-8 transition-colors duration-300 relative select-none animate-[fadeIn_0.3s_ease-out] w-full">
+      {/* Top Left Close Button */}
+      <button
+        onClick={onContinue}
+        className="absolute top-6 left-6 text-gray-500 hover:text-white transition-colors duration-200 p-2 text-2xl font-bold focus:outline-none cursor-pointer z-50"
+        aria-label="Close"
+      >
+        ✕
+      </button>
+
+      {/* Spacer / Center container */}
+      <div className="grow flex flex-col items-center justify-center w-full max-w-md gap-6 md:mt-0">
+        
+        {/* Flame Animation & Streak Number */}
+        <div className="relative w-84 h-84 md:w-72 md:h-72 flex items-center justify-center">
+          <DotLottiePlayer
+            src="/img/gen_imgs/Streak/Flame - Streak.lottie"
+            autoplay
+            loop
+            className="w-full h-full object-contain"
+          />
+          {/* Streak Number Overlayed on the flame/video */}
+          <div className="absolute bottom-12 flex flex-col items-center justify-center">
+            <span 
+              className="text-7xl md:text-8xl font-black text-white font-feather select-none tracking-tighter"
+              style={{
+                textShadow: "0 4px 0 #000, 0 -4px 0 #000, 4px 0 0 #000, -4px 0 0 #000, 4px 4px 0 #000, -4px -4px 0 #000, 4px -4px 0 #000, -4px 4px 0 #000",
+              }}
+            >
+              {streak}
+            </span>
+          </div>
+        </div>
+
+        {/* X Day Streak Text */}
+        <h2 className="text-[#f89e1b] font-feather text-2xl md:text-3xl font-extrabold tracking-wide uppercase text-center animate-[scaleIn_0.4s_ease-out]">
+          day streak!
+        </h2>
+
+        {/* Calendar Tracker Card */}
+        <div className="w-full bg-[#18252d] border border-[#35454e] rounded-[24px] p-4 md:p-6 flex flex-col gap-5 shadow-2xl">
+          {/* Days row */}
+          <div className="flex justify-between items-center px-1 w-full">
+            {daysOfWeek.map((day, index) => {
+              const isToday = isHydrated && index === todayIndex;
+              const isCompleted = weekProgress[index];
+              return (
+                <div key={day} className="flex flex-col items-center gap-3 flex-1">
+                  {/* Day Name Label */}
+                  <span
+                    className={`text-xs md:text-sm font-bold tracking-wider ${
+                      isToday ? "text-[#f89e1b] font-black" : "text-gray-400"
+                    }`}
+                  >
+                    {day}
+                  </span>
+
+                  {/* Icon Checkmark Container */}
+                  <div className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center relative shrink-0">
+                    {isToday && isCompleted ? (
+                      /* Today Completed: Flame outline with streak.webp checkmark inside */
+                      <>
+                        <video
+                          src="/img/gen_imgs/Streak/1-9_day_streak.webm"
+                          autoPlay
+                          loop
+                          muted
+                          playsInline
+                          className="absolute w-90 h-90 md:w-28 md:h-28 object-contain shrink-0 scale-120 md:scale-510 pointer-events-none z-10"
+                        />
+                      </>
+                    ) : isCompleted ? (
+                      /* Previous Day Completed: Gold circle with checkmark */
+                      <div className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-[#f89e1b] border-2 border-[#d77800] flex items-center justify-center shadow-lg shrink-0">
+                        <svg
+                          viewBox="0 0 24 24"
+                          className="w-4 h-4 md:w-5 md:h-5 text-white stroke-white stroke-[4] fill-none shrink-0"
+                        >
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      </div>
+                    ) : (
+                      /* Not Completed: Dark empty circle */
+                      <div className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-[#202f36] border-2 border-[#35454e] flex items-center justify-center shrink-0" />
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Transparent Line Divider */}
+          <div className="w-full h-[1px] bg-[#35454e]/50" />
+
+          {/* Description Text */}
+          <p className="text-center text-xs md:text-sm text-gray-300 leading-relaxed font-din-round tracking-wide">
+            A <span className="text-[#f89e1b] font-bold">streak </span> counts how many days you&apos;ve practiced in a row
+          </p>
+        </div>
+      </div>
+
+      {/* Bottom Button */}
+      <div className="w-full max-w-sm mt-8 pb-4">
+        <button
+          onClick={onContinue}
+          className="w-full bg-[#49c0f8] text-white font-extrabold text-lg py-4 rounded-[18px] shadow-[0_5px_0_#189edc] active:translate-y-[5px] active:shadow-none hover:brightness-105 transition-all tracking-wider uppercase font-din-round cursor-pointer"
+        >
+          Continue
+        </button>
+      </div>
+
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+          @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+          }
+        `
+      }} />
+    </div>
   );
 }
