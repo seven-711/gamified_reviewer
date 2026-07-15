@@ -15,15 +15,6 @@ export default function MobileHeader() {
     <header className="md:hidden fixed top-0 left-0 right-0 h-14 bg-snow-white dark:bg-[#202f36] border-b-2 border-cloud-gray dark:border-cloud-gray/15 z-40 flex items-center justify-between px-4 shadow-sm font-din-round">
       {/* Left: Brand Logo & Title */}
       <Link href="/dashboard" className="flex items-center gap-1.5 active:scale-95 transition-transform">
-        <div className="relative w-8 h-8 shrink-0">
-          <Image
-            src="/reviewer_logo.webp"
-            alt="Logo"
-            fill
-            sizes="32px"
-            className="object-contain"
-          />
-        </div>
         <span className="font-feather text-lg text-duo-green tracking-wide">
           REVIEWQO
         </span>

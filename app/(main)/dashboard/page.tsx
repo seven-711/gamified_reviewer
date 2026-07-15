@@ -101,7 +101,7 @@ async function checkDailyStreakValidation(
       .eq("profile_id", profileId);
 
     if (!isGuest) {
-      await showAlert("❄️ Streak Freeze used! Your daily streak was saved from resetting.");
+      await showAlert("Streak Freeze used! Your daily streak was saved from resetting.");
     }
     return { streak: currentStreak, last_lesson_date: yesterdayStr };
   } else {
@@ -111,7 +111,7 @@ async function checkDailyStreakValidation(
       .eq("profile_id", profileId);
 
     if (!isGuest) {
-      await showAlert("😢 Oh no! You missed a day and your streak reset to 0.");
+      await showAlert("Oh no! 😢  You missed a day and your streak reset to 0.");
     }
     return { streak: 0, last_lesson_date: lastLessonDateStr };
   }
@@ -133,7 +133,7 @@ async function checkDailyLoginReward(
       .update({ gems: newGems })
       .eq("profile_id", profileId);
     localStorage.setItem("last_login_reward_date", todayStr);
-    await showAlert("🌅 Daily Login Reward! You received 💎 10 Gems.");
+    await showAlert("Daily Login Reward! You received 💎 10 Gems.");
     return newGems;
   } catch (e) {
     console.error("Failed to update daily login gems reward", e);
@@ -581,7 +581,7 @@ export default function DashboardPage() {
       setShowHeartsBlocker(false);
       await refreshStats();
     } else {
-      await showAlert("❌ Refill failed: " + res.error);
+      await showAlert("Refill failed: " + res.error);
     }
     setRefillingHearts(false);
   };

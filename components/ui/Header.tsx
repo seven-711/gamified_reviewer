@@ -95,8 +95,8 @@ export function Header() {
                           <div title="Streak" className="flex items-center gap-1 cursor-help select-none">
                             <StreakAsset
                               streak={streak}
-                              width={22}
-                              height={22}
+                              width={26}
+                              height={26}
                               className="object-contain"
                             />
                             <span className="text-orange-500 font-extrabold text-sm">{streak}</span>
@@ -105,8 +105,8 @@ export function Header() {
                             <Image
                               src="/img/gen_imgs/user_life.webp"
                               alt="Hearts"
-                              width={22}
-                              height={22}
+                              width={20}
+                              height={20}
                               className="object-contain"
                               style={{ height: 'auto' }}
                             />

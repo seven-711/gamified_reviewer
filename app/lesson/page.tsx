@@ -63,7 +63,56 @@ function LessonContent() {
   const [timeLeft, setTimeLeft] = useState<number>(300);
   const [correctAnswers, setCorrectAnswers] = useState(0);
   const [consecutiveCorrect, setConsecutiveCorrect] = useState<number>(0);
-  const [streakVideo, setStreakVideo] = useState<{ src: string; title: string } | null>(null);
+  const [streakOverlay, setStreakOverlay] = useState<{ src: string; title: string; color: string } | null>(null);
+
+  useEffect(() => {
+    if (streakOverlay) {
+      const timer = setTimeout(() => {
+        setStreakOverlay(null);
+      }, 2000); // 1.7s stay + 300ms fade-out
+      return () => clearTimeout(timer);
+    }
+  }, [streakOverlay]);
+
+  const triggerStreakOverlay = (next: number) => {
+    if (next === 3) {
+      setStreakOverlay({
+        src: "/img/gen_imgs/Streak/10_day_streak.webp",
+        title: "3 STRAIGHT!",
+        color: "text-[#ffc700]"
+      });
+    } else if (next === 5) {
+      setStreakOverlay({
+        src: "/img/gen_imgs/Streak/30_day_streak.webp",
+        title: "5 STRAIGHT!",
+        color: "text-[#ff5e00]"
+      });
+    } else if (next === 10) {
+      setStreakOverlay({
+        src: "/img/gen_imgs/Streak/50_day_streak.webp",
+        title: "10 STRAIGHT!",
+        color: "text-[#ff2e63]"
+      });
+    } else if (next === 15) {
+      setStreakOverlay({
+        src: "/img/gen_imgs/Streak/100_day_streak.webp",
+        title: "15 STRAIGHT!",
+        color: "text-[#a570ff]"
+      });
+    } else if (next === 20) {
+      setStreakOverlay({
+        src: "/img/gen_imgs/Streak/150_day_streak.webp",
+        title: "20 STRAIGHT!",
+        color: "text-[#1cb0f6]"
+      });
+    } else if (next === 25) {
+      setStreakOverlay({
+        src: "/img/gen_imgs/Streak/200_day_streak.webp",
+        title: "25 STRAIGHT!",
+        color: "text-[#58cc02]"
+      });
+    }
+  };
   const [showHowToAnswer, setShowHowToAnswer] = useState(true);
   const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -477,10 +526,10 @@ function LessonContent() {
       // Ignore if user is typing in an input
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
 
-      if (streakVideo) {
+      if (streakOverlay) {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
-          setStreakVideo(null);
+          setStreakOverlay(null);
         }
         return;
       }
@@ -544,20 +593,7 @@ function LessonContent() {
             setCorrectAnswers((prev) => prev + 1);
             setConsecutiveCorrect((prev) => {
               const next = prev + 1;
-              if (next === 3) {
-                setStreakVideo({
-                  src: "/videos/awooo.webm",
-                  title: "3 Correct Streak! 🔥"
-                });
-                return next;
-              }
-              if (next === 5) {
-                setStreakVideo({
-                  src: "/img/gen_imgs/Streak/5_straight_correct.webm",
-                  title: "5 Correct Streak! 🔥"
-                });
-                return 0;
-              }
+              triggerStreakOverlay(next);
               return next;
             });
           } else {
@@ -602,7 +638,7 @@ function LessonContent() {
     showOutOfHeartsModal,
     showExitModal,
     hearts,
-    streakVideo
+    streakOverlay
   ]);
 
   const handleOptionSelect = (index: number) => {
@@ -621,20 +657,7 @@ function LessonContent() {
       setCorrectAnswers((prev) => prev + 1);
       setConsecutiveCorrect((prev) => {
         const next = prev + 1;
-        if (next === 3) {
-          setStreakVideo({
-            src: "/videos/awooo.webm",
-            title: "3 Correct Streak! 🔥"
-          });
-          return next;
-        }
-        if (next === 5) {
-          setStreakVideo({
-            src: "/img/gen_imgs/Streak/5_straight_correct.webm",
-            title: "5 Correct Streak! 🔥"
-          });
-          return 0;
-        }
+        triggerStreakOverlay(next);
         return next;
       });
     } else {
@@ -1157,7 +1180,7 @@ function LessonContent() {
                   src="/emoji/wahhh.webp"
                   alt="Sad Mascot"
                   fill
-                  sizes="96px"
+                  sizes="56px"
                   className="object-contain drop-shadow-md"
                   unoptimized
                 />
@@ -1267,35 +1290,30 @@ function LessonContent() {
         </div>
       )}
 
-      {streakVideo && (
-        <div className="fixed inset-0 bg-black flex flex-col items-center justify-center z-[100] p-4 animate-[fadeIn_0.2s_ease-out]">
-          <div className="w-full max-w-[480px] flex flex-col items-center gap-6 animate-[scaleIn_0.2s_ease-out]">
-            <div className="flex flex-col items-center text-center gap-2">
-              <h3 className="font-feather font-black text-3xl md:text-4xl text-[#ffc700] tracking-wide uppercase select-none">
-                {streakVideo.title}
-              </h3>
-            </div>
-
-            <div className="w-full aspect-video relative bg-black flex items-center justify-center">
-              <video
-                key={streakVideo.src}
-                src={streakVideo.src}
-                autoPlay
-                playsInline
-                className="w-full h-full object-contain"
-                onEnded={() => setStreakVideo(null)}
-                onError={(e) => {
-                  console.error("Streak video failed to play:", e);
-                }}
+      {streakOverlay && (
+        <div 
+          onClick={() => setStreakOverlay(null)}
+          className="fixed inset-0 bg-black/35 backdrop-blur-[1px] flex flex-col items-center justify-center z-[100] p-4 animate-[fadeIn_0.2s_ease-out] cursor-pointer"
+        >
+          <div className="flex flex-col items-center gap-6 select-none pointer-events-none animate-[streakFade_2.0s_ease-in-out_forwards]">
+            <div className="w-[300px] h-[300px] md:w-[400px] md:h-[400px] relative flex items-center justify-center">
+              <Image
+                src={streakOverlay.src}
+                alt={streakOverlay.title}
+                fill
+                sizes="(max-width: 768px) 300px, 400px"
+                className="object-contain drop-shadow-2xl"
+                priority
               />
             </div>
-
-            <button
-              onClick={() => setStreakVideo(null)}
-              className="w-full max-w-[240px] bg-duo-green text-white font-bold py-3 px-6 rounded-2xl shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none hover:brightness-105 transition-all text-body text-center cursor-pointer font-din-round"
+            <h3 
+              className={`font-feather font-black text-3xl md:text-5xl tracking-wider uppercase select-none ${streakOverlay.color}`}
+              style={{
+                textShadow: "0 4px 0 #000, 0 -4px 0 #000, 4px 0 0 #000, -4px 0 0 #000, 4px 4px 0 #000, -4px -4px 0 #000, 4px -4px 0 #000, -4px 4px 0 #000",
+              }}
             >
-              CONTINUE
-            </button>
+              {streakOverlay.title}
+            </h3>
           </div>
         </div>
       )}
@@ -1309,6 +1327,13 @@ function LessonContent() {
           @keyframes scaleIn {
             from { opacity: 0; transform: scale(0.95); }
             to { opacity: 1; transform: scale(1); }
+          }
+          @keyframes streakFade {
+            0% { opacity: 0; transform: scale(0.85); }
+            10% { opacity: 1; transform: scale(1.05); }
+            15% { opacity: 1; transform: scale(1); }
+            85% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(0.95); }
           }
         `
       }} />

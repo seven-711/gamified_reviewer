@@ -45,8 +45,8 @@ export default function RightSidebar() {
           <Image
             src="/img/gen_imgs/user_life.webp"
             alt="Hearts"
-            width={28}
-            height={28}
+            width={23}
+            height={23}
             className="object-contain"
             style={{ height: 'auto' }}
           />
