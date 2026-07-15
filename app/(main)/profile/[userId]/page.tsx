@@ -537,8 +537,8 @@ function UserProfileContent({ userId }: { userId: string }) {
         <div className="border-2 border-cloud-gray rounded-3xl p-5 md:p-6 bg-gradient-to-br from-duo-green-light/5 to-transparent flex flex-col gap-6 relative">
           
           {/* Custom SVG Line Chart */}
-          <div className="w-full relative h-[150px]">
-            <svg width="100%" height="100%" viewBox="0 0 480 150" className="overflow-visible">
+          <div className="w-full relative">
+            <svg viewBox="0 0 480 150" className="w-full h-auto overflow-visible block">
               {/* Grid Lines */}
               {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
                 const y = paddingTop + ratio * chartHeight;

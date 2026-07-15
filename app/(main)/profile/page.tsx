@@ -655,7 +655,7 @@ export default function ProfilePage() {
             </span>
           </div>
 
-          <div className="border-0 border-cloud-gray rounded-3xl p-5 md:p-6 bg-gradient-to-br from-duo-green-light/10 to-transparent flex items-center gap-5 sm:gap-6 relative hover:border-duo-green transition-all duration-300">
+          <div className="border-0 border-cloud-gray rounded-3xl p-5 md:p-6 bg-gradient-to-br from-duo-green-light/10 to-transparent flex flex-col sm:flex-row items-center gap-5 sm:gap-6 relative hover:border-duo-green transition-all duration-300">
             {/* Badge Icon */}
             <div className={`relative w-34 h-34 sm:w-32 sm:h-32 md:w-36 md:h-36 shrink-0 transition-transform hover:scale-105 duration-300 ${!isBadgeAchieved ? "grayscale opacity-40" : "drop-shadow-[0_0_15px_rgba(253,164,175,0.35)] animate-[pulse_4s_infinite]"}`}>
               <Image
@@ -668,8 +668,8 @@ export default function ProfilePage() {
             </div>
 
             {/* Info details */}
-            <div className="flex flex-col flex-1 min-w-0">
-              <div className="flex items-center justify-between gap-2">
+            <div className="flex flex-col items-center sm:items-start text-center sm:text-left flex-1 min-w-0 w-full">
+              <div className="flex items-center justify-between w-full gap-2">
                 <span className="text-[10px] font-black text-sunshine-yellow tracking-widest uppercase">
                   {currentBadge.monthName} Badge
                 </span>
