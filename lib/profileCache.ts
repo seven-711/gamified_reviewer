@@ -8,6 +8,8 @@ interface CacheEntry {
   viewedUserEvents?: any[];
   activeUserEvents?: any[];
   timestamp: number;
+  followingList?: any[];
+  followersList?: any[];
 }
 
 // Global in-memory cache map

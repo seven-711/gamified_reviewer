@@ -6,7 +6,7 @@ import Image from "next/image";
 import { useUser } from "@clerk/nextjs";
 import { supabase } from "@/lib/supabase";
 import { fetchFullProfile } from "@/lib/session";
-import { clearProfileCache } from "@/lib/profileCache";
+import { getProfileCache, setProfileCache, clearProfileCache } from "@/lib/profileCache";
 
 interface ProfileItem {
   id: string;
@@ -23,6 +23,15 @@ function FollowingContent({ userId }: { userId: string }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const cache = getProfileCache(userId);
+    let hasLoadedFromCache = false;
+    if (cache && cache.followingList && cache.profile) {
+      setTargetUser(cache.profile);
+      setFollowingList(cache.followingList);
+      setLoading(false);
+      hasLoadedFromCache = true;
+    }
+
     async function loadFollowing() {
       try {
         // 1. Fetch target user's details
@@ -41,6 +50,8 @@ function FollowingContent({ userId }: { userId: string }) {
         const followedIds = followEvents 
           ? followEvents.map((e: any) => e.event_type.replace("claimed_achievement_follow:", "")) 
           : [];
+
+        let mapped: ProfileItem[] = [];
 
         if (followedIds.length > 0) {
           // 3. Get profile details for followed users
@@ -67,14 +78,31 @@ function FollowingContent({ userId }: { userId: string }) {
               : [];
           }
 
-          const mapped: ProfileItem[] = (profiles || []).map((p) => ({
+          mapped = (profiles || []).map((p) => ({
             id: p.id,
             name: p.name,
             isFollowedByViewer: viewerFollowsIds.includes(p.id)
           }));
-
-          setFollowingList(mapped);
         }
+
+        setFollowingList(mapped);
+
+        // Save list and profile to cache
+        const existingCache = getProfileCache(userId) || {
+          profile: fetchedProfile,
+          rank: 1,
+          totalUsers: 1,
+          followingCount: mapped.length,
+          followersCount: 0
+        };
+
+        setProfileCache(userId, {
+          ...existingCache,
+          profile: fetchedProfile,
+          followingCount: mapped.length,
+          followingList: mapped
+        });
+
       } catch (err) {
         console.error("Failed to load following list:", err);
       } finally {
