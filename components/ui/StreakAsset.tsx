@@ -28,6 +28,19 @@ export function StreakAsset({
   const src = getStreakImage(streak);
   const isVideo = src.endsWith(".webm");
 
+  const [isSafari, setIsSafari] = React.useState(false);
+
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      const ua = navigator.userAgent.toLowerCase();
+      const isSaf = ua.indexOf('safari') !== -1 && ua.indexOf('chrome') === -1;
+      const isIOS = /ipad|iphone|ipod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      if (isSaf || isIOS) {
+        setIsSafari(true);
+      }
+    }
+  }, []);
+
   if (isVideo) {
     if (fill) {
       return (
@@ -38,7 +51,10 @@ export function StreakAsset({
           muted
           playsInline
           className={`absolute inset-0 w-full h-full ${className}`}
-          style={style}
+          style={{
+            mixBlendMode: isSafari ? "screen" : undefined,
+            ...style,
+          }}
         />
       );
     }
@@ -56,6 +72,7 @@ export function StreakAsset({
         style={{
           width: width ? `${width}px` : undefined,
           height: height ? `${height}px` : "auto",
+          mixBlendMode: isSafari ? "screen" : undefined,
           ...style,
         }}
       />

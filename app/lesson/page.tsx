@@ -4,6 +4,7 @@ import React, { useState, Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { QuizFooter } from "@/components/ui/QuizFooter";
+import { StreakAsset } from "@/components/ui/StreakAsset";
 // Data fetched via API to improve client bundle performance
 import Image from "next/image";
 import { parseMathText } from "@/lib/mathUtils";
@@ -1440,12 +1441,8 @@ function StreakPage({ streak, weekProgress, onContinue }: StreakPageProps) {
                     {isToday && isCompleted ? (
                       /* Today Completed: Flame outline with streak.webp checkmark inside */
                       <>
-                        <video
-                          src="/img/gen_imgs/Streak/1-9_day_streak.webm"
-                          autoPlay
-                          loop
-                          muted
-                          playsInline
+                        <StreakAsset
+                          streak={1}
                           className="absolute w-90 h-90 md:w-28 md:h-28 object-contain shrink-0 scale-120 md:scale-510 pointer-events-none z-10"
                         />
                       </>
