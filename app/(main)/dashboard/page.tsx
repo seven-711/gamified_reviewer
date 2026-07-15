@@ -353,7 +353,7 @@ export default function DashboardPage() {
               if (category) {
                 await upsertFullProfile({
                   id: user.id,
-                  name: user.fullName || user.username || null,
+                  name: `${user.fullName || user.username || "Learner"}|${user.imageUrl}`,
                   exam_category: category,
                   sub_topic: subTopic,
                   timer_duration: timerDuration,
@@ -406,7 +406,7 @@ export default function DashboardPage() {
               const prefs = JSON.parse(pendingPrefs);
               await upsertFullProfile({
                 id: user.id,
-                name: user.fullName || user.username || null,
+                name: `${user.fullName || user.username || "Learner"}|${user.imageUrl}`,
                 exam_category: prefs.category,
                 sub_topic: prefs.subTopic,
                 study_style: prefs.studyStyle || "Flashcards",
@@ -420,6 +420,14 @@ export default function DashboardPage() {
           }
 
           const userProfile = await fetchFullProfile(user.id);
+
+          if (userProfile && user) {
+            const currentCombinedName = `${user.fullName || user.username || "Learner"}|${user.imageUrl}`;
+            if (userProfile.name !== currentCombinedName) {
+              await supabase.from("profiles").update({ name: currentCombinedName }).eq("id", user.id);
+              userProfile.name = currentCombinedName;
+            }
+          }
 
           if (!userProfile || !userProfile.exam_category) {
             router.replace("/onboarding");

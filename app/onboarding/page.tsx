@@ -210,7 +210,7 @@ export default function OnboardingPage() {
         } else {
           await upsertFullProfile({
             id: userId,
-            name: user?.fullName || user?.username || null,
+            name: user ? `${user.fullName || user?.username || "Learner"}|${user.imageUrl}` : null,
             exam_category: category,
             sub_topic: subTopic,
             timer_duration: timerDuration,

@@ -148,6 +148,39 @@ export function getLeagueStyle(leagueName: string): LeagueStyle {
   }
 }
 
+function getLeaderboardUserData(
+  p: LeaderboardUser | undefined,
+  currentUserId: string | null,
+  currentUserImageUrl: string | undefined
+) {
+  if (!p) return { displayName: "", avatarUrl: "/emoji/profile.webp" };
+
+  let displayName = "Anonymous User";
+  let avatarUrl = "/emoji/profile.webp";
+
+  if (p.name) {
+    if (p.name.includes("|")) {
+      const parts = p.name.split("|");
+      displayName = parts[0] || "Anonymous User";
+      avatarUrl = parts[1] || "/emoji/profile.webp";
+    } else {
+      displayName = p.name;
+    }
+  } else if (p.id.startsWith("guest_")) {
+    displayName = `Guest_${p.id.substring(6, 11)}`;
+  } else {
+    displayName = `Reviewer_${p.id.substring(5, 10)}`;
+  }
+
+  if (p.id === currentUserId) {
+    displayName = "You";
+    if (currentUserImageUrl) {
+      avatarUrl = currentUserImageUrl;
+    }
+  }
+  return { displayName, avatarUrl };
+}
+
 export default function LeaderboardPage() {
   const router = useRouter();
   const { user, isLoaded } = useUser();
@@ -193,6 +226,36 @@ export default function LeaderboardPage() {
           // Filter out guest accounts from public leaderboard rankings
           const registeredProfiles = mapped.filter((p) => !p.id.startsWith("guest_"));
           setProfiles(registeredProfiles);
+
+          // In the background, fetch other users' images from Clerk API
+          const registeredIds = registeredProfiles.map((p) => p.id);
+          if (registeredIds.length > 0) {
+            fetch("/api/users/avatars", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ userIds: registeredIds }),
+            })
+              .then((res) => res.json())
+              .then((avatarData) => {
+                if (avatarData && avatarData.users) {
+                  // Merge avatar info into local profile state
+                  setProfiles((prev) =>
+                    prev.map((p) => {
+                      const uInfo = avatarData.users[p.id];
+                      if (uInfo) {
+                        const combinedName = `${uInfo.name || p.name || "Learner"}|${uInfo.imageUrl}`;
+                        return {
+                          ...p,
+                          name: combinedName,
+                        };
+                      }
+                      return p;
+                    })
+                  );
+                }
+              })
+              .catch((err) => console.error("Error fetching avatars:", err));
+          }
 
           const profileId = user ? user.id : (typeof window !== "undefined" ? localStorage.getItem("guest_session_id") : null);
           if (profileId) {
@@ -361,21 +424,26 @@ export default function LeaderboardPage() {
               {/* Rank 3 Podium (Left Column - Bubblegum Pink) */}
               <div className="flex-1 flex flex-col items-center min-w-0">
                 {profiles[2] ? (
-                  <>
-                    <span className="font-din-round font-bold text-[10px] text-charcoal dark:text-silver truncate max-w-full mb-1">
-                      {profiles[2].id === currentUserId ? "You" : (profiles[2].name || (profiles[2].id.startsWith("guest_") ? `Guest_${profiles[2].id.substring(6, 11)}` : `Reviewer_${profiles[2].id.substring(5, 10)}`))}
-                    </span>
-                    <div 
-                      onClick={() => router.push(`/profile/${profiles[2].id}`)}
-                      className="w-20 h-20 rounded-full overflow-hidden border-2 border-[#b3247a] bg-purple-900/40 p-0.5 mb-1.5 relative shadow-md shrink-0 cursor-pointer hover:scale-105 active:scale-95 transition-all"
-                    >
-                      <img
-                        src={profiles[2].id === currentUserId && user?.imageUrl ? user.imageUrl : "/emoji/profile.webp"}
-                        alt="Rank 3"
-                        className="object-cover w-full h-full rounded-full"
-                      />
-                    </div>
-                  </>
+                  (() => {
+                    const { displayName, avatarUrl } = getLeaderboardUserData(profiles[2], currentUserId, user?.imageUrl);
+                    return (
+                      <>
+                        <span className="font-din-round font-bold text-[10px] text-charcoal dark:text-silver truncate max-w-full mb-1">
+                          {displayName}
+                        </span>
+                        <div 
+                          onClick={() => router.push(`/profile/${profiles[2].id}`)}
+                          className="w-20 h-20 rounded-full overflow-hidden border-2 border-[#b3247a] bg-purple-900/40 p-0.5 mb-1.5 relative shadow-md shrink-0 cursor-pointer hover:scale-105 active:scale-95 transition-all"
+                        >
+                          <img
+                            src={avatarUrl}
+                            alt="Rank 3"
+                            className="object-cover w-full h-full rounded-full"
+                          />
+                        </div>
+                      </>
+                    );
+                  })()
                 ) : (
                   <div className="w-20 h-20 rounded-full border-2 border-dashed border-purple-800 flex items-center justify-center text-purple-600 mb-2">3</div>
                 )}
@@ -396,21 +464,26 @@ export default function LeaderboardPage() {
               {/* Rank 1 Podium (Center Column - Sunshine Yellow) */}
               <div className="flex-1 flex flex-col items-center min-w-0 z-10 scale-105">
                 {profiles[0] ? (
-                  <>
-                    <span className="font-din-round font-bold text-[11px] text-[#ffc700] truncate max-w-full mb-1 flex items-center gap-0.5">
-                      👑 {profiles[0].id === currentUserId ? "You" : (profiles[0].name || (profiles[0].id.startsWith("guest_") ? `Guest_${profiles[0].id.substring(6, 11)}` : `Reviewer_${profiles[0].id.substring(5, 10)}`))}
-                    </span>
-                    <div 
-                      onClick={() => router.push(`/profile/${profiles[0].id}`)}
-                      className="w-20 h-20 rounded-full overflow-hidden border-4 border-[#ffc700] bg-purple-900/40 p-0.5 mb-1.5 relative shadow-xl shrink-0 cursor-pointer hover:scale-105 active:scale-95 transition-all"
-                    >
-                      <img
-                        src={profiles[0].id === currentUserId && user?.imageUrl ? user.imageUrl : "/emoji/profile.webp"}
-                        alt="Rank 1"
-                        className="object-cover w-full h-full rounded-full"
-                      />
-                    </div>
-                  </>
+                  (() => {
+                    const { displayName, avatarUrl } = getLeaderboardUserData(profiles[0], currentUserId, user?.imageUrl);
+                    return (
+                      <>
+                        <span className="font-din-round font-bold text-[11px] text-[#ffc700] truncate max-w-full mb-1 flex items-center gap-0.5">
+                          👑 {displayName}
+                        </span>
+                        <div 
+                          onClick={() => router.push(`/profile/${profiles[0].id}`)}
+                          className="w-20 h-20 rounded-full overflow-hidden border-4 border-[#ffc700] bg-purple-900/40 p-0.5 mb-1.5 relative shadow-xl shrink-0 cursor-pointer hover:scale-105 active:scale-95 transition-all"
+                        >
+                          <img
+                            src={avatarUrl}
+                            alt="Rank 1"
+                            className="object-cover w-full h-full rounded-full"
+                          />
+                        </div>
+                      </>
+                    );
+                  })()
                 ) : (
                   <div className="w-20 h-20 rounded-full border-2 border-dashed border-purple-800 flex items-center justify-center text-purple-600 mb-2">1</div>
                 )}
@@ -431,21 +504,26 @@ export default function LeaderboardPage() {
               {/* Rank 2 Podium (Right Column - Sky Blue) */}
               <div className="flex-1 flex flex-col items-center min-w-0">
                 {profiles[1] ? (
-                  <>
-                    <span className="font-din-round font-bold text-[10px] text-charcoal dark:text-silver truncate max-w-full mb-1">
-                      {profiles[1].id === currentUserId ? "You" : (profiles[1].name || (profiles[1].id.startsWith("guest_") ? `Guest_${profiles[1].id.substring(6, 11)}` : `Reviewer_${profiles[1].id.substring(5, 10)}`))}
-                    </span>
-                    <div 
-                      onClick={() => router.push(`/profile/${profiles[1].id}`)}
-                      className="w-20 h-20 rounded-full overflow-hidden border-2 border-[#1085ba] bg-purple-900/40 p-0.5 mb-1.5 relative shadow-md shrink-0 cursor-pointer hover:scale-105 active:scale-95 transition-all"
-                    >
-                      <img
-                        src={profiles[1].id === currentUserId && user?.imageUrl ? user.imageUrl : "/emoji/profile.webp"}
-                        alt="Rank 2"
-                        className="object-cover w-full h-full rounded-full"
-                      />
-                    </div>
-                  </>
+                  (() => {
+                    const { displayName, avatarUrl } = getLeaderboardUserData(profiles[1], currentUserId, user?.imageUrl);
+                    return (
+                      <>
+                        <span className="font-din-round font-bold text-[10px] text-charcoal dark:text-silver truncate max-w-full mb-1">
+                          {displayName}
+                        </span>
+                        <div 
+                          onClick={() => router.push(`/profile/${profiles[1].id}`)}
+                          className="w-20 h-20 rounded-full overflow-hidden border-2 border-[#1085ba] bg-purple-900/40 p-0.5 mb-1.5 relative shadow-md shrink-0 cursor-pointer hover:scale-105 active:scale-95 transition-all"
+                        >
+                          <img
+                            src={avatarUrl}
+                            alt="Rank 2"
+                            className="object-cover w-full h-full rounded-full"
+                          />
+                        </div>
+                      </>
+                    );
+                  })()
                 ) : (
                   <div className="w-20 h-20 rounded-full border-2 border-dashed border-purple-800 flex items-center justify-center text-[#1085ba] mb-2">2</div>
                 )}
@@ -469,19 +547,7 @@ export default function LeaderboardPage() {
             <div className="w-full max-w-[440px] flex flex-col gap-3 z-10">
               {profiles.slice(3).map((profile, index) => {
                 const rank = index + 4;
-                const isSelf = currentUserId === profile.id;
-
-                // Get display username from name or fallback to profile ID substring
-                let displayName = "Anonymous User";
-                if (isSelf) {
-                  displayName = "You";
-                } else if (profile.name) {
-                  displayName = profile.name;
-                } else if (profile.id.startsWith("guest_")) {
-                  displayName = `Guest_${profile.id.substring(6, 11)}`;
-                } else {
-                  displayName = `Reviewer_${profile.id.substring(5, 10)}`;
-                }
+                const { displayName, avatarUrl } = getLeaderboardUserData(profile, currentUserId, user?.imageUrl);
 
                 // Rank specific badge background (Rank >= 4)
                 const rankBadge = (
@@ -499,8 +565,15 @@ export default function LeaderboardPage() {
                     onClick={() => router.push(`/profile/${profile.id}`)}
                     className={`flex items-center justify-between border-2 rounded-xl p-3.5 sm:p-4.5 transition-all duration-150 cursor-pointer hover:bg-white/5 active:scale-[0.99] ${rowBgClass}`}
                   >
-                    <div className="flex items-center gap-5 sm:gap-8 overflow-hidden">
+                    <div className="flex items-center gap-4 sm:gap-6 overflow-hidden">
                       {rankBadge}
+                      <div className="w-10 h-10 rounded-full overflow-hidden bg-purple-900/40 shrink-0 border border-cloud-gray/20">
+                        <img
+                          src={avatarUrl}
+                          alt={displayName}
+                          className="object-cover w-full h-full rounded-full"
+                        />
+                      </div>
                       <span className="font-din-round font-bold text-xs sm:text-sm md:text-base truncate max-w-[90px] min-[380px]:max-w-[120px] sm:max-w-[160px] md:max-w-[220px] tracking-[0.053em]">
                         {displayName}
                       </span>

@@ -383,6 +383,30 @@ function UserProfileContent({ userId }: { userId: string }) {
           console.error("Failed to fetch following/followers data", e);
         }
 
+        // Self-healing avatar fetch if database record is not yet combined
+        if (freshProfile && (!freshProfile.name || !freshProfile.name.includes("|")) && !userId.startsWith("guest_")) {
+          try {
+            const avatarRes = await fetch("/api/users/avatars", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ userIds: [userId] }),
+            });
+            const avatarData = await avatarRes.json();
+            if (avatarData && avatarData.users && avatarData.users[userId]) {
+              const uInfo = avatarData.users[userId];
+              const combinedName = `${uInfo.name || freshProfile.name || "Learner"}|${uInfo.imageUrl}`;
+              
+              freshProfile.name = combinedName;
+              setProfile({ ...freshProfile });
+              
+              // Persist back to Supabase
+              await supabase.from("profiles").update({ name: combinedName }).eq("id", userId);
+            }
+          } catch (e) {
+            console.error("Failed to dynamically resolve missing profile image from Clerk:", e);
+          }
+        }
+
         // Set cache for future visits
         setProfileCache(userId, {
           profile: freshProfile,
@@ -559,6 +583,20 @@ function UserProfileContent({ userId }: { userId: string }) {
   const viewedTotalWeeklyXp = viewedXpValues.reduce((a, b) => a + b, 0);
   const activeTotalWeeklyXp = activeXpValues.reduce((a, b) => a + b, 0);
 
+  const { name: displayName, avatarUrl: profileAvatarUrl } = (() => {
+    if (!profile) return { name: "Learner", avatarUrl: null };
+    const fullName = profile.name;
+    if (!fullName) return { name: "Learner", avatarUrl: null };
+    if (fullName.includes("|")) {
+      const parts = fullName.split("|");
+      return {
+        name: parts[0] || "Learner",
+        avatarUrl: parts[1] || null
+      };
+    }
+    return { name: fullName, avatarUrl: null };
+  })();
+
   // SVG Chart sizing configurations
   const maxVal = Math.max(10, ...viewedXpValues, ...activeXpValues);
   const chartHeight = 100;
@@ -601,7 +639,7 @@ function UserProfileContent({ userId }: { userId: string }) {
         </button>
         
         <h1 className="font-feather text-lg sm:text-xl text-white font-bold tracking-wide truncate text-center flex-1 mx-4">
-          {profile.name || "Learner"}
+          {displayName}
         </h1>
 
         <div className="w-10 h-10 shrink-0" />
@@ -609,11 +647,11 @@ function UserProfileContent({ userId }: { userId: string }) {
 
       {/* Profile Card Banner */}
       <div className="relative w-[calc(100%+2rem)] -mx-4 md:w-[calc(100%+3rem)] md:-mx-6 h-[200px] sm:h-[240px] bg-gradient-to-tr from-[#37464f] to-[#202f36] flex items-center justify-center overflow-hidden mb-6 shadow-sm border-b-2 border-cloud-gray/20 rounded-b-3xl">
-        <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-full overflow-hidden border-4 border-white shadow-xl relative bg-[#131f24] shrink-0 hover:scale-105 transition-transform duration-300">
+        <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-full overflow-hidden border-4 border-white shadow-xl relative bg-[#131f24] shrink-0 hover:scale-105 transition-transform duration-300 flex items-center justify-center">
           <img
-            src="/emoji/profile.webp"
+            src={profileAvatarUrl || "/emoji/profile.webp"}
             alt="Avatar"
-            className="object-cover w-full h-full rounded-full scale-[1.7] translate-y-1"
+            className={`object-cover w-full h-full rounded-full ${!profileAvatarUrl ? "scale-[1.7] translate-y-1" : ""}`}
           />
         </div>
       </div>
@@ -622,7 +660,7 @@ function UserProfileContent({ userId }: { userId: string }) {
       <div className="flex flex-col w-full px-1">
         <div className="flex flex-col items-center sm:items-start">
           <p className="text-silver font-semibold text-xs sm:text-sm">
-            @{profile.name?.toLowerCase().replace(/\s+/g, "") || "learner"} • Joined {profile.created_at ? new Date(profile.created_at).getFullYear() : new Date().getFullYear()}
+            @{displayName.toLowerCase().replace(/\s+/g, "") || "learner"} • Joined {profile.created_at ? new Date(profile.created_at).getFullYear() : new Date().getFullYear()}
           </p>
         </div>
 
@@ -738,7 +776,7 @@ function UserProfileContent({ userId }: { userId: string }) {
             <div className="flex items-center justify-between text-sm">
               <div className="flex items-center gap-2 min-w-0">
                 <span className="w-3 h-3 rounded-full bg-silver shrink-0"></span>
-                <span className="font-bold text-white truncate">{profile.name || "Learner"}</span>
+                <span className="font-bold text-white truncate">{displayName}</span>
               </div>
               <span className="font-black text-white">{viewedTotalWeeklyXp} XP</span>
             </div>
