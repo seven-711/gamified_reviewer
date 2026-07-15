@@ -191,7 +191,7 @@ function FollowingContent({ userId }: { userId: string }) {
           </h1>
           {targetUser ? (
             <span className="text-silver text-xs font-semibold select-none leading-none mt-1">
-              {targetUser?.name || "Learner"}'s following list
+              {(targetUser?.name?.includes("|") ? targetUser.name.split("|")[0] : targetUser?.name) || "Learner"}'s following list
             </span>
           ) : (
             <div className="h-3 w-28 bg-cloud-gray/15 rounded-md animate-pulse mt-1.5" />
@@ -243,6 +243,21 @@ function FollowingContent({ userId }: { userId: string }) {
           <div className="flex flex-col gap-3">
             {followingList.map((item) => {
               const showActionBtn = currentUserId && currentUserId !== item.id;
+              const { displayName, avatarUrl } = (() => {
+                const nameStr = item.name || "";
+                if (nameStr.includes("|")) {
+                  const parts = nameStr.split("|");
+                  return {
+                    displayName: parts[0] || "Learner",
+                    avatarUrl: parts[1] || "/emoji/profile.webp"
+                  };
+                }
+                return {
+                  displayName: nameStr || "Learner",
+                  avatarUrl: "/emoji/profile.webp"
+                };
+              })();
+
               return (
                 <div
                   key={item.id}
@@ -252,15 +267,19 @@ function FollowingContent({ userId }: { userId: string }) {
                     onClick={() => router.push(`/profile/${item.id}`)}
                     className="flex items-center gap-4.5 min-w-0 cursor-pointer flex-1 group"
                   >
-                    <div className="w-12 h-12 rounded-full overflow-hidden border border-cloud-gray/20 bg-[#1f2e35] shrink-0 flex items-center justify-center select-none group-hover:scale-105 transition-transform">
-                      <img src="/emoji/profile.webp" alt="Avatar" className="w-8 h-8 object-contain" />
+                    <div className="w-15 h-15 rounded-full overflow-hidden border border-cloud-gray/20 bg-[#1f2e35] shrink-0 flex items-center justify-center select-none group-hover:scale-105 transition-transform">
+                      <img
+                        src={avatarUrl}
+                        alt="Avatar"
+                        className={avatarUrl === "/emoji/profile.webp" ? "w-25 h-25 object-contain" : "w-full h-full object-cover"}
+                      />
                     </div>
                     <div className="min-w-0 flex flex-col gap-0.5">
                       <span className="font-bold text-white text-base group-hover:text-sky-blue transition-colors truncate leading-tight">
-                        {item.name || "Learner"}
+                        {displayName}
                       </span>
                       <span className="text-silver text-xs font-semibold truncate leading-none">
-                        @{item.name?.toLowerCase().replace(/\s+/g, "") || "learner"}
+                        @{displayName.toLowerCase().replace(/\s+/g, "")}
                       </span>
                     </div>
                   </div>

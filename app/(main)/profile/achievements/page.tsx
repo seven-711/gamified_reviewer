@@ -366,7 +366,7 @@ function AchievementsContent() {
           </svg>
         </button>
         <h1 className="font-feather text-2xl md:text-3xl text-white font-bold tracking-wide">
-          {targetUserId ? `${stalkedProfile?.name || "Learner"}'s Collection` : "Collection"}
+          {targetUserId ? `${(stalkedProfile?.name?.includes("|") ? stalkedProfile.name.split("|")[0] : stalkedProfile?.name) || "Learner"}'s Collection` : "Collection"}
         </h1>
       </div>
 
