@@ -612,9 +612,9 @@ function UserProfileContent({ userId }: { userId: string }) {
 
         <div className="grid grid-cols-2 gap-4">
           {/* Streak */}
-          <div className="border-2 border-cloud-gray rounded-3xl p-5 flex items-center gap-4 bg-gradient-to-br from-duo-green-light/5 to-transparent">
+          <div className="border-2 border-cloud-gray rounded-3xl p-5 flex flex-col items-center justify-center text-center gap-2 bg-gradient-to-br from-duo-green-light/5 to-transparent">
             <span className="text-3xl select-none">🔥</span>
-            <div className="flex flex-col min-w-0">
+            <div className="flex flex-col items-center min-w-0">
               <span className="font-black text-lg text-orange-400 leading-tight">
                 {streak} Days
               </span>
@@ -625,9 +625,9 @@ function UserProfileContent({ userId }: { userId: string }) {
           </div>
 
           {/* Courses / Exam category */}
-          <div className="border-2 border-cloud-gray rounded-3xl p-5 flex items-center gap-4 bg-gradient-to-br from-duo-green-light/5 to-transparent">
+          <div className="border-2 border-cloud-gray rounded-3xl p-5 flex flex-col items-center justify-center text-center gap-2 bg-gradient-to-br from-duo-green-light/5 to-transparent">
             <span className="text-3xl select-none">🇵🇭</span>
-            <div className="flex flex-col min-w-0">
+            <div className="flex flex-col items-center min-w-0">
               <span className="font-black text-lg text-white leading-tight truncate">
                 {profile.exam_category?.split(" ")[0] || "CSE"}
               </span>
@@ -638,11 +638,11 @@ function UserProfileContent({ userId }: { userId: string }) {
           </div>
 
           {/* League */}
-          <div className="border-2 border-cloud-gray rounded-3xl p-5 flex items-center gap-4 bg-gradient-to-br from-duo-green-light/5 to-transparent">
+          <div className="border-2 border-cloud-gray rounded-3xl p-5 flex flex-col items-center justify-center text-center gap-2 bg-gradient-to-br from-duo-green-light/5 to-transparent">
             <div className="relative w-9 h-9 shrink-0 select-none">
               <Image src={leagueInfo.image} alt="League" fill className="object-contain" />
             </div>
-            <div className="flex flex-col min-w-0">
+            <div className="flex flex-col items-center min-w-0">
               <span className="font-black text-lg text-white leading-tight truncate">
                 {leagueInfo.name.split(" ")[0]}
               </span>
@@ -653,9 +653,9 @@ function UserProfileContent({ userId }: { userId: string }) {
           </div>
 
           {/* XP */}
-          <div className="border-2 border-cloud-gray rounded-3xl p-5 flex items-center gap-4 bg-gradient-to-br from-duo-green-light/5 to-transparent">
+          <div className="border-2 border-cloud-gray rounded-3xl p-5 flex flex-col items-center justify-center text-center gap-2 bg-gradient-to-br from-duo-green-light/5 to-transparent">
             <span className="text-3xl select-none">⚡</span>
-            <div className="flex flex-col min-w-0">
+            <div className="flex flex-col items-center min-w-0">
               <span className="font-black text-lg text-yellow-400 leading-tight">
                 {xp} XP
               </span>
