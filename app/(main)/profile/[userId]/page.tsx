@@ -7,6 +7,12 @@ import { useUser } from "@clerk/nextjs";
 import { supabase } from "@/lib/supabase";
 import { fetchFullProfile } from "@/lib/session";
 import { getStreakImage } from "@/lib/streak";
+import dynamic from "next/dynamic";
+
+const DotLottiePlayer = dynamic(
+  () => import("@dotlottie/react-player").then((mod) => mod.DotLottiePlayer),
+  { ssr: false }
+);
 
 interface UserProfile {
   id: string;
@@ -188,10 +194,42 @@ function UserProfileContent({ userId }: { userId: string }) {
   const [activeUserEvents, setActiveUserEvents] = useState<{ created_at: string; score_delta: number }[]>([]);
   
   const [isFollowing, setIsFollowing] = useState(false);
+  const [followingCount, setFollowingCount] = useState(0);
+  const [followersCount, setFollowersCount] = useState(0);
 
   // Toggle follow state
-  const handleFollowToggle = () => {
-    setIsFollowing(!isFollowing);
+  const handleFollowToggle = async () => {
+    const currentUserId = currentUser ? currentUser.id : localStorage.getItem("guest_session_id");
+    if (!currentUserId) return;
+
+    if (isFollowing) {
+      // Unfollow
+      const { error } = await supabase
+        .from("lesson_events")
+        .delete()
+        .eq("profile_id", currentUserId)
+        .eq("event_type", `claimed_achievement_follow:${userId}`);
+      if (!error) {
+        setIsFollowing(false);
+        setFollowersCount(prev => Math.max(0, prev - 1));
+      } else {
+        console.error("Unfollow error:", error);
+      }
+    } else {
+      // Follow
+      const { error } = await supabase
+        .from("lesson_events")
+        .insert({
+          profile_id: currentUserId,
+          event_type: `claimed_achievement_follow:${userId}`
+        });
+      if (!error) {
+        setIsFollowing(true);
+        setFollowersCount(prev => prev + 1);
+      } else {
+        console.error("Follow error:", error);
+      }
+    }
   };
 
   useEffect(() => {
@@ -249,6 +287,47 @@ function UserProfileContent({ userId }: { userId: string }) {
           }
         } catch (e) {
           console.error("Failed to fetch lesson events for charts", e);
+        }
+
+        // Fetch following, followers, and current follow status
+        try {
+          const currentUserId = currentUser ? currentUser.id : localStorage.getItem("guest_session_id");
+          const promises: any[] = [
+            // Following count
+            supabase
+              .from("lesson_events")
+              .select("id", { count: "exact", head: true })
+              .eq("profile_id", userId)
+              .like("event_type", "claimed_achievement_follow:%"),
+            // Followers count
+            supabase
+              .from("lesson_events")
+              .select("id", { count: "exact", head: true })
+              .eq("event_type", `claimed_achievement_follow:${userId}`),
+          ];
+
+          if (currentUserId) {
+            promises.push(
+              supabase
+                .from("lesson_events")
+                .select("id")
+                .eq("profile_id", currentUserId)
+                .eq("event_type", `claimed_achievement_follow:${userId}`)
+                .maybeSingle()
+            );
+          }
+
+          const [followingRes, followersRes, isFollowingRes] = await Promise.all(promises);
+
+          setFollowingCount(followingRes.count || 0);
+          setFollowersCount(followersRes.count || 0);
+          if (isFollowingRes && !isFollowingRes.error && isFollowingRes.data) {
+            setIsFollowing(true);
+          } else {
+            setIsFollowing(false);
+          }
+        } catch (e) {
+          console.error("Failed to fetch following/followers data", e);
         }
 
         setLoading(false);
@@ -443,10 +522,10 @@ function UserProfileContent({ userId }: { userId: string }) {
     <main className="flex-1 w-full max-w-[600px] mx-auto pb-24 pt-2 font-din-round min-w-0">
       
       {/* Dynamic Header Row */}
-      <div className="flex items-center justify-between gap-4 mb-6">
+      <div className="flex items-center justify-between mb-6">
         <button
           onClick={() => router.push("/leaderboard")}
-          className="p-2.5 rounded-xl border-0 border-cloud-gray hover:bg-white/5 text-white transition-all cursor-pointer select-none"
+          className="p-2.5 rounded-xl border-0 border-cloud-gray hover:bg-white/5 text-white transition-all cursor-pointer select-none shrink-0"
           title="Back to Leaderboard"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
@@ -454,23 +533,11 @@ function UserProfileContent({ userId }: { userId: string }) {
           </svg>
         </button>
         
-        <h1 className="font-feather text-lg sm:text-xl text-white font-bold tracking-wide truncate max-w-[200px] sm:max-w-none">
+        <h1 className="font-feather text-lg sm:text-xl text-white font-bold tracking-wide truncate text-center flex-1 mx-4">
           {profile.name || "Learner"}
         </h1>
 
-        <div className="flex items-center gap-2">
-          {/* Share icon */}
-          <button className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white transition-colors cursor-pointer select-none" title="Share Profile">
-            <span className="text-lg">📤</span>
-          </button>
-          
-          {/* Super Status Badge if Rank is High */}
-          {rank <= 5 && (
-            <span className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white text-[9px] font-black px-2.5 py-1 rounded-md uppercase tracking-wider shadow-md animate-pulse">
-              SUPER
-            </span>
-          )}
-        </div>
+        <div className="w-10 h-10 shrink-0" />
       </div>
 
       {/* Profile Card Banner */}
@@ -496,7 +563,17 @@ function UserProfileContent({ userId }: { userId: string }) {
         <div className="flex items-center justify-around w-full mt-6 py-4 border-t border-b border-cloud-gray/15">
           <div className="flex flex-col items-center">
             <span className="text-base sm:text-lg font-bold text-white flex items-center gap-1.5 select-none">
-              <span>🇵🇭</span>
+              <svg viewBox="0 0 120 60" className="w-5 h-3.5 object-contain rounded-xs shadow-xs border border-white/10 select-none shrink-0 inline-block align-middle">
+                <rect width="120" height="30" fill="#0038A8" />
+                <rect y="30" width="120" height="30" fill="#CE1126" />
+                <polygon points="0,0 51.96,30 0,60" fill="#FFFFFF" />
+                {/* Sun */}
+                <circle cx="17.32" cy="30" r="5.5" fill="#FCD116" />
+                {/* Stars */}
+                <polygon points="5,7 6,9 8,9 6.5,10 7,12 5,11 3,12 3.5,10 2,9 4,9" fill="#FCD116" />
+                <polygon points="5,47 6,49 8,49 6.5,50 7,52 5,51 3,52 3.5,50 2,49 4,49" fill="#FCD116" />
+                <polygon points="45,27 46,29 48,29 46.5,30 47,32 45,31 43,32 43.5,30 42,29 44,29" fill="#FCD116" />
+              </svg>
               <span className="bg-sky-blue/20 text-sky-blue text-[10px] font-black px-1.5 py-0.5 rounded uppercase">
                 {profile.exam_category?.split(" ")[0] || "CSE"}
               </span>
@@ -504,13 +581,19 @@ function UserProfileContent({ userId }: { userId: string }) {
             <span className="text-silver font-extrabold text-[10px] uppercase tracking-wider mt-1">Courses</span>
           </div>
 
-          <div className="flex flex-col items-center">
-            <span className="text-base sm:text-lg font-black text-white select-none">5</span>
+          <div 
+            onClick={() => router.push(`/profile/${userId}/following`)}
+            className="flex flex-col items-center cursor-pointer hover:bg-white/5 p-2 px-3 rounded-2xl transition-all select-none"
+          >
+            <span className="text-base sm:text-lg font-black text-white">{followingCount}</span>
             <span className="text-silver font-extrabold text-[10px] uppercase tracking-wider mt-1">Following</span>
           </div>
 
-          <div className="flex flex-col items-center">
-            <span className="text-base sm:text-lg font-black text-white select-none">7</span>
+          <div 
+            onClick={() => router.push(`/profile/${userId}/followers`)}
+            className="flex flex-col items-center cursor-pointer hover:bg-white/5 p-2 px-3 rounded-2xl transition-all select-none"
+          >
+            <span className="text-base sm:text-lg font-black text-white">{followersCount}</span>
             <span className="text-silver font-extrabold text-[10px] uppercase tracking-wider mt-1">Followers</span>
           </div>
         </div>
@@ -524,7 +607,7 @@ function UserProfileContent({ userId }: { userId: string }) {
               : "bg-duo-green border-duo-green text-white shadow-[0_4px_0_#3f8f01] hover:brightness-105"
           }`}
         >
-          {isFollowing ? "✓ Following" : "➕ Follow"}
+          {isFollowing ? "Following" : "Follow"}
         </button>
       </div>
 
@@ -554,9 +637,9 @@ function UserProfileContent({ userId }: { userId: string }) {
               {/* Viewed User path line */}
               {viewedPath && (
                 <>
-                  <path d={viewedPath} fill="none" stroke="#1cb0f6" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d={viewedPath} fill="none" stroke="#77858c"  strokeWidth="10" strokeLinecap="round" strokeLinejoin="round" />
                   {viewedCoords.map((c, i) => (
-                    <circle key={i} cx={c.x} cy={c.y} r="5" fill="#1cb0f6" stroke="#131f24" strokeWidth="2.5" className="hover:scale-125 transition-transform cursor-pointer" />
+                    <circle key={i} cx={c.x} cy={c.y} r="5" fill="#77858c" stroke="#131f24" strokeWidth="2.5" className="hover:scale-125 transition-transform cursor-pointer" />
                   ))}
                 </>
               )}
@@ -564,9 +647,9 @@ function UserProfileContent({ userId }: { userId: string }) {
               {/* Active User (You) path line */}
               {activePath && (
                 <>
-                  <path d={activePath} fill="none" stroke="#77858c" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-55" />
+                  <path d={activePath} fill="none" stroke="#1cb0f6" strokeWidth="10" strokeLinecap="round" strokeLinejoin="round" className="opacity-55" />
                   {activeCoords.map((c, i) => (
-                    <circle key={i} cx={c.x} cy={c.y} r="4" fill="#77858c" stroke="#131f24" strokeWidth="2" className="opacity-55 hover:scale-125 transition-transform cursor-pointer" />
+                    <circle key={i} cx={c.x} cy={c.y} r="4" fill="#1cb0f6" stroke="#131f24" strokeWidth="2" className="opacity-55 hover:scale-125 transition-transform cursor-pointer" />
                   ))}
                 </>
               )}
@@ -587,15 +670,15 @@ function UserProfileContent({ userId }: { userId: string }) {
           <div className="flex flex-col gap-2.5 mt-2.5 border-t border-cloud-gray/15 pt-4">
             <div className="flex items-center justify-between text-sm">
               <div className="flex items-center gap-2 min-w-0">
-                <span className="w-3 h-3 rounded-full bg-sky-blue shrink-0"></span>
+                <span className="w-3 h-3 rounded-full bg-silver shrink-0"></span>
                 <span className="font-bold text-white truncate">{profile.name || "Learner"}</span>
               </div>
               <span className="font-black text-white">{viewedTotalWeeklyXp} XP</span>
             </div>
             
-            <div className="flex items-center justify-between text-sm opacity-60">
+            <div className="flex items-center justify-between text-sm">
               <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-full bg-silver shrink-0"></span>
+                <span className="w-3 h-3 rounded-full bg-sky-blue shrink-0"></span>
                 <span className="font-bold text-white">You</span>
               </div>
               <span className="font-black text-white">{activeTotalWeeklyXp} XP</span>
@@ -613,7 +696,14 @@ function UserProfileContent({ userId }: { userId: string }) {
         <div className="grid grid-cols-2 gap-4">
           {/* Streak */}
           <div className="border-2 border-cloud-gray rounded-3xl p-5 flex flex-col items-center justify-center text-center gap-2 bg-gradient-to-br from-duo-green-light/5 to-transparent">
-            <span className="text-3xl select-none">🔥</span>
+            <div className="w-15 h-15 shrink-0 select-none">
+              <DotLottiePlayer
+                src="/img/gen_imgs/Streak/Fire.lottie"
+                autoplay
+                loop
+                className="w-full h-full object-contain"
+              />
+            </div>
             <div className="flex flex-col items-center min-w-0">
               <span className="font-black text-lg text-orange-400 leading-tight">
                 {streak} Days
@@ -626,7 +716,17 @@ function UserProfileContent({ userId }: { userId: string }) {
 
           {/* Courses / Exam category */}
           <div className="border-2 border-cloud-gray rounded-3xl p-5 flex flex-col items-center justify-center text-center gap-2 bg-gradient-to-br from-duo-green-light/5 to-transparent">
-            <span className="text-3xl select-none">🇵🇭</span>
+            <svg viewBox="0 0 120 60" className="w-19 h-10 object-contain rounded-xs shadow-sm border select-none shrink-0">
+              <rect width="120" height="30" fill="#0038A8" />
+              <rect y="30" width="120" height="30" fill="#CE1126" />
+              <polygon points="0,0 51.96,30 0,60" fill="#FFFFFF" />
+              {/* Sun */}
+              <circle cx="17.32" cy="30" r="5.5" fill="#FCD116" />
+              {/* Stars */}
+              <polygon points="5,7 6,9 8,9 6.5,10 7,12 5,11 3,12 3.5,10 2,9 4,9" fill="#FCD116" />
+              <polygon points="5,47 6,49 8,49 6.5,50 7,52 5,51 3,52 3.5,50 2,49 4,49" fill="#FCD116" />
+              <polygon points="45,27 46,29 48,29 46.5,30 47,32 45,31 43,32 43.5,30 42,29 44,29" fill="#FCD116" />
+            </svg>
             <div className="flex flex-col items-center min-w-0">
               <span className="font-black text-lg text-white leading-tight truncate">
                 {profile.exam_category?.split(" ")[0] || "CSE"}
@@ -639,7 +739,7 @@ function UserProfileContent({ userId }: { userId: string }) {
 
           {/* League */}
           <div className="border-2 border-cloud-gray rounded-3xl p-5 flex flex-col items-center justify-center text-center gap-2 bg-gradient-to-br from-duo-green-light/5 to-transparent">
-            <div className="relative w-9 h-9 shrink-0 select-none">
+            <div className="relative w-19 h-19 shrink-0 select-none">
               <Image src={leagueInfo.image} alt="League" fill className="object-contain" />
             </div>
             <div className="flex flex-col items-center min-w-0">
@@ -654,7 +754,7 @@ function UserProfileContent({ userId }: { userId: string }) {
 
           {/* XP */}
           <div className="border-2 border-cloud-gray rounded-3xl p-5 flex flex-col items-center justify-center text-center gap-2 bg-gradient-to-br from-duo-green-light/5 to-transparent">
-            <span className="text-3xl select-none">⚡</span>
+            <img src="/img/gen_imgs/exp.webp" alt="XP" className="w-15 h-15 object-contain select-none" />
             <div className="flex flex-col items-center min-w-0">
               <span className="font-black text-lg text-yellow-400 leading-tight">
                 {xp} XP
@@ -674,7 +774,7 @@ function UserProfileContent({ userId }: { userId: string }) {
             Achievements
           </h2>
           <span 
-            onClick={() => router.push("/profile/achievements?tab=achievements")}
+            onClick={() => router.push(`/profile/achievements?tab=achievements&userId=${userId}`)}
             className="text-sky-blue font-bold text-xs uppercase tracking-wider cursor-pointer hover:text-white hover:-translate-y-0.5 transition-all select-none text-center"
           >
             View All
@@ -685,7 +785,7 @@ function UserProfileContent({ userId }: { userId: string }) {
           {userAchievements.map((ach) => (
             <div 
               key={ach.id} 
-              onClick={() => router.push("/profile/achievements?tab=achievements")}
+              onClick={() => router.push(`/profile/achievements?tab=achievements&userId=${userId}`)}
               className={`flex flex-col items-center gap-2 relative group cursor-pointer ${!ach.isCompleted ? "grayscale opacity-45" : ""}`}
             >
               {ach.isCompleted && (

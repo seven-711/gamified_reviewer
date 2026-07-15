@@ -7,6 +7,7 @@ import { useUser } from "@clerk/nextjs";
 import { supabase } from "@/lib/supabase";
 import { useStats } from "@/components/ui/StatsContext";
 import { getStreakImage } from "@/lib/streak";
+import { fetchFullProfile } from "@/lib/session";
 
 interface MonthlyBadge {
   monthIndex: number;
@@ -125,7 +126,36 @@ function AchievementsContent() {
   );
 
   const { user, isLoaded: isUserLoaded, isSignedIn } = useUser();
-  const { streak, xp, lessonsCompleted } = useStats();
+  const targetUserId = searchParams.get("userId");
+  const { streak: currentStreak, xp: currentXp, lessonsCompleted: currentLessonsCompleted } = useStats();
+
+  const [stalkedProfile, setStalkedProfile] = useState<any>(null);
+  const [loadingProfile, setLoadingProfile] = useState(!!targetUserId);
+
+  useEffect(() => {
+    if (!targetUserId) {
+      setLoadingProfile(false);
+      return;
+    }
+
+    async function loadTargetProfile() {
+      try {
+        setLoadingProfile(true);
+        const fetched = await fetchFullProfile(targetUserId!);
+        setStalkedProfile(fetched);
+      } catch (err) {
+        console.error("Failed to load stalked user profile:", err);
+      } finally {
+        setLoadingProfile(false);
+      }
+    }
+    loadTargetProfile();
+  }, [targetUserId]);
+
+  const streak = targetUserId ? (stalkedProfile?.streak || 0) : currentStreak;
+  const xp = targetUserId ? (stalkedProfile?.total_score || 0) : currentXp;
+  const lessonsCompleted = targetUserId ? (stalkedProfile?.lessons_completed || 0) : currentLessonsCompleted;
+
   const [lessonEvents, setLessonEvents] = useState<{ created_at: string }[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -138,13 +168,14 @@ function AchievementsContent() {
 
   useEffect(() => {
     async function loadEvents() {
-      if (!isUserLoaded) return;
-      
-      let profileId: string | null = null;
-      if (isSignedIn && user) {
-        profileId = user.id;
-      } else if (typeof window !== "undefined") {
-        profileId = localStorage.getItem("guest_session_id");
+      let profileId = targetUserId;
+      if (!profileId) {
+        if (!isUserLoaded) return;
+        if (isSignedIn && user) {
+          profileId = user.id;
+        } else if (typeof window !== "undefined") {
+          profileId = localStorage.getItem("guest_session_id");
+        }
       }
 
       if (!profileId) {
@@ -169,7 +200,7 @@ function AchievementsContent() {
       }
     }
     loadEvents();
-  }, [user, isUserLoaded, isSignedIn]);
+  }, [user, isUserLoaded, isSignedIn, targetUserId]);
 
   // Compute monthly badge unlock status & progress
   const getMonthlyBadgeStatus = (badge: MonthlyBadge) => {
@@ -313,12 +344,20 @@ function AchievementsContent() {
     },
   ];
 
+  const pageLoading = loading || loadingProfile;
+
   return (
     <main className="flex-1 w-full max-w-[800px] mx-auto pb-24 pt-4 px-4 font-din-round min-w-0">
       {/* Header back button */}
       <div className="flex items-center gap-3 mb-6">
         <button
-          onClick={() => router.push("/profile")}
+          onClick={() => {
+            if (targetUserId) {
+              router.push(`/profile/${targetUserId}`);
+            } else {
+              router.push("/profile");
+            }
+          }}
           className="p-2.5 rounded-xl border-0 border-cloud-gray hover:bg-white/5 text-white transition-all cursor-pointer select-none"
           title="Back to Profile"
         >
@@ -327,7 +366,7 @@ function AchievementsContent() {
           </svg>
         </button>
         <h1 className="font-feather text-2xl md:text-3xl text-white font-bold tracking-wide">
-          Achievements Collection
+          {targetUserId ? `${stalkedProfile?.name || "Learner"}'s Collection` : "Collection"}
         </h1>
       </div>
 
@@ -336,7 +375,7 @@ function AchievementsContent() {
         <button
           onClick={() => {
             setActiveTab("badges");
-            router.replace("/profile/achievements?tab=badges");
+            router.replace(`/profile/achievements?tab=badges${targetUserId ? `&userId=${targetUserId}` : ""}`);
           }}
           className={`flex-1 py-4 text-center font-extrabold text-sm md:text-base uppercase tracking-wider transition-all select-none border-b-4 -mb-[4px] cursor-pointer ${
             activeTab === "badges"
@@ -349,7 +388,7 @@ function AchievementsContent() {
         <button
           onClick={() => {
             setActiveTab("achievements");
-            router.replace("/profile/achievements?tab=achievements");
+            router.replace(`/profile/achievements?tab=achievements${targetUserId ? `&userId=${targetUserId}` : ""}`);
           }}
           className={`flex-1 py-4 text-center font-extrabold text-sm md:text-base uppercase tracking-wider transition-all select-none border-b-4 -mb-[4px] cursor-pointer ${
             activeTab === "achievements"
@@ -357,14 +396,14 @@ function AchievementsContent() {
               : "border-transparent text-silver hover:text-white"
           }`}
         >
-          General Achievements
+          Achievements
         </button>
       </div>
 
-      {loading ? (
+      {pageLoading ? (
         <div className="flex flex-col items-center justify-center py-20 gap-4">
           <div className="w-12 h-12 border-4 border-sky-blue/30 border-t-sky-blue rounded-full animate-spin"></div>
-          <span className="text-silver font-bold">Loading your achievements...</span>
+          <span className="text-silver font-bold">Loading achievements...</span>
         </div>
       ) : activeTab === "badges" ? (
         /* Monthly Badges Grid */

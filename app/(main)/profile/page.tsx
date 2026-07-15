@@ -7,6 +7,12 @@ import { supabase } from "@/lib/supabase";
 import { useUser, UserButton, SignOutButton } from "@clerk/nextjs";
 import { StreakAsset } from "@/components/ui/StreakAsset";
 import { fetchFullProfile } from "@/lib/session";
+import dynamic from "next/dynamic";
+
+const DotLottiePlayer = dynamic(
+  () => import("@dotlottie/react-player").then((mod) => mod.DotLottiePlayer),
+  { ssr: false }
+);
 
 interface UserProfile {
   id: string;
@@ -201,6 +207,9 @@ export default function ProfilePage() {
   const [rank, setRank] = useState<number>(1);
   const [totalUsers, setTotalUsers] = useState<number>(1);
   const [lessonEvents, setLessonEvents] = useState<{ created_at: string }[]>([]);
+  const [followingCount, setFollowingCount] = useState(0);
+  const [followersCount, setFollowersCount] = useState(0);
+
   const { user, isLoaded, isSignedIn } = useUser();
 
   useEffect(() => {
@@ -264,6 +273,28 @@ export default function ProfilePage() {
           }
         } catch (e) {
           console.error("Failed to fetch lesson events", e);
+        }
+
+        // Fetch following and followers count
+        try {
+          const currentUserId = user ? user.id : localStorage.getItem("guest_session_id");
+          if (currentUserId) {
+            const [followingRes, followersRes] = await Promise.all([
+              supabase
+                .from("lesson_events")
+                .select("id", { count: "exact", head: true })
+                .eq("profile_id", currentUserId)
+                .like("event_type", "claimed_achievement_follow:%"),
+              supabase
+                .from("lesson_events")
+                .select("id", { count: "exact", head: true })
+                .eq("event_type", `claimed_achievement_follow:${currentUserId}`),
+            ]);
+            setFollowingCount(followingRes.count || 0);
+            setFollowersCount(followersRes.count || 0);
+          }
+        } catch (e) {
+          console.error("Failed to fetch own follows count", e);
         }
 
         setLoading(false);
@@ -508,7 +539,17 @@ export default function ProfilePage() {
           <div className="flex items-center justify-around w-full mt-6 py-4 border-t border-b border-cloud-gray/15">
             <div className="flex flex-col items-center">
               <span className="text-base sm:text-lg font-bold text-white flex items-center gap-1.5 select-none">
-                <span>🇵🇭</span>
+                <svg viewBox="0 0 120 60" className="w-5 h-3.5 object-contain rounded-xs shadow-xs border border-white/10 select-none shrink-0 inline-block align-middle">
+                <rect width="120" height="30" fill="#0038A8" />
+                <rect y="30" width="120" height="30" fill="#CE1126" />
+                <polygon points="0,0 51.96,30 0,60" fill="#FFFFFF" />
+                {/* Sun */}
+                <circle cx="17.32" cy="30" r="5.5" fill="#FCD116" />
+                {/* Stars */}
+                <polygon points="5,7 6,9 8,9 6.5,10 7,12 5,11 3,12 3.5,10 2,9 4,9" fill="#FCD116" />
+                <polygon points="5,47 6,49 8,49 6.5,50 7,52 5,51 3,52 3.5,50 2,49 4,49" fill="#FCD116" />
+                <polygon points="45,27 46,29 48,29 46.5,30 47,32 45,31 43,32 43.5,30 42,29 44,29" fill="#FCD116" />
+              </svg>
                 <span className="bg-sky-blue/20 text-sky-blue text-[10px] font-black px-1.5 py-0.5 rounded uppercase">
                   {profile?.exam_category.split(" ")[0] || "CSE"}
                 </span>
@@ -516,19 +557,28 @@ export default function ProfilePage() {
               <span className="text-silver font-extrabold text-[10px] uppercase tracking-wider mt-1">Courses</span>
             </div>
 
-            <div className="flex flex-col items-center">
-              <span className="text-base sm:text-lg font-black text-white select-none">11</span>
+            <div 
+              onClick={() => router.push(`/profile/${profile?.id || user?.id}/following`)}
+              className="flex flex-col items-center cursor-pointer hover:bg-white/5 p-2 px-3 rounded-2xl transition-all select-none"
+            >
+              <span className="text-base sm:text-lg font-black text-white">{followingCount}</span>
               <span className="text-silver font-extrabold text-[10px] uppercase tracking-wider mt-1">Following</span>
             </div>
 
-            <div className="flex flex-col items-center">
-              <span className="text-base sm:text-lg font-black text-white select-none">10</span>
+            <div 
+              onClick={() => router.push(`/profile/${profile?.id || user?.id}/followers`)}
+              className="flex flex-col items-center cursor-pointer hover:bg-white/5 p-2 px-3 rounded-2xl transition-all select-none"
+            >
+              <span className="text-base sm:text-lg font-black text-white">{followersCount}</span>
               <span className="text-silver font-extrabold text-[10px] uppercase tracking-wider mt-1">Followers</span>
             </div>
           </div>
 
           {/* Add Friends Button */}
-          <button className="w-full mt-5 bg-transparent hover:bg-white/5 border-2 border-cloud-gray hover:border-white text-white font-extrabold py-3 rounded-2xl transition-all uppercase tracking-widest text-xs flex items-center justify-center gap-2 cursor-pointer active:translate-y-0.5">
+          <button 
+            onClick={() => router.push("/leaderboard")}
+            className="w-full mt-5 bg-transparent hover:bg-white/5 border-2 border-cloud-gray hover:border-white text-white font-extrabold py-3 rounded-2xl transition-all uppercase tracking-widest text-xs flex items-center justify-center gap-2 cursor-pointer active:translate-y-0.5"
+          >
             Add Friends
           </button>
         </div>
@@ -542,7 +592,14 @@ export default function ProfilePage() {
           <div className="grid grid-cols-2 gap-4">
             {/* Streak */}
             <div className="flex flex-col items-center justify-center p-5 hover:-translate-y-0.5 transition-transform text-center gap-1.5">
-              <StreakAsset streak={profile?.streak || 0} width={100} height={100} className="object-contain" />
+              <div className="w-[100px] h-[100px] flex items-center justify-center shrink-0 select-none">
+                <DotLottiePlayer
+                  src="/img/gen_imgs/Streak/Fire.lottie"
+                  autoplay
+                  loop
+                  className="w-full h-full object-contain"
+                />
+              </div>
               <span className="font-black text-2xl text-orange-400 dark:text-orange-500">
                 {profile?.streak || 0} Days
               </span>
