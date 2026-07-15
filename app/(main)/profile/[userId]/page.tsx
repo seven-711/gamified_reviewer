@@ -202,33 +202,35 @@ function UserProfileContent({ userId }: { userId: string }) {
     const currentUserId = currentUser ? currentUser.id : localStorage.getItem("guest_session_id");
     if (!currentUserId) return;
 
-    if (isFollowing) {
-      // Unfollow
-      const { error } = await supabase
-        .from("lesson_events")
-        .delete()
-        .eq("profile_id", currentUserId)
-        .eq("event_type", `claimed_achievement_follow:${userId}`);
-      if (!error) {
-        setIsFollowing(false);
-        setFollowersCount(prev => Math.max(0, prev - 1));
+    const originalFollowingState = isFollowing;
+    // Optimistic UI updates
+    setIsFollowing(!originalFollowingState);
+    setFollowersCount(prev => originalFollowingState ? Math.max(0, prev - 1) : prev + 1);
+
+    try {
+      if (originalFollowingState) {
+        // Unfollow
+        const { error } = await supabase
+          .from("lesson_events")
+          .delete()
+          .eq("profile_id", currentUserId)
+          .eq("event_type", `claimed_achievement_follow:${userId}`);
+        if (error) throw error;
       } else {
-        console.error("Unfollow error:", error);
+        // Follow
+        const { error } = await supabase
+          .from("lesson_events")
+          .insert({
+            profile_id: currentUserId,
+            event_type: `claimed_achievement_follow:${userId}`
+          });
+        if (error) throw error;
       }
-    } else {
-      // Follow
-      const { error } = await supabase
-        .from("lesson_events")
-        .insert({
-          profile_id: currentUserId,
-          event_type: `claimed_achievement_follow:${userId}`
-        });
-      if (!error) {
-        setIsFollowing(true);
-        setFollowersCount(prev => prev + 1);
-      } else {
-        console.error("Follow error:", error);
-      }
+    } catch (err) {
+      console.error("Follow status change failed:", err);
+      // Rollback on failure
+      setIsFollowing(originalFollowingState);
+      setFollowersCount(prev => originalFollowingState ? prev + 1 : Math.max(0, prev - 1));
     }
   };
 

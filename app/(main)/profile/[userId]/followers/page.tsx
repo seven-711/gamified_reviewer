@@ -94,6 +94,13 @@ function FollowersContent({ userId }: { userId: string }) {
     // Prevent following self
     if (currentUserId === targetProfileId) return;
 
+    // Optimistically update list UI
+    setFollowersList((prev) =>
+      prev.map((item) =>
+        item.id === targetProfileId ? { ...item, isFollowedByViewer: !isCurrentlyFollowed } : item
+      )
+    );
+
     try {
       if (isCurrentlyFollowed) {
         // Unfollow
@@ -103,13 +110,7 @@ function FollowersContent({ userId }: { userId: string }) {
           .eq("profile_id", currentUserId)
           .eq("event_type", `claimed_achievement_follow:${targetProfileId}`);
         
-        if (!error) {
-          setFollowersList((prev) =>
-            prev.map((item) =>
-              item.id === targetProfileId ? { ...item, isFollowedByViewer: false } : item
-            )
-          );
-        }
+        if (error) throw error;
       } else {
         // Follow
         const { error } = await supabase
@@ -119,16 +120,16 @@ function FollowersContent({ userId }: { userId: string }) {
             event_type: `claimed_achievement_follow:${targetProfileId}`
           });
         
-        if (!error) {
-          setFollowersList((prev) =>
-            prev.map((item) =>
-              item.id === targetProfileId ? { ...item, isFollowedByViewer: true } : item
-            )
-          );
-        }
+        if (error) throw error;
       }
     } catch (err) {
       console.error("Failed to follow/unfollow user in list:", err);
+      // Rollback on failure
+      setFollowersList((prev) =>
+        prev.map((item) =>
+          item.id === targetProfileId ? { ...item, isFollowedByViewer: isCurrentlyFollowed } : item
+        )
+      );
     }
   };
 
