@@ -530,7 +530,7 @@ function UserProfileContent({ userId }: { userId: string }) {
 
       {/* Section: Weekly Progress Graph */}
       <div className="w-full mt-10">
-        <h2 className="font-feather text-xs font-black tracking-widest text-silver uppercase mb-5 select-none">
+        <h2 className="font-feather text-xs font-black tracking-widest text-silver uppercase mb-5 select-none text-center sm:text-left">
           Weekly Progress
         </h2>
 
@@ -586,9 +586,9 @@ function UserProfileContent({ userId }: { userId: string }) {
           {/* Chart Legends */}
           <div className="flex flex-col gap-2.5 mt-2.5 border-t border-cloud-gray/15 pt-4">
             <div className="flex items-center justify-between text-sm">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 min-w-0">
                 <span className="w-3 h-3 rounded-full bg-sky-blue shrink-0"></span>
-                <span className="font-bold text-white">{profile.name || "Learner"}</span>
+                <span className="font-bold text-white truncate">{profile.name || "Learner"}</span>
               </div>
               <span className="font-black text-white">{viewedTotalWeeklyXp} XP</span>
             </div>
@@ -606,7 +606,7 @@ function UserProfileContent({ userId }: { userId: string }) {
 
       {/* Section: Overview */}
       <div className="w-full mt-10">
-        <h2 className="font-feather text-xs font-black tracking-widest text-silver uppercase mb-5 select-none">
+        <h2 className="font-feather text-xs font-black tracking-widest text-silver uppercase mb-5 select-none text-center sm:text-left">
           Overview
         </h2>
 
@@ -669,13 +669,13 @@ function UserProfileContent({ userId }: { userId: string }) {
 
       {/* Section: Achievements */}
       <div className="w-full mt-10">
-        <div className="flex justify-between items-center mb-5">
-          <h2 className="font-feather text-xs font-black tracking-widest text-silver uppercase select-none">
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-2 mb-5">
+          <h2 className="font-feather text-xs font-black tracking-widest text-silver uppercase select-none text-center sm:text-left">
             Achievements
           </h2>
           <span 
             onClick={() => router.push("/profile/achievements?tab=achievements")}
-            className="text-sky-blue font-bold text-xs uppercase tracking-wider cursor-pointer hover:text-white hover:-translate-y-0.5 transition-all select-none"
+            className="text-sky-blue font-bold text-xs uppercase tracking-wider cursor-pointer hover:text-white hover:-translate-y-0.5 transition-all select-none text-center"
           >
             View All
           </span>

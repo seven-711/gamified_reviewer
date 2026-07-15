@@ -20,8 +20,8 @@ export default function DashboardLayout({
       </div>
 
       {/* Main Content & Right Sidebar Container */}
-      <div className="flex-1 flex justify-center md:pl-[256px]">
-        <div className="w-full max-w-[1056px] flex px-4 py-4 md:px-6 md:py-6 gap-12">
+      <div className="flex-1 flex justify-center md:pl-[256px] min-w-0">
+        <div className="w-full max-w-[1056px] flex px-4 py-4 md:px-6 md:py-6 gap-12 min-w-0">
           {children}
         </div>
       </div>
