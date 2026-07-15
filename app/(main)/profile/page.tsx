@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabase";
 import { useUser, UserButton, SignOutButton } from "@clerk/nextjs";
 import { StreakAsset } from "@/components/ui/StreakAsset";
 import { fetchFullProfile } from "@/lib/session";
+import { getProfileCache, setProfileCache } from "@/lib/profileCache";
 import dynamic from "next/dynamic";
 
 const DotLottiePlayer = dynamic(
@@ -224,6 +225,22 @@ export default function ProfilePage() {
         return;
       }
 
+      const currentUserId = user ? user.id : (typeof window !== "undefined" ? localStorage.getItem("guest_session_id") : null);
+      let hasLoadedFromCache = false;
+      if (currentUserId) {
+        const cache = getProfileCache(currentUserId);
+        if (cache) {
+          setProfile(cache.profile);
+          setRank(cache.rank);
+          setTotalUsers(cache.totalUsers);
+          setFollowingCount(cache.followingCount);
+          setFollowersCount(cache.followersCount);
+          if (cache.viewedUserEvents) setLessonEvents(cache.viewedUserEvents);
+          setLoading(false);
+          hasLoadedFromCache = true;
+        }
+      }
+
       try {
         const userProfile = await fetchFullProfile(user.id);
 
@@ -232,7 +249,9 @@ export default function ProfilePage() {
           return;
         }
 
-        setProfile(userProfile as UserProfile);
+        const freshProfile = userProfile as UserProfile;
+        setProfile(freshProfile);
+        
         if (userProfile.timer_duration) {
           setTimerDuration(userProfile.timer_duration);
           localStorage.setItem("timer_duration", userProfile.timer_duration.toString());
@@ -244,6 +263,8 @@ export default function ProfilePage() {
         }
 
         // Fetch rank and total users count
+        let freshRank = 1;
+        let freshTotalUsers = 1;
         try {
           const [{ count: rankCount }, { count: totalCount }] = await Promise.all([
             supabase
@@ -254,13 +275,16 @@ export default function ProfilePage() {
               .from("profile_progress")
               .select("*", { count: "exact", head: true })
           ]);
-          setRank((rankCount || 0) + 1);
-          setTotalUsers(totalCount || 1);
+          freshRank = (rankCount || 0) + 1;
+          freshTotalUsers = totalCount || 1;
+          setRank(freshRank);
+          setTotalUsers(freshTotalUsers);
         } catch (e) {
           console.error("Failed to fetch rank or total users count", e);
         }
 
         // Fetch completed lesson events
+        let freshLessonEvents: any[] = [];
         try {
           const { data: eventsData, error: eventsError } = await supabase
             .from("lesson_events")
@@ -269,15 +293,17 @@ export default function ProfilePage() {
             .eq("event_type", "lesson_completed");
 
           if (!eventsError && eventsData) {
-            setLessonEvents(eventsData || []);
+            freshLessonEvents = eventsData || [];
+            setLessonEvents(freshLessonEvents);
           }
         } catch (e) {
           console.error("Failed to fetch lesson events", e);
         }
 
         // Fetch following and followers count
+        let freshFollowingCount = 0;
+        let freshFollowersCount = 0;
         try {
-          const currentUserId = user ? user.id : localStorage.getItem("guest_session_id");
           if (currentUserId) {
             const [followingRes, followersRes] = await Promise.all([
               supabase
@@ -290,17 +316,33 @@ export default function ProfilePage() {
                 .select("id", { count: "exact", head: true })
                 .eq("event_type", `claimed_achievement_follow:${currentUserId}`),
             ]);
-            setFollowingCount(followingRes.count || 0);
-            setFollowersCount(followersRes.count || 0);
+            freshFollowingCount = followingRes.count || 0;
+            freshFollowersCount = followersRes.count || 0;
+            setFollowingCount(freshFollowingCount);
+            setFollowersCount(freshFollowersCount);
           }
         } catch (e) {
           console.error("Failed to fetch own follows count", e);
         }
 
+        // Save to cache
+        if (currentUserId) {
+          setProfileCache(currentUserId, {
+            profile: freshProfile,
+            rank: freshRank,
+            totalUsers: freshTotalUsers,
+            followingCount: freshFollowingCount,
+            followersCount: freshFollowersCount,
+            viewedUserEvents: freshLessonEvents
+          });
+        }
+
         setLoading(false);
       } catch (err) {
         console.error("Profile load failed", err);
-        router.replace("/login");
+        if (!hasLoadedFromCache) {
+          router.replace("/login");
+        }
       }
     }
     loadData();

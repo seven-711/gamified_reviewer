@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useUser } from "@clerk/nextjs";
 import { supabase } from "@/lib/supabase";
 import { fetchFullProfile } from "@/lib/session";
+import { clearProfileCache } from "@/lib/profileCache";
 
 interface ProfileItem {
   id: string;
@@ -102,6 +103,10 @@ function FollowingContent({ userId }: { userId: string }) {
         item.id === targetProfileId ? { ...item, isFollowedByViewer: !isCurrentlyFollowed } : item
       )
     );
+
+    // Invalidate caches to trigger fresh data on back navigation
+    clearProfileCache(currentUserId);
+    clearProfileCache(targetProfileId);
 
     try {
       if (isCurrentlyFollowed) {

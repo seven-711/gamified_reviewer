@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useUser } from "@clerk/nextjs";
 import { supabase } from "@/lib/supabase";
 import { fetchFullProfile } from "@/lib/session";
+import { getProfileCache, setProfileCache } from "@/lib/profileCache";
 import { getStreakImage } from "@/lib/streak";
 import dynamic from "next/dynamic";
 
@@ -203,9 +204,22 @@ function UserProfileContent({ userId }: { userId: string }) {
     if (!currentUserId) return;
 
     const originalFollowingState = isFollowing;
+    const freshFollowing = !originalFollowingState;
+    const freshFollowersCount = originalFollowingState ? Math.max(0, followersCount - 1) : followersCount + 1;
+
     // Optimistic UI updates
-    setIsFollowing(!originalFollowingState);
-    setFollowersCount(prev => originalFollowingState ? Math.max(0, prev - 1) : prev + 1);
+    setIsFollowing(freshFollowing);
+    setFollowersCount(freshFollowersCount);
+
+    // Update profile cache optimistically
+    const cacheEntry = getProfileCache(userId);
+    if (cacheEntry) {
+      setProfileCache(userId, {
+        ...cacheEntry,
+        isFollowing: freshFollowing,
+        followersCount: freshFollowersCount
+      });
+    }
 
     try {
       if (originalFollowingState) {
@@ -230,12 +244,36 @@ function UserProfileContent({ userId }: { userId: string }) {
       console.error("Follow status change failed:", err);
       // Rollback on failure
       setIsFollowing(originalFollowingState);
-      setFollowersCount(prev => originalFollowingState ? prev + 1 : Math.max(0, prev - 1));
+      setFollowersCount(followersCount);
+      const originalCache = getProfileCache(userId);
+      if (originalCache) {
+        setProfileCache(userId, {
+          ...originalCache,
+          isFollowing: originalFollowingState,
+          followersCount: followersCount
+        });
+      }
     }
   };
 
   useEffect(() => {
     if (!userId) return;
+
+    // 1. Instantly check cache first (SWR pattern)
+    const cache = getProfileCache(userId);
+    let hasLoadedFromCache = false;
+    if (cache) {
+      setProfile(cache.profile);
+      setRank(cache.rank);
+      setTotalUsers(cache.totalUsers);
+      setFollowingCount(cache.followingCount);
+      setFollowersCount(cache.followersCount);
+      setIsFollowing(!!cache.isFollowing);
+      if (cache.viewedUserEvents) setViewedUserEvents(cache.viewedUserEvents);
+      if (cache.activeUserEvents) setActiveUserEvents(cache.activeUserEvents);
+      setLoading(false);
+      hasLoadedFromCache = true;
+    }
 
     async function loadData() {
       try {
@@ -245,9 +283,12 @@ function UserProfileContent({ userId }: { userId: string }) {
           return;
         }
 
-        setProfile(userProfile as UserProfile);
+        const freshProfile = userProfile as UserProfile;
+        setProfile(freshProfile);
 
         // Fetch rank and total users count
+        let freshRank = 1;
+        let freshTotalUsers = 1;
         try {
           const [{ count: rankCount }, { count: totalCount }] = await Promise.all([
             supabase
@@ -258,14 +299,18 @@ function UserProfileContent({ userId }: { userId: string }) {
               .from("profile_progress")
               .select("*", { count: "exact", head: true })
           ]);
-          setRank((rankCount || 0) + 1);
-          setTotalUsers(totalCount || 1);
+          freshRank = (rankCount || 0) + 1;
+          freshTotalUsers = totalCount || 1;
+          setRank(freshRank);
+          setTotalUsers(freshTotalUsers);
         } catch (e) {
           console.error("Failed to fetch rank or total users count", e);
         }
 
         // Fetch user lesson events for weekly graph comparisons & badges
         const currentUserId = currentUser ? currentUser.id : localStorage.getItem("guest_session_id");
+        let freshViewedUserEvents: any[] = [];
+        let freshActiveUserEvents: any[] = [];
         
         try {
           const [viewedRes, activeRes] = await Promise.all([
@@ -282,18 +327,22 @@ function UserProfileContent({ userId }: { userId: string }) {
           ]);
 
           if (!viewedRes.error && viewedRes.data) {
-            setViewedUserEvents(viewedRes.data);
+            freshViewedUserEvents = viewedRes.data;
+            setViewedUserEvents(freshViewedUserEvents);
           }
           if (!activeRes.error && activeRes.data) {
-            setActiveUserEvents(activeRes.data);
+            freshActiveUserEvents = activeRes.data;
+            setActiveUserEvents(freshActiveUserEvents);
           }
         } catch (e) {
           console.error("Failed to fetch lesson events for charts", e);
         }
 
         // Fetch following, followers, and current follow status
+        let freshFollowingCount = 0;
+        let freshFollowersCount = 0;
+        let freshIsFollowing = false;
         try {
-          const currentUserId = currentUser ? currentUser.id : localStorage.getItem("guest_session_id");
           const promises: any[] = [
             // Following count
             supabase
@@ -321,21 +370,37 @@ function UserProfileContent({ userId }: { userId: string }) {
 
           const [followingRes, followersRes, isFollowingRes] = await Promise.all(promises);
 
-          setFollowingCount(followingRes.count || 0);
-          setFollowersCount(followersRes.count || 0);
+          freshFollowingCount = followingRes.count || 0;
+          freshFollowersCount = followersRes.count || 0;
+          setFollowingCount(freshFollowingCount);
+          setFollowersCount(freshFollowersCount);
+          
           if (isFollowingRes && !isFollowingRes.error && isFollowingRes.data) {
-            setIsFollowing(true);
-          } else {
-            setIsFollowing(false);
+            freshIsFollowing = true;
           }
+          setIsFollowing(freshIsFollowing);
         } catch (e) {
           console.error("Failed to fetch following/followers data", e);
         }
 
+        // Set cache for future visits
+        setProfileCache(userId, {
+          profile: freshProfile,
+          rank: freshRank,
+          totalUsers: freshTotalUsers,
+          followingCount: freshFollowingCount,
+          followersCount: freshFollowersCount,
+          isFollowing: freshIsFollowing,
+          viewedUserEvents: freshViewedUserEvents,
+          activeUserEvents: freshActiveUserEvents
+        });
+
         setLoading(false);
       } catch (err) {
         console.error("Failed to load public profile details:", err);
-        router.replace("/leaderboard");
+        if (!hasLoadedFromCache) {
+          router.replace("/leaderboard");
+        }
       }
     }
 
