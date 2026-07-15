@@ -153,18 +153,38 @@ function FollowersContent({ userId }: { userId: string }) {
           <h1 className="font-feather text-xl md:text-2xl text-white font-bold tracking-wide select-none leading-tight">
             Followers
           </h1>
+          {targetUser ? (
+            <span className="text-silver text-xs font-semibold select-none leading-none mt-1">
+              {targetUser?.name || "Learner"}'s follower list
+            </span>
+          ) : (
+            <div className="h-3 w-28 bg-cloud-gray/15 rounded-md animate-pulse mt-1.5" />
+          )}
         </div>
       </div>
 
       {/* List container */}
       <div className="w-full">
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-4">
-            <div className="w-12 h-12 border-4 border-sky-blue/30 border-t-sky-blue rounded-full animate-spin"></div>
-            <span className="text-silver font-bold select-none">Loading list...</span>
+          <div className="flex flex-col gap-3">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="flex items-center justify-between p-4 rounded-2xl border-2 border-cloud-gray bg-[#131f24] gap-4 animate-pulse select-none"
+              >
+                <div className="flex items-center gap-4.5 min-w-0 flex-1">
+                  <div className="w-12 h-12 rounded-full bg-cloud-gray/15 shrink-0" />
+                  <div className="min-w-0 flex flex-col gap-2 flex-1">
+                    <div className="h-4 bg-cloud-gray/15 rounded-md w-[40%] max-w-[150px]" />
+                    <div className="h-3 bg-cloud-gray/15 rounded-md w-[25%] max-w-[80px]" />
+                  </div>
+                </div>
+                <div className="w-20 h-8.5 bg-cloud-gray/15 rounded-xl shrink-0" />
+              </div>
+            ))}
           </div>
         ) : followersList.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center gap-4 p-6 bg-gradient-to-br to-transparent">
+          <div className="flex flex-col items-center justify-center py-20 text-center gap-4 border-2 border-dashed border-cloud-gray/25 rounded-3xl p-6 bg-gradient-to-br from-cloud-gray/5 to-transparent">
             <span className="text-5xl select-none">👥</span>
             <div className="flex flex-col gap-1">
               <p className="text-white font-bold text-lg">No followers yet</p>
@@ -190,7 +210,7 @@ function FollowersContent({ userId }: { userId: string }) {
               return (
                 <div
                   key={item.id}
-                  className="flex items-center justify-between p-4 rounded-2xl bg-[#131f24] hover:bg-[#1a282f] transition-all gap-4"
+                  className="flex items-center justify-between p-4 rounded-2xl border-2 border-cloud-gray bg-[#131f24] hover:bg-[#1a282f] transition-all gap-4"
                 >
                   <div
                     onClick={() => router.push(`/profile/${item.id}`)}
@@ -232,6 +252,39 @@ function FollowersContent({ userId }: { userId: string }) {
   );
 }
 
+const FollowersSkeletonPage = () => (
+  <main className="flex-1 w-full max-w-[600px] mx-auto pb-24 pt-2 px-4 font-din-round min-w-0">
+    <div className="flex items-center gap-4 mb-8">
+      <div className="p-2.5 rounded-xl bg-cloud-gray/15 w-10 h-10 animate-pulse" />
+      <div className="flex flex-col min-w-0 flex-1">
+        <h1 className="font-feather text-xl md:text-2xl text-white font-bold tracking-wide select-none leading-tight">
+          Followers
+        </h1>
+        <div className="h-3 w-28 bg-cloud-gray/15 rounded-md animate-pulse mt-1.5" />
+      </div>
+    </div>
+    <div className="w-full">
+      <div className="flex flex-col gap-3">
+        {[1, 2, 3].map((i) => (
+          <div
+            key={i}
+            className="flex items-center justify-between p-4 rounded-2xl border-2 border-cloud-gray bg-[#131f24] gap-4 animate-pulse select-none"
+          >
+            <div className="flex items-center gap-4.5 min-w-0 flex-1">
+              <div className="w-12 h-12 rounded-full bg-cloud-gray/15 shrink-0" />
+              <div className="min-w-0 flex flex-col gap-2 flex-1">
+                <div className="h-4 bg-cloud-gray/15 rounded-md w-[40%] max-w-[150px]" />
+                <div className="h-3 bg-cloud-gray/15 rounded-md w-[25%] max-w-[80px]" />
+              </div>
+            </div>
+            <div className="w-20 h-8.5 bg-cloud-gray/15 rounded-xl shrink-0" />
+          </div>
+        ))}
+      </div>
+    </div>
+  </main>
+);
+
 export default function FollowersPage({ params }: { params: any }) {
   const [resolvedUserId, setResolvedUserId] = useState<string | null>(null);
 
@@ -246,21 +299,11 @@ export default function FollowersPage({ params }: { params: any }) {
   }, [params]);
 
   if (!resolvedUserId) {
-    return (
-      <main className="flex-1 w-full max-w-[600px] mx-auto pb-24 pt-20 flex flex-col items-center justify-center gap-4">
-        <div className="w-12 h-12 border-4 border-sky-blue/30 border-t-sky-blue rounded-full animate-spin"></div>
-        <span className="text-silver font-bold">Unwrapping parameters...</span>
-      </main>
-    );
+    return <FollowersSkeletonPage />;
   }
 
   return (
-    <Suspense fallback={
-      <main className="flex-1 w-full max-w-[600px] mx-auto pb-24 pt-20 flex flex-col items-center justify-center gap-4">
-        <div className="w-12 h-12 border-4 border-sky-blue/30 border-t-sky-blue rounded-full animate-spin"></div>
-        <span className="text-silver font-bold">Loading...</span>
-      </main>
-    }>
+    <Suspense fallback={<FollowersSkeletonPage />}>
       <FollowersContent userId={resolvedUserId} />
     </Suspense>
   );
