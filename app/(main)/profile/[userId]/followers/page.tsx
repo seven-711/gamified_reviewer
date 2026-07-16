@@ -259,7 +259,7 @@ function FollowersContent({ userId }: { userId: string }) {
               return (
                 <div
                   key={item.id}
-                  className="flex items-center justify-between p-4 rounded-2xl border-2 border-cloud-gray bg-[#131f24] hover:bg-[#1a282f] transition-all gap-4"
+                  className="flex items-center justify-between rounded-2xl hover:bg-[#1a282f] hover:p-2 transition-all gap-4"
                 >
                   <div
                     onClick={() => router.push(`/profile/${item.id}`)}
