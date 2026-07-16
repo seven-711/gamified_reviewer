@@ -37,6 +37,8 @@ function generateShuffledIndices(length: number): number[] {
 
 const playSound = (src: string) => {
   if (typeof window !== "undefined") {
+    const enabled = localStorage.getItem("lesson_sfx_enabled") !== "false";
+    if (!enabled) return;
     const audio = new Audio(src);
     audio.play().catch((err) => console.error("Error playing audio:", err));
   }
@@ -118,6 +120,24 @@ function LessonContent() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showExitModal, setShowExitModal] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("lesson_sfx_enabled");
+      if (saved !== null) {
+        setSoundEnabled(saved === "true");
+      }
+    }
+  }, []);
+
+  const toggleSound = () => {
+    const nextVal = !soundEnabled;
+    setSoundEnabled(nextVal);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("lesson_sfx_enabled", nextVal.toString());
+    }
+  };
 
   const keyBufferRef = React.useRef<string>("");
   const keyTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -816,6 +836,13 @@ function LessonContent() {
             >
               ✕
             </button>
+            <button
+              onClick={toggleSound}
+              className="text-silver hover:text-charcoal font-bold text-xl p-2 transition-colors cursor-pointer flex items-center justify-center min-w-[40px]"
+              title={soundEnabled ? "Disable SFX" : "Enable SFX"}
+            >
+              {soundEnabled ? "🔊" : "🔇"}
+            </button>
             <div className="grow max-w-[800px]">
               <ProgressBar progress={(currentExampleIndex / testExamples.length) * 100} />
             </div>
@@ -1068,6 +1095,13 @@ function LessonContent() {
             className="text-silver hover:text-charcoal font-bold text-2xl p-2 transition-colors cursor-pointer"
           >
             ✕
+          </button>
+          <button
+            onClick={toggleSound}
+            className="text-silver hover:text-charcoal font-bold text-xl p-2 transition-colors cursor-pointer flex items-center justify-center min-w-[40px]"
+            title={soundEnabled ? "Disable SFX" : "Enable SFX"}
+          >
+            {soundEnabled ? "🔊" : "🔇"}
           </button>
 
           <div className="grow max-w-[800px]">
