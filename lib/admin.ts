@@ -4,11 +4,6 @@
  * and allows auto-access in local development.
  */
 export function checkIsAdmin(user: any): boolean {
-  // 1. Local Development bypass
-  if (process.env.NODE_ENV === "development") {
-    return true;
-  }
-
   if (!user) return false;
 
   // 2. Check environment variable NEXT_PUBLIC_ADMIN_EMAILS (comma-separated string)

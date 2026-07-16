@@ -4,6 +4,8 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
+import { checkIsAdmin } from "@/lib/admin";
 
 const NAV_ITEMS = [
   { name: "LEARN", href: "/dashboard", icon: "/emoji/learn.webp" },
@@ -16,10 +18,19 @@ const NAV_ITEMS = [
 
 export default function MobileNavbar() {
   const pathname = usePathname();
+  const { user } = useUser();
+  const isAdmin = checkIsAdmin(user);
+
+  const visibleNavItems = NAV_ITEMS.filter((item) => {
+    if (item.name === "ADMIN") {
+      return isAdmin;
+    }
+    return true;
+  });
 
   return (
     <div className="md:hidden fixed bottom-0 left-0 right-0 h-[72px] bg-snow-white border-t-2 border-cloud-gray z-40 flex items-center justify-around px-2 pb-safe">
-      {NAV_ITEMS.map((item) => {
+      {visibleNavItems.map((item) => {
         const isActive = pathname === item.href;
         return (
           <Link

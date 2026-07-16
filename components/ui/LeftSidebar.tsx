@@ -4,6 +4,8 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
+import { checkIsAdmin } from "@/lib/admin";
 
 const NAV_ITEMS = [
   { name: "LEARN", href: "/dashboard", icon: "/emoji/learn.webp" },
@@ -16,6 +18,15 @@ const NAV_ITEMS = [
 
 export default function LeftSidebar() {
   const pathname = usePathname();
+  const { user } = useUser();
+  const isAdmin = checkIsAdmin(user);
+
+  const visibleNavItems = NAV_ITEMS.filter((item) => {
+    if (item.name === "ADMIN") {
+      return isAdmin;
+    }
+    return true;
+  });
 
   return (
     <div className="flex flex-col w-full h-full pt-8 px-4">
@@ -26,7 +37,7 @@ export default function LeftSidebar() {
       </div>
 
       <nav className="flex flex-col gap-2">
-        {NAV_ITEMS.map((item) => {
+        {visibleNavItems.map((item) => {
           const isActive = pathname === item.href;
           return (
             <Link
