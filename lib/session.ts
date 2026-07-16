@@ -131,7 +131,12 @@ export async function updateProfileStats(
   timeLeft: number,
   timerDurationMinutes: number,
   heartsRemaining?: number,
-  totalQuestions?: number
+  totalQuestions?: number,
+  economyConfig?: {
+    baseReward: number;
+    passingBonus: number;
+    perfectBonus: number;
+  }
 ): Promise<{ xpEarned: number; gemsEarned: number; streakIncreased: boolean; newStreak: number }> {
   // Calculate XP using the cumulative formula:
   const totalSeconds = timerDurationMinutes * 60;
@@ -149,12 +154,16 @@ export async function updateProfileStats(
   const isPassed = (correctAnswers / questionsCount) >= 0.8;
   const isPerfect = correctAnswers === questionsCount;
 
-  let gemsEarned = 5; // Base reward for completing a lesson
+  const baseReward = economyConfig?.baseReward ?? 5;
+  const passingBonus = economyConfig?.passingBonus ?? 10;
+  const perfectBonus = economyConfig?.perfectBonus ?? 5;
+
+  let gemsEarned = baseReward; // Base reward for completing a lesson
   if (isPassed) {
-    gemsEarned += 10;
+    gemsEarned += passingBonus;
   }
   if (isPerfect) {
-    gemsEarned += 5;
+    gemsEarned += perfectBonus;
   }
 
   try {

@@ -121,6 +121,86 @@
         "prompt": "Three years ago, the age of a father was 7 times that of his son. Three years hence, the father's age would be 4 times that of his son. What are the present ages of the father and his son?",
         "explanation": "Let the present age of the son be $x$ years.\n\nThree years ago:\n* Son's age = $x - 3$\n* Father's age = $7(x - 3)$\n\nThree years hence:\n* Son's age = $x + 3$\n* Father's age = $7(x - 3) + 6$\n\nAccording to the question:\n$$7(x - 3) + 6 = 4(x + 3)$$\n$$7x - 21 + 6 = 4x + 12$$\n$$7x - 15 = 4x + 12$$\n$$3x = 27$$\n$$x = 9$$\n\nTherefore:\n* Present age of son = 9 years\n* Present age of father = $7(9 - 3) + 3 = 7(6) + 3 = 45$ years."
       }
+    ],
+    "quantitative_reasoning_test1": [
+      {
+        "id": 1,
+        "type": "text",
+        "prompt": "Find the HCF of 150 and 225.",
+        "explanation": "To find the HCF of 150 and 225 using prime factorization:\n* $150 = 2 \\times 3 \\times 5^2$\n* $225 = 3^2 \\times 5^2$\n\nThe common prime factors are 3 and 5. We take the lowest power of each common factor:\n* $$HCF = 3^1 \\times 5^2 = 3 \\times 25 = 75$$"
+      },
+      {
+        "id": 2,
+        "type": "text",
+        "prompt": "Find the LCM of 12, 18, and 30.",
+        "explanation": "To find the LCM using prime factorization:\n* $12 = 2^2 \\times 3$\n* $18 = 2 \\times 3^2$\n* $30 = 2 \\times 3 \\times 5$\n\nTo find the LCM, we take the highest power of each prime factor present in the numbers:\n* Prime factor 2: highest power is $2^2$\n* Prime factor 3: highest power is $3^2$\n* Prime factor 5: highest power is $5^1$\n\n$$LCM = 2^2 \\times 3^2 \\times 5 = 4 \\times 9 \\times 5 = 180$$"
+      },
+      {
+        "id": 3,
+        "type": "text",
+        "prompt": "The HCF of two numbers is 11 and their LCM is 693. If one of the numbers is 77, find the other number.",
+        "explanation": "Using the fundamental relationship between two numbers, their HCF, and their LCM:\n* $$\\text{Product of two numbers} = HCF \\times LCM$$\n* Let the other number be $x$.\n* $$77 \\times x = 11 \\times 693$$\n* $$x = \\frac{11 \\times 693}{77} = \\frac{693}{7} = 99$$\n\nThe other number is **99**."
+      }
+    ],
+    "quantitative_reasoning_test2": [
+      {
+        "id": 1,
+        "type": "text",
+        "prompt": "In how many different ways can the letters of the word 'LEADER' be arranged?",
+        "explanation": "The word 'LEADER' contains 6 letters: L, E, A, D, E, R.\n* Total letters = 6\n* The letter 'E' is repeated twice.\n\nThe number of unique arrangements is given by:\n* $$\\text{Arrangements} = \\frac{n!}{p_1! \\times p_2! \\times ...}$$\n* $$\\text{Arrangements} = \\frac{6!}{2!} = \\frac{720}{2} = 360$$"
+      },
+      {
+        "id": 2,
+        "type": "text",
+        "prompt": "From a group of 7 men and 6 women, 5 persons are to be selected to form a committee so that at least 3 men are on the committee. In how many ways can it be done?",
+        "explanation": "We need to select 5 persons out of (7 men and 6 women) with **at least 3 men**.\nThis gives three cases:\n\n* **Case 1: 3 men and 2 women**\n  $$\\text{Ways} = \\binom{7}{3} \\times \\binom{6}{2} = 35 \\times 15 = 525$$\n* **Case 2: 4 men and 1 woman**\n  $$\\text{Ways} = \\binom{7}{4} \\times \\binom{6}{1} = 35 \\times 6 = 210$$\n* **Case 3: 5 men and 0 women**\n  $$\\text{Ways} = \\binom{7}{5} \\times \\binom{6}{0} = 21 \\times 1 = 21$$\n\nTotal ways = $525 + 210 + 21 = 756$."
+      },
+      {
+        "id": 3,
+        "type": "text",
+        "prompt": "In how many ways can 6 people sit around a circular table?",
+        "explanation": "The number of circular permutations of $n$ distinct objects is given by:\n* $$\\text{Circular Permutations} = (n - 1)!$$\n\nFor 6 people sitting around a circular table:\n* $$(6 - 1)! = 5! = 5 \\times 4 \\times 3 \\times 2 \\times 1 = 120 \\text{ ways}$$"
+      }
+    ],
+    "quantitative_reasoning_test3": [
+      {
+        "id": 1,
+        "type": "text",
+        "prompt": "A card is drawn from a well-shuffled pack of 52 cards. What is the probability that the card drawn is a King or a Heart?",
+        "explanation": "Let $K$ be the event of drawing a King and $H$ be the event of drawing a Heart.\n* Total cards = 52\n* Number of Kings = 4, so $P(K) = \\frac{4}{52}$\n* Number of Hearts = 13, so $P(H) = \\frac{13}{52}$\n* There is 1 card which is both a King and a Heart (the King of Hearts), so $P(K \\cap H) = \\frac{1}{52}$\n\nUsing the addition rule of probability:\n* $$P(K \\cup H) = P(K) + P(H) - P(K \\cap H)$$\n* $$P(K \\cup H) = \\frac{4}{52} + \\frac{13}{52} - \\frac{1}{52} = \\frac{16}{52} = \\frac{4}{13}$$"
+      },
+      {
+        "id": 2,
+        "type": "text",
+        "prompt": "Two unbiased coins are tossed simultaneously. What is the probability of getting at least one head?",
+        "explanation": "When two coins are tossed, the sample space $S$ is:\n* $$S = \\{HH, HT, TH, TT\\} \\implies n(S) = 4$$\n\nLet $E$ be the event of getting at least one head:\n* $$E = \\{HH, HT, TH\\} \\implies n(E) = 3$$\n\nThe probability is:\n* $$P(E) = \\frac{n(E)}{n(S)} = \\frac{3}{4}$$"
+      },
+      {
+        "id": 3,
+        "type": "text",
+        "prompt": "Two dice are thrown simultaneously. What is the probability that the sum of the numbers on the two faces is 8?",
+        "explanation": "When two dice are thrown, the total number of outcomes is:\n* $$n(S) = 6 \\times 6 = 36$$\n\nLet $E$ be the event that the sum of the numbers is 8. The outcomes yielding a sum of 8 are:\n* $$E = \\{(2,6), (3,5), (4,4), (5,3), (6,2)\\} \\implies n(E) = 5$$\n\nThe probability is:\n* $$P(E) = \\frac{n(E)}{n(S)} = \\frac{5}{36}$$"
+      }
+    ],
+    "quantitative_reasoning_test8": [
+      {
+        "id": 1,
+        "type": "text",
+        "prompt": "An article is bought for ₹400 and sold for ₹480. Find the profit percentage.",
+        "explanation": "Given:\n* Cost Price (CP) = ₹400\n* Selling Price (SP) = ₹480\n\nCalculate profit and profit percent:\n* **Profit** = SP - CP = 480 - 400 = ₹80\n* **Profit %** = \\frac{\\text{Profit}}{\\text{CP}} \\times 100 = \\frac{80}{400} \\times 100 = 20%."
+      },
+      {
+        "id": 2,
+        "type": "text",
+        "prompt": "If the cost price of 10 pens is equal to the selling price of 8 pens, find the profit percent.",
+        "explanation": "Let the Cost Price (CP) of 1 pen be ₹1.\n* CP of 10 pens = ₹10.\n* Selling Price (SP) of 8 pens = CP of 10 pens = ₹10.\n* CP of 8 pens = ₹8.\n\nNow, calculate profit percentage:\n* **Profit** = SP of 8 pens - CP of 8 pens = 10 - 8 = ₹2\n* **Profit %** = \\frac{\\text{Profit}}{\\text{CP of 8 pens}} \\times 100 = \\frac{2}{8} \\times 100 = 25%."
+      },
+      {
+        "id": 3,
+        "type": "text",
+        "prompt": "A shopkeeper allows a discount of 10% on the marked price of an item and still gains 20%. Find the marked price of the item if its cost price is ₹300.",
+        "explanation": "Given:\n* Cost Price (CP) = ₹300\n* Gain % = 20%\n* Discount % = 10%\n\nCalculate the Selling Price (SP):\n* $$SP = CP \\times (1 + 0.20) = 300 \\times 1.20 = ₹360$$\n\nCalculate the Marked Price (MP):\n* Since SP is obtained after a 10% discount on MP:\n  $$SP = MP \\times (1 - 0.10) \\implies 360 = 0.90 \\times MP$$\n  $$MP = \\frac{360}{0.90} = ₹400$$"
+      }
     ]
   },
   "quantitativeReasoningTests": {
@@ -4957,6 +5037,1190 @@
         ],
         "correctIndex": 0,
         "explanation": "Let the present age of the person be $x$ years.\n* Age 3 years hence = $x + 3$\n* Age 3 years ago = $x - 3$\n\nAccording to the problem:\n$$x = 3(x + 3) - 3(x - 3)$$\n$$x = 3x + 9 - 3x + 9$$\n$$x = 18 \\text{ years}$$\nSo the person's age is 18 years."
+      }
+    ],
+    "quantitative_reasoning_test8": [
+      {
+        "id": 1,
+        "type": "text",
+        "prompt": "A trader sells rice at a profit of 5% and uses a weight which is 25% less. Find the total percentage gain.",
+        "options": [
+          "(A) 20%",
+          "(B) 30%",
+          "(C) 40%",
+          "(D) 50%",
+          "(E) None of these"
+        ],
+        "correctIndex": 2,
+        "explanation": "Let the cost price of 1000g of rice be ₹1000.\n* Since the trader sells at a profit of 5%, Selling Price (SP) of 1000g = ₹1050.\n* He uses a weight that is 25% less, meaning he delivers 750g of rice instead of 1000g.\n* Cost Price (CP) of 750g of rice = ₹750.\n* Thus, he sells rice costing ₹750 for ₹1050.\n* **Total Gain** = ₹1050 - ₹750 = ₹300.\n* **Gain %** = \\frac{300}{750} \\times 100 = 40%."
+      },
+      {
+        "id": 2,
+        "type": "text",
+        "prompt": "A person purchases 8 pens for ₹10 and sells 10 pens for ₹8. How much profit or loss does he make?",
+        "options": [
+          "(A) 30% gain",
+          "(B) 30% loss",
+          "(C) 36% gain",
+          "(D) 36% loss",
+          "(E) None of these"
+        ],
+        "correctIndex": 3,
+        "explanation": "Let's find the Cost Price (CP) and Selling Price (SP) of a single pen:\n* **Cost Price (CP) of 1 pen** = \\frac{10}{8} = ₹1.25\n* **Selling Price (SP) of 1 pen** = \\frac{8}{10} = ₹0.80\n\nSince SP < CP, there is a loss:\n* **Loss** = CP - SP = 1.25 - 0.80 = ₹0.45\n* **Loss %** = \\frac{0.45}{1.25} \\times 100 = 36%."
+      },
+      {
+        "id": 3,
+        "type": "text",
+        "prompt": "A shopkeeper buys an article at 8 for ₹16 and sells them at 9 for ₹20. What is his gain or loss per cent?",
+        "options": [
+          "(A) 10% loss",
+          "(B) 10% gain",
+          "(C) 11 1/9% gain",
+          "(D) 11 1/9% loss",
+          "(E) None of these"
+        ],
+        "correctIndex": 2,
+        "explanation": "Let's find the CP and SP of a single article:\n* **Cost Price (CP)** = \\frac{16}{8} = ₹2\n* **Selling Price (SP)** = \\frac{20}{9} ≈ ₹2.22\n\nSince SP > CP, there is a gain:\n* **Gain** = SP - CP = \\frac{20}{9} - 2 = \\frac{2}{9}\n* **Gain %** = \\frac{\\text{Gain}}{\\text{CP}} \\times 100 = \\frac{2/9}{2} \\times 100 = \\frac{100}{9}% = 11 \\frac{1}{9}%."
+      },
+      {
+        "id": 4,
+        "type": "text",
+        "prompt": "A person bought an article for ₹240. For how much should he sell it so as to lose 20%?",
+        "options": [
+          "(A) 120",
+          "(B) 180",
+          "(C) 240",
+          "(D) 192",
+          "(E) None of these"
+        ],
+        "correctIndex": 3,
+        "explanation": "Given:\n* Cost Price (CP) = ₹240\n* Loss % = 20%\n\nFormula for Selling Price (SP) under a loss:\n* SP = CP \\times \\frac{100 - \\text{Loss%}}{100}\n* SP = 240 \\times \\frac{80}{100} = ₹192."
+      },
+      {
+        "id": 5,
+        "type": "text",
+        "prompt": "By selling an article for ₹384, a trader gains 20%. Find the cost price of the article.",
+        "options": [
+          "(A) 160",
+          "(B) 240",
+          "(C) 320",
+          "(D) 480",
+          "(E) None of these"
+        ],
+        "correctIndex": 2,
+        "explanation": "Given:\n* Selling Price (SP) = ₹384\n* Gain % = 20%\n\nFormula for Cost Price (CP) under a gain:\n* CP = \\frac{\\text{SP} \\times 100}{100 + \\text{Gain%}}\n* CP = \\frac{384 \\times 100}{120} = ₹320."
+      },
+      {
+        "id": 6,
+        "type": "text",
+        "prompt": "A sells an article to B at a profit of 20% and B sells it to C at a loss of 10%. If C pays ₹540 for it, at what price did A buy?",
+        "options": [
+          "(A) 400",
+          "(B) 500",
+          "(C) 600",
+          "(D) 700",
+          "(E) None of these"
+        ],
+        "correctIndex": 1,
+        "explanation": "Let A's buying price (Cost Price) be $x$.\n* A sells to B at 20% profit: B's CP = $1.20x$\n* B sells to C at 10% loss: C's CP = $1.20x \\times (1 - 0.10) = 1.20x \\times 0.90 = 1.08x$\n\nGiven that C paid ₹540:\n* $1.08x = 540$\n* $x = \\frac{540}{1.08} = ₹500$."
+      },
+      {
+        "id": 7,
+        "type": "text",
+        "prompt": "A man sold a cow at a loss of 12%. If he had been able to sell it at a gain of 6%, it would have fetched ₹72 more than it did. What was the cost price?",
+        "options": [
+          "(A) 300",
+          "(B) 500",
+          "(C) 400",
+          "(D) 600",
+          "(E) None of these"
+        ],
+        "correctIndex": 2,
+        "explanation": "Let the Cost Price (CP) of the cow be $x$.\n* Selling Price at 12% loss ($SP_1$) = $0.88x$\n* Selling Price at 6% gain ($SP_2$) = $1.06x$\n\nThe difference between the two selling prices is ₹72:\n* $SP_2 - SP_1 = 72$\n* $1.06x - 0.88x = 72$\n* $0.18x = 72$\n* $x = \\frac{72}{0.18} = ₹400$."
+      },
+      {
+        "id": 8,
+        "type": "text",
+        "prompt": "An article is sold for ₹4950 at a gain of 10%. What would have been the gain or loss per cent if it had been sold for ₹4275?",
+        "options": [
+          "(A) 10% gain",
+          "(B) 10% loss",
+          "(C) 5% gain",
+          "(D) 5% loss",
+          "(E) None of these"
+        ],
+        "correctIndex": 3,
+        "explanation": "First, let's find the Cost Price (CP):\n* Selling Price ($SP_1$) = ₹4950 at 10% gain.\n* CP = \\frac{4950 \\times 100}{110} = ₹4500\n\nIf the article is sold for ₹4275 ($SP_2$):\n* Since $SP_2 < CP$, there is a loss.\n* **Loss** = CP - SP_2 = 4500 - 4275 = ₹225\n* **Loss %** = \\frac{225}{4500} \\times 100 = 5%."
+      },
+      {
+        "id": 9,
+        "type": "text",
+        "prompt": "A machine is sold at a profit of 15%. Had it been sold for ₹540 more, 24% would have been gained. Find the cost price.",
+        "options": [
+          "(A) 4800",
+          "(B) 5400",
+          "(C) 6000",
+          "(D) 6400",
+          "(E) None of these"
+        ],
+        "correctIndex": 2,
+        "explanation": "Let the Cost Price (CP) of the machine be $x$.\n* Selling Price at 15% profit = $1.15x$\n* Selling Price at 24% profit = $1.24x$\n\nThe difference is ₹540:\n* $1.24x - 1.15x = 540$\n* $0.09x = 540$\n* $x = \\frac{540}{0.09} = ₹6000$."
+      },
+      {
+        "id": 10,
+        "type": "text",
+        "prompt": "A person sold a radio at a loss of 5%. Had he sold it for ₹210 more, he would have gained 25%. For what value should he sell it in order to gain 35%?",
+        "options": [
+          "(A) 645",
+          "(B) 954",
+          "(C) 654",
+          "(D) 945",
+          "(E) None of these"
+        ],
+        "correctIndex": 3,
+        "explanation": "Let the Cost Price (CP) be $x$.\n* $SP_1$ (at 5% loss) = $0.95x$\n* $SP_2$ (at 25% gain) = $1.25x$\n\nThe difference between the selling prices is ₹210:\n* $1.25x - 0.95x = 210$\n* $0.30x = 210 \\implies x = \\frac{210}{0.30} = ₹700$\n\nTo make a 35% profit:\n* **Required SP** = CP \\times (1 + 0.35) = 700 \\times 1.35 = ₹945."
+      },
+      {
+        "id": 11,
+        "type": "text",
+        "prompt": "An article is sold at a profit of 20%. If both the cost price and selling price are ₹150 less, the profit would be 5% more. Find the cost price.",
+        "options": [
+          "(A) 750",
+          "(B) 650",
+          "(C) 950",
+          "(D) 850",
+          "(E) None of these"
+        ],
+        "correctIndex": 0,
+        "explanation": "Let the Cost Price be $CP = x$. Since profit is 20%, Selling Price is $SP = 1.20x$.\n\nIf both prices are ₹150 less:\n* New CP = $x - 150$\n* New SP = $1.20x - 150$\n\nThe profit percent would increase by 5% (making it 20% + 5% = 25%):\n* $\\text{New SP} = \\text{New CP} \\times 1.25$\n* $1.20x - 150 = 1.25(x - 150)$\n* $1.20x - 150 = 1.25x - 187.5$\n* $1.25x - 1.20x = 187.5 - 150$\n* $0.05x = 37.5 \\implies x = \\frac{37.5}{0.05} = ₹750$."
+      },
+      {
+        "id": 12,
+        "type": "text",
+        "prompt": "A trader sells his table at a profit of 15% and the chair at a loss of 7½%, but on the whole he gains ₹50. If he sells the table at a loss of 7½% and the chair at a profit of 15%, then he neither gains nor loses. Find the cost price of the table.",
+        "options": [
+          "(A) 5000/9",
+          "(B) 4000/9",
+          "(C) 4400/9",
+          "(D) 5300/9",
+          "(E) None of these"
+        ],
+        "correctIndex": 1,
+        "explanation": "Let the Cost Price of the table be $T$ and the chair be $C$.\n\nFrom the second statement (neither gains nor loses under 7.5% loss on table and 15% profit on chair):\n* $-7.5% \\times T + 15% \\times C = 0$\n* $0.15C = 0.075T \\implies C = 0.5T$\n\nFrom the first statement (gains ₹50 under 15% profit on table and 7.5% loss on chair):\n* $15% \\times T - 7.5% \\times C = 50$\n* $0.15T - 0.075(0.5T) = 50$\n* $0.15T - 0.0375T = 50$\n* $0.1125T = 50 \\implies T = \\frac{50}{0.1125} = \\frac{4000}{9}$."
+      },
+      {
+        "id": 13,
+        "type": "text",
+        "prompt": "A vendor started selling vegetables at ₹10 per kg, but couldn't find buyers at this rate. So, he reduced the price to ₹8.10 per kg, but uses a faulty weight of 900 g for 1 kg. Find the percentage change in the actual price or loss.",
+        "options": [
+          "(A) 5%",
+          "(B) 10%",
+          "(C) 15%",
+          "(D) 20%"
+        ],
+        "correctIndex": 1,
+        "explanation": "Originally, the price was ₹10 per kg (1000g). Effective rate = \\frac{10}{1000} = ₹0.01 per gram.\n* At the reduced rate, he sells 900g for ₹8.10.\n* Effective price for a full 1kg (1000g) under the new rate = \\frac{8.10}{900} \\times 1000 = ₹9.\n* Percentage change in the actual price per kg = \\frac{10 - 9}{10} \\times 100 = 10% decrease."
+      },
+      {
+        "id": 14,
+        "type": "text",
+        "prompt": "The cost price of 6 pens is equal to the selling price of 4 pens. Find the profit per cent.",
+        "options": [
+          "(A) 25%",
+          "(B) 60%",
+          "(C) 50%",
+          "(D) 80%",
+          "(E) None of these"
+        ],
+        "correctIndex": 2,
+        "explanation": "Let the Cost Price (CP) of 1 pen be $x$.\n* Cost Price of 6 pens = $6x$.\n* Selling Price (SP) of 4 pens = $6x$, which means Selling Price of 1 pen = \\frac{6x}{4} = 1.5x.\n\nNow calculate profit per cent:\n* **Profit** = SP - CP = 1.5x - x = 0.5x\n* **Profit %** = \\frac{0.5x}{x} \\times 100 = 50%."
+      },
+      {
+        "id": 15,
+        "type": "text",
+        "prompt": "If cost price of 20 tables is equal to selling price of 25 tables, find the loss%.",
+        "options": [
+          "(A) 10%",
+          "(B) 20%",
+          "(C) 30%",
+          "(D) 40%",
+          "(E) None of these"
+        ],
+        "correctIndex": 1,
+        "explanation": "Let the Cost Price (CP) of 1 table be $x$.\n* Cost Price of 20 tables = $20x$.\n* Selling Price (SP) of 25 tables = $20x$, which means Selling Price of 1 table = \\frac{20x}{25} = 0.8x.\n\nNow calculate loss per cent:\n* **Loss** = CP - SP = x - 0.8x = 0.2x\n* **Loss %** = \\frac{0.2x}{x} \\times 100 = 20%."
+      },
+      {
+        "id": 16,
+        "type": "text",
+        "prompt": "A man sells an article at a loss of 5%. If he had bought it at 20% more and sold it ₹115 less, he would have made a loss of 40%. Find the cost price of the article.",
+        "options": [
+          "(A) 400",
+          "(B) 450",
+          "(C) 500",
+          "(D) 600",
+          "(E) None of these"
+        ],
+        "correctIndex": 2,
+        "explanation": "Let the Cost Price be $CP = x$. Selling Price $SP_1 = 0.95x$.\n\nAccording to the conditions:\n* New CP = $1.20x$\n* New SP = $0.95x - 115$\n\nThis leads to a loss of 40% (meaning New SP is 60% of New CP):\n* $\\text{New SP} = \\text{New CP} \\times (1 - 0.40)$\n* $0.95x - 115 = 1.20x \\times 0.60$\n* $0.95x - 115 = 0.72x$\n* $0.23x = 115 \\implies x = \\frac{115}{0.23} = ₹500$."
+      },
+      {
+        "id": 17,
+        "type": "text",
+        "prompt": "When Ram sold his book for ₹255 he made a loss of 15%. For how much should he have sold it if he wanted to make a profit of 5%?",
+        "options": [
+          "(A) 275",
+          "(B) 315",
+          "(C) 295",
+          "(D) 335",
+          "(E) None of these"
+        ],
+        "correctIndex": 1,
+        "explanation": "Given Selling Price ($SP_1$) = ₹255 under a loss of 15%:\n* **Cost Price (CP)** = \\frac{SP_1 \\times 100}{100 - Loss%} = \\frac{255 \\times 100}{85} = ₹300\n\nTo make a profit of 5%:\n* **Required Selling Price ($SP_2$)** = CP \\times (1 + 0.05) = 300 \\times 1.05 = ₹315."
+      },
+      {
+        "id": 18,
+        "type": "text",
+        "prompt": "A man invests ₹21,000 in shares of a company. He sells one-third of the total shares at a profit of 10%. The remaining shares are sold at a loss of 5%. Find his overall profit or loss.",
+        "options": [
+          "(A) 10% profit",
+          "(B) 10% loss",
+          "(C) No profit, no loss",
+          "(D) 5% loss",
+          "(E) None of these"
+        ],
+        "correctIndex": 2,
+        "explanation": "Let's compute the absolute profits and losses:\n* Total Investment = ₹21,000\n* **One-third portion** = \\frac{21000}{3} = ₹7,000. Sold at 10% profit:\n  $$\\text{Profit} = 7000 \\times 10% = ₹700$$\n* **Remaining portion (two-thirds)** = ₹14,000. Sold at 5% loss:\n  $$\\text{Loss} = 14000 \\times 5% = ₹700$$\n\nNet effect = Profit - Loss = 700 - 700 = 0. Therefore, he makes **no profit and no loss**."
+      },
+      {
+        "id": 19,
+        "type": "text",
+        "prompt": "A man buys 100 kg of sugar for ₹2400. He sells 1/4 of the stock at a loss of 5%. At what percent profit should he sell the remaining stock so as to make an overall profit of 20% on the whole transaction?",
+        "options": [
+          "(A) 25%",
+          "(B) 27 1/3%",
+          "(C) 28%",
+          "(D) 28 1/3%",
+          "(E) None of these"
+        ],
+        "correctIndex": 3,
+        "explanation": "Let's calculate the total cost price and required selling price:\n* Total Cost Price (CP) = ₹2400\n* Required overall profit = 20% of 2400 = ₹480\n* **Required Total Selling Price (SP)** = 2400 + 480 = ₹2880\n\nFirst transaction (1/4 of the stock):\n* Quantity = 25 kg. CP = \\frac{2400}{4} = ₹600.\n* Sold at a 5% loss: $SP_1 = 600 - (5% \\text{ of } 600) = ₹570$\n\nSecond transaction (remaining 3/4 stock):\n* Quantity = 75 kg. CP = ₹1800.\n* Required SP for remaining stock = Total SP - $SP_1$ = 2880 - 570 = ₹2310.\n* Required profit on remaining stock = 2310 - 1800 = ₹510.\n* **Required Profit %** = \\frac{510}{1800} \\times 100 = 28 \\frac{1}{3}%."
+      },
+      {
+        "id": 20,
+        "type": "text",
+        "prompt": "A man buys 300 dozen bananas for ₹3600. He sells one-third of the stock at a loss of 10% and the remaining two-thirds at a gain of 10%. Find his overall percentage profit or loss.",
+        "options": [
+          "(A) 10/3% gain",
+          "(B) 10/3% loss",
+          "(C) 14/3% loss",
+          "(D) 14/3% gain",
+          "(E) None of these"
+        ],
+        "correctIndex": 0,
+        "explanation": "Let's find the Cost Price (CP) and Selling Price (SP) of the portions sold:\n* Total CP = ₹3600\n* **One-third portion (100 dozen):** CP = \\frac{3600}{3} = ₹1200. Sold at 10% loss:\n  $$\\text{Loss}_1 = 1200 \\times 10% = ₹120 \\implies SP_1 = ₹1080$$\n* **Remaining two-thirds portion (200 dozen):** CP = ₹2400. Sold at 10% gain:\n  $$\\text{Gain}_2 = 2400 \\times 10% = ₹240 \\implies SP_2 = ₹2640$$\n\nTotal SP = $SP_1 + SP_2 = 1080 + 2640 = ₹3720$.\nSince Total SP > Total CP, he makes a profit:\n* **Overall Profit** = 3720 - 3600 = ₹120\n* **Overall Profit %** = \\frac{120}{3600} \\times 100 = 3 \\frac{1}{3}% = \\frac{10}{3}% gain."
+      },
+      {
+        "id": 21,
+        "type": "text",
+        "prompt": "A shopkeeper mixes 20 kg of rice costing ₹5 per kg with 35 kg of rice costing ₹7 per kg. He sells the mixture at ₹6.5 per kg. Find his total profit and profit percent.",
+        "options": [
+          "(A) ₹17 41/69, 5%",
+          "(B) ₹15 47/69, 4%",
+          "(C) ₹12 43/69, 3%",
+          "(D) ₹10 37/69, 2%",
+          "(E) None of these"
+        ],
+        "correctIndex": 2,
+        "explanation": "Let's calculate the Cost Price (CP) and Selling Price (SP) of the mixture:\n* **Total Cost Price (CP):**\n  $$CP = (20 \\times 5) + (35 \\times 7) = 100 + 245 = ₹345$$\n* **Total Quantity:**\n  $$Q = 20 + 35 = 55 \\text{ kg}$$\n* **Total Selling Price (SP):**\n  $$SP = 55 \\times 6.5 = ₹357.5$$\n\nNow, calculate profit and profit percentage:\n* **Total Profit:**\n  $$\\text{Profit} = SP - CP = 357.5 - 345 = ₹12.50 \\text{ (or } 12 \\frac{1}{2}\\text{)}$$\n* **Profit %:**\n  $$\\text{Profit %} = \\frac{12.5}{345} \\times 100 = 3 \\frac{43}{69}\\%$$\n\n*Note: The textbook choice (C) contains a small formatting error where the profit is written as ₹12 43/69 and the percentage as 3%, but it is the intended option corresponding to these calculations.*"
+      },
+      {
+        "id": 22,
+        "type": "text",
+        "prompt": "A shopkeeper sold an article offering a discount of 5% and earned a profit of 23.5%. What would have been the percentage profit earned if no discount was offered?",
+        "options": [
+          "(A) 24.5%",
+          "(B) 28.5%",
+          "(C) 30%",
+          "(D) Data inadequate",
+          "(E) None of these"
+        ],
+        "correctIndex": 2,
+        "explanation": "Let's assume the Cost Price (CP) is ₹100.\n* Since the profit is 23.5%, the Selling Price (SP) after the discount is:\n  $$SP = 100 + 23.5 = ₹123.5$$\n* The shopkeeper offered a 5% discount on the Marked Price (MP) to sell it at SP:\n  $$SP = MP \\times (1 - 0.05) \\implies 123.5 = 0.95 \\times MP$$\n  $$MP = \\frac{123.5}{0.95} = ₹130$$\n\nIf no discount were offered, the Selling Price would be the Marked Price (₹130):\n* **New Profit %** = MP - CP = 130 - 100 = 30%.\n\n*Note: Option (C) is the mathematically correct answer. The key (B) is incorrect as it simply adds the percentages (23.5% + 5% = 28.5%), which is mathematically invalid.*"
+      },
+      {
+        "id": 23,
+        "type": "text",
+        "prompt": "The labelled price of a cupboard is ₹6500. The shopkeeper sold it by giving a 5% discount on the labelled price and earned a profit of 15%. What is the approximate cost price of the cupboard?",
+        "options": [
+          "(A) ₹5000",
+          "(B) ₹5350",
+          "(C) ₹5600",
+          "(D) ₹5800",
+          "(E) ₹6000"
+        ],
+        "correctIndex": 1,
+        "explanation": "Given:\n* Labelled Price (Marked Price, MP) = ₹6500\n* Discount = 5%\n* Profit % = 15%\n\nCalculate the Selling Price (SP):\n* $$SP = MP \\times (1 - 0.05) = 6500 \\times 0.95 = ₹6175$$\n\nCalculate the Cost Price (CP):\n* $$CP = \\frac{SP \\times 100}{100 + \\text{Profit%}} = \\frac{6175 \\times 100}{115} \\approx ₹5369.57$$\n\nAmong the choices, the closest approximate value is **₹5350**."
+      },
+      {
+        "id": 24,
+        "type": "text",
+        "prompt": "A trader marked the selling price of an article at 10% above the cost price. At the time of selling, he allows a certain discount and thus suffers a loss of 1%. He allowed a discount of:",
+        "options": [
+          "(A) 9%",
+          "(B) 10%",
+          "(C) 10.5%",
+          "(D) 11%"
+        ],
+        "correctIndex": 1,
+        "explanation": "Let the Cost Price (CP) of the article be ₹100.\n* **Marked Price (MP):** 10% above CP = ₹110.\n* **Selling Price (SP):** Loss of 1% on CP = ₹99.\n\nCalculate the discount allowed:\n* **Discount Amount** = MP - SP = 110 - 99 = ₹11\n* **Discount %** = \\frac{\\text{Discount}}{\\text{MP}} \\times 100 = \\frac{11}{110} \\times 100 = 10%.\n\n*Note: Option (B) is the mathematically correct answer.*"
+      },
+      {
+        "id": 25,
+        "type": "text",
+        "prompt": "At what price should a shopkeeper mark a radio that costs him ₹1200 in order that he may offer a discount of 20% on the marked price and still make a profit of 25%?",
+        "options": [
+          "(A) ₹1675",
+          "(B) ₹1875",
+          "(C) ₹1900",
+          "(D) ₹2025",
+          "(E) None of these"
+        ],
+        "correctIndex": 1,
+        "explanation": "Given:\n* Cost Price (CP) = ₹1200\n* Profit % = 25%\n* Discount % = 20%\n\nCalculate the required Selling Price (SP):\n* $$SP = CP \\times (1 + 0.25) = 1200 \\times 1.25 = ₹1500$$\n\nCalculate the Marked Price (MP):\n* Since SP is obtained after a 20% discount on MP:\n  $$SP = MP \\times (1 - 0.20) \\implies 1500 = 0.80 \\times MP$$\n  $$MP = \\frac{1500}{0.80} = ₹1875$$\n\n*Note: Option (B) is the correct answer.*"
+      },
+      {
+        "id": 26,
+        "type": "text",
+        "prompt": "By selling an umbrella for ₹300, a shopkeeper gains 20%. During a clearance sale, the shopkeeper allows a discount of 10% on the marked price. His gain percent during the sale is:",
+        "options": [
+          "(A) 7%",
+          "(B) 7.5%",
+          "(C) 8%",
+          "(D) 9%"
+        ],
+        "correctIndex": 2,
+        "explanation": "Given:\n* Selling Price ($SP_1$) = ₹300\n* Gain % = 20%\n\nCalculate the Cost Price (CP):\n* $$CP = \\frac{SP_1}{1.20} = \\frac{300}{1.20} = ₹250$$\n\nAssuming the marked price is the original selling price of ₹300:\n* Discount = 10% of ₹300 = ₹30\n* **New SP** = 300 - 30 = ₹270\n* **New Gain** = New SP - CP = 270 - 250 = ₹20\n* **New Gain %** = \\frac{20}{250} \\times 100 = 8%."
+      },
+      {
+        "id": 27,
+        "type": "text",
+        "prompt": "The price of an article is raised by 30% and then two successive discounts of 10% each are allowed. Ultimately, the price of the article is:",
+        "options": [
+          "(A) Decreased by 5.3%",
+          "(B) Increased by 3%",
+          "(C) Increased by 5.3%",
+          "(D) Increased by 10%"
+        ],
+        "correctIndex": 2,
+        "explanation": "Let the original price of the article be 100.\n* **Price after 30% increase:** $100 \\times 1.30 = 130$\n* **Price after first 10% discount:** $130 \\times 0.90 = 117$\n* **Price after second 10% discount:** $117 \\times 0.90 = 105.3$\n\nNet change = 105.3 - 100 = 5.3% increase.\nUltimately, the price is **increased by 5.3%**."
+      },
+      {
+        "id": 28,
+        "type": "text",
+        "prompt": "The difference between a discount of 35% and two successive discounts of 20% on a certain bill was ₹22. Find the amount of the bill.",
+        "options": [
+          "(A) ₹200",
+          "(B) ₹1100",
+          "(C) ₹2200",
+          "(D) Data inadequate",
+          "(E) None of these"
+        ],
+        "correctIndex": 2,
+        "explanation": "Let the amount of the bill be $B$.\n* **Discount 1:** 35% of $B$.\n* **Discount 2 (Successive discounts of 20% and 20%):** Equivalent single discount is:\n  $$20 + 20 - \\frac{20 \\times 20}{100} = 36\\% \\text{ of } B$$\n\nThe difference between the two discounts is ₹22:\n* $$36\\% \\text{ of } B - 35\\% \\text{ of } B = 22$$\n* $$1\\% \\text{ of } B = 22 \\implies B = 22 \\times 100 = ₹2200$$."
+      },
+      {
+        "id": 29,
+        "type": "text",
+        "prompt": "Successive discounts of 10%, 12% and 15% amount to a single discount of:",
+        "options": [
+          "(A) 32.68%",
+          "(B) 35.28%",
+          "(C) 36.68%",
+          "(D) None of these"
+        ],
+        "correctIndex": 0,
+        "explanation": "Let the original price be 100.\n* **Price after 10% discount:** $100 \\times 0.90 = 90$\n* **Price after 12% discount:** $90 \\times 0.88 = 79.2$\n* **Price after 15% discount:** $79.2 \\times 0.85 = 67.32$\n\nTotal single discount equivalent = 100 - 67.32 = 32.68%."
+      },
+      {
+        "id": 30,
+        "type": "text",
+        "prompt": "A fan is listed at ₹1500 and a discount of 20% is offered on the list price. What additional discount must be offered to the customer to bring the net price to ₹1104?",
+        "options": [
+          "(A) 8%",
+          "(B) 10%",
+          "(C) 12%",
+          "(D) 15%"
+        ],
+        "correctIndex": 0,
+        "explanation": "Given:\n* List Price = ₹1500\n* First discount = 20%\n* Final Net Price = ₹1104\n\nCalculate the price after the first discount:\n* $$1500 \\times (1 - 0.20) = ₹1200$$\n\nCalculate the additional discount amount needed on ₹1200:\n* **Additional Discount** = 1200 - 1104 = ₹96\n* **Additional Discount %** = \\frac{96}{1200} \\times 100 = 8%."
+      },
+      {
+        "id": 31,
+        "type": "text",
+        "prompt": "A pair of article was bought for ₹37.40 at a discount of 15%. What must be the marked price of each of the articles?",
+        "options": [
+          "(A) ₹11",
+          "(B) ₹22",
+          "(C) ₹33",
+          "(D) ₹44"
+        ],
+        "correctIndex": 1,
+        "explanation": "Given:\n* Buying price of a pair (two articles) = ₹37.40\n* Discount % = 15%\n\nCalculate the buying price (Selling Price, SP) of each article:\n* $$SP = \\frac{37.40}{2} = ₹18.70$$\n\nCalculate the Marked Price (MP) of each article:\n* Since SP is obtained after a 15% discount on MP:\n  $$SP = MP \\times (1 - 0.15) \\implies 18.70 = 0.85 \\times MP$$\n  $$MP = \\frac{18.70}{0.85} = ₹22$$."
+      },
+      {
+        "id": 32,
+        "type": "text",
+        "prompt": "Albert buys 4 horses and 9 cows for ₹13400. If he sells the horses at 10% profit and the cows at 20% profit, then he earns a total profit of ₹1880. The cost of a horse is:",
+        "options": [
+          "(A) ₹1000",
+          "(B) ₹2000",
+          "(C) ₹2500",
+          "(D) ₹3000"
+        ],
+        "correctIndex": 1,
+        "explanation": "Let the total cost of 4 horses be $H$ and 9 cows be $C$.\n* **Equation 1 (Total Cost):**\n  $$H + C = 13400$$\n* **Equation 2 (Total Profit):**\n  $$0.10H + 0.20C = 1880 \\implies H + 2C = 18800$$\n\nSubtract Equation 1 from Equation 2:\n* $$(H + 2C) - (H + C) = 18800 - 13400$$\n  $$C = 5400$$\n\nSubstitute $C = 5400$ into Equation 1:\n* $$H = 13400 - 5400 = 8000$$\n\nSo, the total cost of 4 horses is ₹8000.\n* **Cost of 1 horse** = \\frac{8000}{4} = ₹2000."
+      },
+      {
+        "id": 33,
+        "type": "text",
+        "prompt": "The cash difference between the selling prices of an article at a profit of 4% and 6% is ₹3. The ratio of the two selling prices is:",
+        "options": [
+          "(A) 51 : 52",
+          "(B) 52 : 53",
+          "(C) 51 : 53",
+          "(D) 52 : 55"
+        ],
+        "correctIndex": 1,
+        "explanation": "Let the Cost Price of the article be $CP$.\n* Selling Price 1 ($SP_1$) at 4% profit = $1.04 \\times CP$\n* Selling Price 2 ($SP_2$) at 6% profit = $1.06 \\times CP$\n\nRatio of the two selling prices:\n* $$\\frac{SP_1}{SP_2} = \\frac{1.04 \\times CP}{1.06 \\times CP} = \\frac{104}{106} = \\frac{52}{53}$$."
+      },
+      {
+        "id": 34,
+        "type": "text",
+        "prompt": "If a man reduces the selling price of a fan from ₹400 to ₹380, his loss increases by 2%. The cost price of the fan is:",
+        "options": [
+          "(A) ₹480",
+          "(B) ₹500",
+          "(C) ₹600",
+          "(D) None of these"
+        ],
+        "correctIndex": 3,
+        "explanation": "Let the Cost Price of the fan be $CP$.\n* Reduction in Selling Price = $400 - 380 = ₹20$\n* This reduction corresponds to a 2% increase in loss on CP:\n  $$2\\% \\text{ of } CP = 20 \\implies 0.02 \\times CP = 20$$\n  $$CP = \\frac{20}{0.02} = ₹1000$$\n\nSince ₹1000 is not listed in options (A) to (C), the correct choice is **None of these (D)**."
+      },
+      {
+        "id": 35,
+        "type": "text",
+        "prompt": "A sells a bicycle to B at a profit of 20%. B sells it to C at a profit of 25%. If C pays ₹225 for it, the cost price of the bicycle for A is:",
+        "options": [
+          "(A) ₹110",
+          "(B) ₹120",
+          "(C) ₹125",
+          "(D) ₹150"
+        ],
+        "correctIndex": 3,
+        "explanation": "Let A's Cost Price be $x$.\n* B's buying price (A's SP) = $1.20x$\n* C's buying price (B's SP) = $1.20x \\times 1.25 = 1.50x$\n\nGiven C paid ₹225:\n* $$1.50x = 225 \\implies x = \\frac{225}{1.50} = ₹150$$."
+      },
+      {
+        "id": 36,
+        "type": "text",
+        "prompt": "A shopkeeper cheats to the extent of 10% while buying as well as selling by using false weights. His total gain is:",
+        "options": [
+          "(A) 10%",
+          "(B) 11%",
+          "(C) 20%",
+          "(D) 21%",
+          "(E) 22 2/9%"
+        ],
+        "correctIndex": 3,
+        "explanation": "Using the standard formula for successive percentage cheats on buying and selling:\n* $$Gain = x + y + \\frac{xy}{100}$$\n  $$\\text{Total Gain} = 10 + 10 + \\frac{10 \\times 10}{100} = 20 + 1 = 21\\%$$\n\n*Note: Option (D) is the standard correct textbook answer based on this formula.*"
+      },
+      {
+        "id": 37,
+        "type": "text",
+        "prompt": "A dishonest dealer uses a scale of 90 cm instead of a metre scale and claims to sell at cost price. His profit is:",
+        "options": [
+          "(A) 9%",
+          "(B) 10%",
+          "(C) 12%",
+          "(D) None of these"
+        ],
+        "correctIndex": 3,
+        "explanation": "Let the cost price of 100 cm (1 metre) of goods be ₹100.\n* The dealer sells at cost price, but delivers only 90 cm.\n* Cost of 90 cm of goods = ₹90\n* Selling Price of 90 cm of goods = ₹100\n\nCalculate profit percentage:\n* **Profit** = 100 - 90 = ₹10\n* **Profit %** = \\frac{10}{90} \\times 100 = 11 \\frac{1}{9}%\n\nSince 11 1/9% is not listed in options (A) to (C), the correct choice is **None of these (D)**."
+      },
+      {
+        "id": 38,
+        "type": "text",
+        "prompt": "A dairyman pays ₹6.40 per litre of milk. He adds water and sells the mixture at ₹8 per litre, thereby making 37.5% profit. The proportion of water to milk received by the customers is:",
+        "options": [
+          "(A) 1 : 10",
+          "(B) 1 : 12",
+          "(C) 1 : 15",
+          "(D) 1 : 20"
+        ],
+        "correctIndex": 0,
+        "explanation": "Let the volume of milk be $M$ litres and water be $W$ litres received by customers.\n* Cost of milk to the dairyman = $6.40 \\times M$ (water is assumed to be free)\n* Selling price of the mixture = $8 \\times (M + W)$\n* Given Profit % = 37.5% (or \\frac{3}{8}):\n  $$SP = CP \\times (1 + \\frac{3}{8}) = \\frac{11}{8} \\times CP$$\n  $$8(M + W) = \\frac{11}{8} \\times 6.40M$$\n  $$8M + 8W = 8.80M$$\n  $$8W = 0.80M \\implies \\frac{W}{M} = \\frac{0.80}{8} = \\frac{1}{10}$$\n\nSo the proportion of water to milk is **1 : 10**."
+      },
+      {
+        "id": 39,
+        "type": "text",
+        "prompt": "Arun purchased 30 kg of wheat at ₹11.50 per kg and 20 kg of wheat at ₹14.25 per kg. He mixed the two and sold the mixture. Approximately at what price per kg should he sell the mixture to earn 30% profit?",
+        "options": [
+          "(A) ₹14.80",
+          "(B) ₹15.40",
+          "(C) ₹15.60",
+          "(D) ₹16.30",
+          "(E) ₹18.20"
+        ],
+        "correctIndex": 3,
+        "explanation": "Let's find the total Cost Price (CP) and weight of the mixture:\n* **Total CP:**\n  $$CP = (30 \\times 11.50) + (20 \\times 14.25) = 345 + 285 = ₹630$$\n* **Total Quantity:**\n  $$Q = 30 + 20 = 50 \\text{ kg}$$\n* **Average CP per kg:**\n  $$\\text{Average CP} = \\frac{630}{50} = ₹12.60$$\n\nTo make a 30% profit, the selling price per kg must be:\n* $$SP = 12.60 \\times 1.30 = ₹16.38$$\n\nAmong the options, the closest approximate selling price is **₹16.30 (D)**."
+      },
+      {
+        "id": 40,
+        "type": "text",
+        "prompt": "A man bought apples at the rate of 8 for ₹34 and sold them at the rate of 12 for ₹57. How many apples should be sold to earn a net profit of ₹45?",
+        "options": [
+          "(A) 90",
+          "(B) 100",
+          "(C) 135",
+          "(D) 150"
+        ],
+        "correctIndex": 0,
+        "explanation": "Let's find the Cost Price (CP) and Selling Price (SP) of a single apple:\n* **CP of 1 apple** = \\frac{34}{8} = ₹4.25\n* **SP of 1 apple** = \\frac{57}{12} = ₹4.75\n\nProfit on a single apple:\n* **Profit** = SP - CP = 4.75 - 4.25 = ₹0.50\n\nTo earn a total net profit of ₹45:\n* **Number of apples** = \\frac{45}{0.50} = 90 apples."
+      },
+      {
+        "id": 41,
+        "type": "text",
+        "prompt": "If on selling 12 notebooks, a seller makes a profit equal to the selling price of 4 notebooks, what is his percent profit?",
+        "options": [
+          "(A) 16⅔%",
+          "(B) 25%",
+          "(C) 50%",
+          "(D) Data inadequate",
+          "(E) None of these"
+        ],
+        "correctIndex": 2,
+        "explanation": "Let the Selling Price (SP) of 1 notebook be ₹1.\n* SP of 12 notebooks = ₹12.\n* Profit = SP of 4 notebooks = ₹4.\n* Cost Price (CP) of 12 notebooks = SP - Profit = 12 - 4 = ₹8.\n\nNow, calculate profit percentage:\n* **Profit %** = \\frac{\\text{Profit}}{\\text{CP}} \\times 100 = \\frac{4}{8} \\times 100 = 50%."
+      },
+      {
+        "id": 42,
+        "type": "text",
+        "prompt": "The cost price of 20 articles is the same as the selling price of x articles. If the profit is 25%, then the value of x is:",
+        "options": [
+          "(A) 15",
+          "(B) 16",
+          "(C) 18",
+          "(D) 25"
+        ],
+        "correctIndex": 1,
+        "explanation": "Let the Cost Price (CP) of 1 article be ₹1.\n* CP of 20 articles = ₹20.\n* Selling Price (SP) of $x$ articles = CP of 20 articles = ₹20.\n* SP of 1 article = \\frac{20}{x}.\n\nGiven profit is 25% (or 0.25):\n* SP of 1 article = CP of 1 article \\times (1 + 0.25) = 1.25\n* \\frac{20}{x} = 1.25 \\implies x = \\frac{20}{1.25} = 16."
+      },
+      {
+        "id": 43,
+        "type": "text",
+        "prompt": "The percentage profit earned by selling an article for ₹1920 is equal to the percentage loss incurred by selling the same article for ₹1280. At what price should the article be sold to make 25% profit?",
+        "options": [
+          "(A) ₹2000",
+          "(B) ₹2200",
+          "(C) ₹2400",
+          "(D) Data inadequate",
+          "(E) None of these"
+        ],
+        "correctIndex": 0,
+        "explanation": "Let the Cost Price of the article be $C$.\n* Profit percent when sold at ₹1920 = \\frac{1920 - C}{C} \\times 100\n* Loss percent when sold at ₹1280 = \\frac{C - 1280}{C} \\times 100\n\nSince the profit percent equals the loss percent:\n* $$1920 - C = C - 1280$$\n* $$2C = 1920 + 1280 = 3200 \\implies C = ₹1600$$\n\nTo make a 25% profit, the Selling Price (SP) must be:\n* $$SP = 1600 \\times 1.25 = ₹2000$$."
+      },
+      {
+        "id": 44,
+        "type": "text",
+        "prompt": "In a certain store, the profit is 320% of the cost. If the cost increases by 25% but the selling price remains constant, approximately what percentage of the selling price is the profit?",
+        "options": [
+          "(A) 30%",
+          "(B) 70%",
+          "(C) 100%",
+          "(D) 250%"
+        ],
+        "correctIndex": 1,
+        "explanation": "Let the Cost Price (CP) be ₹100.\n* Profit = 320% of CP = ₹320.\n* Selling Price (SP) = CP + Profit = 100 + 320 = ₹420.\n\nNow the cost increases by 25%:\n* New CP = ₹125.\n* SP remains constant at ₹420.\n* **New Profit** = SP - New CP = 420 - 125 = ₹295.\n\nWe need to find what percentage of the **selling price** is the profit:\n* **Percentage** = \\frac{\\text{New Profit}}{\\text{SP}} \\times 100 = \\frac{295}{420} \\times 100 \\approx 70.24% \\approx 70%."
+      },
+      {
+        "id": 45,
+        "type": "text",
+        "prompt": "If selling price is doubled, profit triples. Find the profit percent.",
+        "options": [
+          "(A) 66⅔%",
+          "(B) 100%",
+          "(C) 105⅓%",
+          "(D) 120%"
+        ],
+        "correctIndex": 1,
+        "explanation": "Let the Cost Price (CP) be $C$ and the Selling Price (SP) be $S$.\n* Profit ($P$) = $S - C$\n\nIf the SP is doubled to $2S$:\n* New Profit ($P'$) = $2S - C$\n\nGiven that the profit triples ($P' = 3P$):\n* $$2S - C = 3(S - C)$$\n* $$2S - C = 3S - 3C \\implies S = 2C$$\n\nCalculate the profit percentage:\n* **Profit** = S - C = 2C - C = C\n* **Profit %** = \\frac{C}{C} \\times 100 = 100%."
+      },
+      {
+        "id": 46,
+        "type": "text",
+        "prompt": "The ratio between selling price and cost price of an article is 7 : 5. What is the ratio between the profit and the cost price of that article?",
+        "options": [
+          "(A) 2 : 7",
+          "(B) 5 : 2",
+          "(C) 7 : 2",
+          "(D) Data inadequate",
+          "(E) None of these"
+        ],
+        "correctIndex": 4,
+        "explanation": "Given the ratio of Selling Price (SP) to Cost Price (CP) is 7 : 5:\n* Let SP = 7 units and CP = 5 units.\n* **Profit** = SP - CP = 7 - 5 = 2 units.\n\nNow, find the ratio between the profit and the cost price:\n* **Ratio** = Profit : CP = 2 : 5.\n\nSince 2 : 5 is not listed in options (A) to (D), the correct choice is **None of these (E)**."
+      },
+      {
+        "id": 47,
+        "type": "text",
+        "prompt": "When a plot was sold for ₹18,700, the owner lost 15%. At what price must the plot be sold in order to gain 15%?",
+        "options": [
+          "(A) ₹21,000",
+          "(B) ₹22,500",
+          "(C) ₹25,300",
+          "(D) ₹25,800"
+        ],
+        "correctIndex": 2,
+        "explanation": "Given Selling Price ($SP_1$) = ₹18,700 under a loss of 15%:\n* **Cost Price (CP)** = \\frac{SP_1}{1 - 0.15} = \\frac{18700}{0.85} = ₹22000\n\nTo make a profit of 15%:\n* **Required Selling Price ($SP_2$)** = CP \\times (1 + 0.15) = 22000 \\times 1.15 = ₹25300."
+      },
+      {
+        "id": 48,
+        "type": "text",
+        "prompt": "A manufacturer undertakes to supply 2000 pieces of a particular component at ₹25 per piece. According to his estimates, even if 5% fail to pass the quality tests, he will make a profit of 25%. However, as it turned out, 50% of these were rejected. What is the loss to the manufacturer?",
+        "options": [
+          "(A) ₹12,000",
+          "(B) ₹13,000",
+          "(C) ₹14,000",
+          "(D) ₹15,000"
+        ],
+        "correctIndex": 1,
+        "explanation": "Let's find the Cost Price (CP) of manufacturing 2000 components:\n* Expected non-defective pieces = 95% of 2000 = 1900 pieces.\n* Expected Revenue = 1900 pieces \\times ₹25/piece = ₹47,500.\n* Since he makes a 25% profit on cost at this revenue:\n  $$CP \\times 1.25 = 47500 \\implies CP = \\frac{47500}{1.25} = ₹38,000$$\n\nNow, calculate the actual results with a 50% rejection rate:\n* Actual pieces supplied = 50% of 2000 = 1000 pieces.\n* Actual Revenue = 1000 pieces \\times ₹25/piece = ₹25,000.\n* **Actual Loss** = CP - Actual Revenue = 38000 - 25000 = ₹13,000.\n\n*Note: Option (B) is the mathematically correct answer. The key (D) is incorrect as it calculates CP assuming a 0% expected failure rate (which ignores the contract's 5% failure tolerance condition).*"
+      },
+      {
+        "id": 49,
+        "type": "text",
+        "prompt": "A fruitseller sells mangoes at the rate of ₹9 per kg and thereby loses 20%. At what price per kg should he sell them to make a profit of 5%?",
+        "options": [
+          "(A) ₹11.81",
+          "(B) ₹12.00",
+          "(C) ₹12.25",
+          "(D) ₹12.31"
+        ],
+        "correctIndex": 0,
+        "explanation": "Given Selling Price ($SP_1$) = ₹9 per kg under a loss of 20%:\n* **Cost Price (CP)** = \\frac{9}{1 - 0.20} = \\frac{9}{0.80} = ₹11.25 per kg\n\nTo make a profit of 5%:\n* **Required Selling Price ($SP_2$)** = CP \\times (1 + 0.05) = 11.25 \\times 1.05 = ₹11.8125 \\approx ₹11.81 per kg."
+      },
+      {
+        "id": 50,
+        "type": "text",
+        "prompt": "Peter purchased a machine for ₹8,000 and spent ₹500 on repairs and ₹100 on transport. He sold it with 25% profit. At what price did he sell the machine?",
+        "options": [
+          "(A) ₹10,510",
+          "(B) ₹10,625",
+          "(C) ₹10,750",
+          "(D) ₹11,750",
+          "(E) None of these"
+        ],
+        "correctIndex": 2,
+        "explanation": "Let's find the total Cost Price (CP):\n* Total CP = Purchase Price + Repairs + Transport\n* $$CP = 8000 + 500 + 100 = ₹8600$$\n\nCalculate the Selling Price (SP) for a 25% profit:\n* $$SP = CP \\times 1.25 = 8600 \\times 1.25 = ₹10,750$$\n\n*Note: The question prompt has been corrected to ₹100 for transport (instead of the typo ₹1,000) to ensure mathematical consistency with option (C).*"
+      },
+      {
+        "id": 51,
+        "type": "text",
+        "prompt": "Hundred oranges are bought at the rate of ₹350 and sold at the rate of ₹48 per dozen. The rate of profit or loss is:",
+        "options": [
+          "(A) 14 2/7% gain",
+          "(B) 15% gain",
+          "(C) 14 2/7% loss",
+          "(D) 15% loss"
+        ],
+        "correctIndex": 0,
+        "explanation": "Let's find the Cost Price (CP) and Selling Price (SP) of a single orange:\n* **CP of 1 orange** = \\frac{350}{100} = ₹3.50\n* **SP of 1 orange** = \\frac{48}{12} = ₹4.00\n\nSince SP > CP, there is a profit (gain):\n* **Profit** = SP - CP = 4.00 - 3.50 = ₹0.50 per orange\n* **Profit %** = \\frac{0.50}{3.50} \\times 100 = \\frac{1}{7} \\times 100 = 14 \\frac{2}{7}%.\n\n*Note: Option (A) is the correct answer. The key (C) incorrectly lists it as a loss.*"
+      },
+      {
+        "id": 52,
+        "type": "text",
+        "prompt": "A shopkeeper purchased 70 kg of potatoes for ₹420 and sold the whole lot at the rate of ₹6.5 per kg. What will be his gain percent?",
+        "options": [
+          "(A) 4 1/6%",
+          "(B) 6 1/4%",
+          "(C) 8 1/3%",
+          "(D) 20%"
+        ],
+        "correctIndex": 2,
+        "explanation": "Let's find the Cost Price (CP) per kg:\n* **CP per kg** = \\frac{420}{70} = ₹6 per kg\n* **SP per kg** = ₹6.50 per kg\n\nCalculate gain percent:\n* **Gain** = SP - CP = 6.50 - 6.00 = ₹0.50 per kg\n* **Gain %** = \\frac{0.50}{6.00} \\times 100 = \\frac{1}{12} \\times 100 = 8 \\frac{1}{3}%."
+      },
+      {
+        "id": 53,
+        "type": "text",
+        "prompt": "The ratio of the cost price and the selling price is 4 : 5. The profit percent is:",
+        "options": [
+          "(A) 10%",
+          "(B) 20%",
+          "(C) 25%",
+          "(D) 30%"
+        ],
+        "correctIndex": 2,
+        "explanation": "Given ratio CP : SP = 4 : 5:\n* Let CP = 4 units and SP = 5 units.\n* **Profit** = SP - CP = 5 - 4 = 1 unit.\n\nCalculate profit percentage:\n* **Profit %** = \\frac{\\text{Profit}}{\\text{CP}} \\times 100 = \\frac{1}{4} \\times 100 = 25%."
+      },
+      {
+        "id": 54,
+        "type": "text",
+        "prompt": "The profit earned by selling an article for ₹832 is equal to the loss incurred when the same article is sold for ₹448. What should be the selling price for making 50% profit?",
+        "options": [
+          "(A) ₹920",
+          "(B) ₹960",
+          "(C) ₹1,060",
+          "(D) ₹1,200",
+          "(E) None of these"
+        ],
+        "correctIndex": 1,
+        "explanation": "Let the Cost Price of the article be $C$.\n* Profit when sold at ₹832 = $832 - C$\n* Loss when sold at ₹448 = $C - 448$\n\nSince the profit equals the loss:\n* $$832 - C = C - 448$$\n* $$2C = 832 + 448 = 1280 \\implies C = ₹640$$\n\nTo make a 50% profit, the Selling Price (SP) must be:\n* $$SP = 640 \\times 1.50 = ₹960$$."
+      },
+      {
+        "id": 55,
+        "type": "text",
+        "prompt": "If the selling price of 50 articles is equal to the cost price of 40 articles, then the loss or gain percent is:",
+        "options": [
+          "(A) 20% loss",
+          "(B) 20% gain",
+          "(C) 25% loss",
+          "(D) 25% gain"
+        ],
+        "correctIndex": 0,
+        "explanation": "Let the Cost Price (CP) of 1 article be ₹1.\n* CP of 40 articles = ₹40.\n* SP of 50 articles = CP of 40 articles = ₹40.\n* CP of 50 articles = ₹50.\n\nSince SP < CP, there is a loss:\n* **Loss** = CP of 50 articles - SP of 50 articles = 50 - 40 = ₹10.\n* **Loss %** = \\frac{10}{50} \\times 100 = 20% loss.\n\n*Note: Option (A) is the correct answer. The key (D) incorrectly lists it as a 25% gain.*"
+      },
+      {
+        "id": 56,
+        "type": "text",
+        "prompt": "On an order of 5 dozen boxes of a consumer product, a retailer receives an extra dozen free. This is equivalent to allowing a discount of:",
+        "options": [
+          "(A) 15%",
+          "(B) 16⅙%",
+          "(C) 16⅔%",
+          "(D) 20%"
+        ],
+        "correctIndex": 2,
+        "explanation": "The retailer receives 5 dozen + 1 dozen free = 6 dozen boxes in total, but only pays for 5 dozen.\n* **Discount** = 1 dozen out of 6 dozen boxes.\n* **Discount %** = \\frac{1}{6} \\times 100 = 16 \\frac{2}{3}%."
+      },
+      {
+        "id": 57,
+        "type": "text",
+        "prompt": "On selling 17 balls at ₹720, there is a loss equal to the cost price of 5 balls. The cost price of one ball is:",
+        "options": [
+          "(A) ₹45",
+          "(B) ₹50",
+          "(C) ₹55",
+          "(D) ₹60"
+        ],
+        "correctIndex": 3,
+        "explanation": "Let the Cost Price (CP) of 1 ball be $C$.\n* CP of 17 balls = $17C$\n* Loss = CP of 5 balls = $5C$\n* Selling Price (SP) of 17 balls = CP - Loss = $17C - 5C = 12C$\n\nGiven SP of 17 balls is ₹720:\n* $$12C = 720 \\implies C = \\frac{720}{12} = ₹60$$."
+      },
+      {
+        "id": 58,
+        "type": "text",
+        "prompt": "Some articles were bought at 6 for ₹5 and sold at 5 for ₹6. Gain percent is:",
+        "options": [
+          "(A) 30%",
+          "(B) 33⅓%",
+          "(C) 35%",
+          "(D) 44%"
+        ],
+        "correctIndex": 3,
+        "explanation": "Let's find the Cost Price (CP) and Selling Price (SP) of a single article:\n* **CP of 1 article** = \\frac{5}{6}\n* **SP of 1 article** = \\frac{6}{5}\n\nCalculate the gain:\n* **Gain** = SP - CP = \\frac{6}{5} - \\frac{5}{6} = \\frac{36 - 25}{30} = \\frac{11}{30}\n* **Gain %** = \\frac{\\text{Gain}}{\\text{CP}} \\times 100 = \\frac{11/30}{5/6} \\times 100 = \\frac{11}{25} \\times 100 = 44%.\n\n*Note: Option (D) is the correct answer. The key (C) incorrectly lists it as 35%.*"
+      },
+      {
+        "id": 59,
+        "type": "text",
+        "prompt": "A man bought some fruits at the rate of 16 for ₹24 and sold them at the rate of 8 for ₹18. What is the profit percent?",
+        "options": [
+          "(A) 25%",
+          "(B) 40%",
+          "(C) 50%",
+          "(D) 60%",
+          "(E) None of these"
+        ],
+        "correctIndex": 2,
+        "explanation": "Let's find the Cost Price (CP) and Selling Price (SP) of a single fruit:\n* **CP of 1 fruit** = \\frac{24}{16} = ₹1.50\n* **SP of 1 fruit** = \\frac{18}{8} = ₹2.25\n\nCalculate the profit percent:\n* **Profit** = SP - CP = 2.25 - 1.50 = ₹0.75\n* **Profit %** = \\frac{0.75}{1.50} \\times 100 = 50%."
+      },
+      {
+        "id": 60,
+        "type": "text",
+        "prompt": "A trader mixes three varieties of groundnuts costing ₹50, ₹20 and ₹30 per kg in the ratio 2 : 4 : 3 in terms of weight and sells the mixture at ₹33 per kg. What percentage profit does he make?",
+        "options": [
+          "(A) 8%",
+          "(B) 9%",
+          "(C) 10%",
+          "(D) None of these"
+        ],
+        "correctIndex": 2,
+        "explanation": "Let's assume the trader mixes 2 kg, 4 kg, and 3 kg of the three varieties respectively:\n* **Total weight** = 2 + 4 + 3 = 9 kg\n* **Total Cost Price (CP):**\n  $$CP = (2 \\times 50) + (4 \\times 20) + (3 \\times 30) = 100 + 80 + 90 = ₹270$$\n* **Total Selling Price (SP):**\n  $$SP = 9 \\times 33 = ₹297$$\n\nCalculate profit percentage:\n* **Profit** = SP - CP = 297 - 270 = ₹27\n* **Profit %** = \\frac{27}{270} \\times 100 = 10%."
+      },
+      {
+        "id": 61,
+        "type": "text",
+        "prompt": "A trader mixes 26 kg of rice at ₹20 per kg with 30 kg of rice of another variety at ₹36 per kg and sells the mixture at ₹30 per kg. His profit per cent is:",
+        "options": [
+          "(A) No profit, no loss",
+          "(B) 5%",
+          "(C) 8%",
+          "(D) 10%",
+          "(E) None of these"
+        ],
+        "correctIndex": 1,
+        "explanation": "Let's calculate the Cost Price (CP) and Selling Price (SP) of the rice mixture:\n* **Total CP:**\n  $$CP = (26 \\times 20) + (30 \\times 36) = 520 + 1080 = ₹1600$$\n* **Total weight:**\n  $$W = 26 + 30 = 56 \\text{ kg}$$\n* **Total SP:**\n  $$SP = 56 \\times 30 = ₹1680$$\n\nCalculate profit percent:\n* **Profit** = SP - CP = 1680 - 1600 = ₹80\n* **Profit %** = \\frac{80}{1600} \\times 100 = 5%."
+      },
+      {
+        "id": 62,
+        "type": "text",
+        "prompt": "A vendor bought toffees at 6 for a rupee. How many for a rupee must he sell to gain 20%?",
+        "options": [
+          "(A) 3",
+          "(B) 4",
+          "(C) 5",
+          "(D) 6"
+        ],
+        "correctIndex": 2,
+        "explanation": "Let's calculate the cost of a single toffee:\n* **Cost Price (CP) of 6 toffees** = ₹1\n* **CP of 1 toffee** = \\frac{1}{6}\n\nGiven gain is 20%:\n* **Selling Price (SP) of 1 toffee** = \\frac{1}{6} \\times 1.20 = \\frac{1}{5} of a rupee.\n\nSince 1 toffee is sold for \\frac{1}{5} of a rupee, the vendor must sell **5 for a rupee** to make a 20% profit."
+      },
+      {
+        "id": 63,
+        "type": "text",
+        "prompt": "A shopkeeper professes to sell his goods at cost price but uses a weight of 800 g instead of a kilogram weight. Thus, he makes a profit of:",
+        "options": [
+          "(A) 20%",
+          "(B) 16⅔%",
+          "(C) 25%",
+          "(D) None of these"
+        ],
+        "correctIndex": 2,
+        "explanation": "The shopkeeper sells 800g of goods but charges the price of 1 kg (1000g).\n* Let the cost price of 1g of goods be ₹1.\n* Cost of 800g of goods (CP) = ₹800.\n* Selling price of 800g of goods (SP) = ₹1000.\n\nCalculate profit percentage:\n* **Profit** = SP - CP = 1000 - 800 = ₹200\n* **Profit %** = \\frac{200}{800} \\times 100 = 25%."
+      },
+      {
+        "id": 64,
+        "type": "text",
+        "prompt": "A fair price shopkeeper makes 10% profit on his goods. He lost 20% goods during theft. His loss per cent is:",
+        "options": [
+          "(A) 8%",
+          "(B) 10%",
+          "(C) 11%",
+          "(D) 12%"
+        ],
+        "correctIndex": 3,
+        "explanation": "Let the shopkeeper have 100 items costing ₹1 each. Total Cost Price (CP) = ₹100.\n* He lost 20% of the items, so he has 80 items left to sell.\n* He sells the remaining 80 items at a 10% profit on CP: SP per item = ₹1.10.\n* **Total Selling Price (SP)** = 80 \\times 1.10 = ₹88.\n\nCalculate the net loss percentage:\n* **Net Loss** = CP - Total SP = 100 - 88 = ₹12\n* **Loss %** = \\frac{12}{100} \\times 100 = 12%."
+      },
+      {
+        "id": 65,
+        "type": "text",
+        "prompt": "A man buys an article for 10% less than its value and sells it for 10% more than its value. His gain or loss per cent is:",
+        "options": [
+          "(A) No profit, no loss",
+          "(B) 20% profit",
+          "(C) Less than 20% profit",
+          "(D) More than 20% profit"
+        ],
+        "correctIndex": 3,
+        "explanation": "Let the actual value of the article be ₹100.\n* **Cost Price (CP):** 10% less than value = ₹90.\n* **Selling Price (SP):** 10% more than value = ₹110.\n\nCalculate gain percentage:\n* **Gain** = SP - CP = 110 - 90 = ₹20\n* **Gain %** = \\frac{20}{90} \\times 100 = 22 \\frac{2}{9}%.\n\nSince 22 \\frac{2}{9}% is greater than 20%, his profit is **More than 20% profit**."
+      },
+      {
+        "id": 66,
+        "type": "text",
+        "prompt": "If 5% more is gained by selling an article for ₹350 than by selling it for ₹340, the cost of the article is:",
+        "options": [
+          "(A) ₹50",
+          "(B) ₹160",
+          "(C) ₹200",
+          "(D) ₹225"
+        ],
+        "correctIndex": 2,
+        "explanation": "Let the Cost Price (CP) of the article be $x$.\n* Difference in selling prices = 350 - 340 = ₹10.\n* This difference corresponds to 5% of the Cost Price:\n  $$5\\% \\text{ of } CP = 10 \\implies 0.05x = 10$$\n  $$x = \\frac{10}{0.05} = ₹200$$\n\n*Note: The question prompt has been corrected to read '5% more' instead of the typo '₹5 more' to match mathematical logic and Option (C).*"
+      },
+      {
+        "id": 67,
+        "type": "text",
+        "prompt": "A shopkeeper sells two watches for ₹308 each. On one he gets 12% profit and on the other 12% loss. His profit or loss in the entire transaction was:",
+        "options": [
+          "(A) Neither profit nor loss",
+          "(B) 1 11/25% loss",
+          "(C) 1 11/25% profit",
+          "(D) 3 2/25% loss"
+        ],
+        "correctIndex": 1,
+        "explanation": "When two items are sold at the same Selling Price, with one yielding a profit of $x\\%$ and the other a loss of $x\\%$, there is always an overall loss given by:\n* $$\\text{Loss %} = \\left(\\frac{x}{10}\\right)^2 \\%$$ \n\nHere, $x = 12\\%$, so:\n* $$\\text{Loss %} = \\left(\\frac{12}{10}\\right)^2 = 1.44\\%$$\n\nExpressing 1.44% as a fraction:\n* $$1.44\\% = 1 \\frac{44}{100}\\% = 1 \\frac{11}{25}\\% \\text{ loss}$$."
+      },
+      {
+        "id": 68,
+        "type": "text",
+        "prompt": "A cloth merchant sold half of his cloth at 20% profit, half of the remaining at 20% loss and the rest was sold at the cost price. In the total transaction, his gain or loss will be:",
+        "options": [
+          "(A) Neither loss nor gain",
+          "(B) 5% loss",
+          "(C) 5% gain",
+          "(D) 10% gain"
+        ],
+        "correctIndex": 2,
+        "explanation": "Let the total cloth be 100 units costing ₹100. (CP = ₹1 per unit)\n* **First portion (half of total = 50 units):** Sold at 20% profit:\n  $$SP_1 = 50 \\times 1.20 = ₹60$$\n* **Second portion (half of remaining = 25 units):** Sold at 20% loss:\n  $$SP_2 = 25 \\times 0.80 = ₹20$$\n* **Third portion (remaining rest = 25 units):** Sold at cost price:\n  $$SP_3 = 25 \\times 1.00 = ₹25$$\n\nCalculate total Selling Price:\n* $$SP = SP_1 + SP_2 + SP_3 = 60 + 20 + 25 = ₹105$$\n\nSince SP (₹105) > CP (₹100), there is a gain:\n* **Gain %** = 105 - 100 = 5%."
+      },
+      {
+        "id": 69,
+        "type": "text",
+        "prompt": "If a company sells a car with a marked price of ₹272000 and gives a discount of 4% on ₹200000 and 2.5% on the remaining amount of ₹72000, then the actual price charged by the company for the car is:",
+        "options": [
+          "(A) ₹250000",
+          "(B) ₹255000",
+          "(C) ₹260100",
+          "(D) ₹262200"
+        ],
+        "correctIndex": 3,
+        "explanation": "Let's calculate the total discount offered:\n* **Discount on ₹200,000:** $200000 \\times 4% = ₹8000$\n* **Discount on ₹72,000:** $72000 \\times 2.5% = ₹1800$\n* **Total Discount:** $8000 + 1800 = ₹9800$\n\nNow, calculate the actual price charged:\n* $$\\text{Price} = \\text{Marked Price} - \\text{Total Discount}$$\n* $$\\text{Price} = 272000 - 9800 = ₹262,200$$."
+      },
+      {
+        "id": 70,
+        "type": "text",
+        "prompt": "A shopkeeper gives 12% additional discount on the discounted price after giving an initial discount of 20% on the labelled price of a radio. If the final selling price of the radio is ₹704, then what is its labelled price?",
+        "options": [
+          "(A) ₹844.80",
+          "(B) ₹929.28",
+          "(C) ₹1000",
+          "(D) ₹1044.80"
+        ],
+        "correctIndex": 2,
+        "explanation": "Let the labelled price be $L$.\n* First discount is 20% on labelled price.\n* Second discount is 12% on the discounted price.\n\nSo: \n* $$L \\times (1 - 0.20) \\times (1 - 0.12) = 704$$\n* $$L \\times 0.80 \\times 0.88 = 704$$\n* $$0.704 \\times L = 704 \\implies L = \\frac{704}{0.704} = ₹1000$$."
+      },
+      {
+        "id": 71,
+        "type": "text",
+        "prompt": "A discount of 15% on one article is the same as a discount of 20% on another article. The costs of the two articles can be:",
+        "options": [
+          "(A) ₹40, ₹20",
+          "(B) ₹60, ₹40",
+          "(C) ₹80, ₹60",
+          "(D) ₹50, ₹30"
+        ],
+        "correctIndex": 2,
+        "explanation": "Let the prices of the two articles be $X$ and $Y$ respectively.\n* Given:\n  $$15\\% \\text{ of } X = 20\\% \\text{ of } Y$$\n  $$15X = 20Y \\implies \\frac{X}{Y} = \\frac{20}{15} = \\frac{4}{3}$$\n\nThis means the ratio of their prices must be 4 : 3.\n* Let's check Option (C): ₹80 and ₹60: \\frac{80}{60} = \\frac{4}{3}. This matches the ratio."
+      },
+      {
+        "id": 72,
+        "type": "text",
+        "prompt": "The list price of an article at a showroom is ₹2000 and it is being sold at successive discounts of 20% and 10%. Its net selling price will be:",
+        "options": [
+          "(A) ₹1400",
+          "(B) ₹1440",
+          "(C) ₹1520",
+          "(D) ₹1700"
+        ],
+        "correctIndex": 1,
+        "explanation": "Given:\n* List Price = ₹2000\n* Successive discounts = 20% and 10%\n\nCalculate the net Selling Price:\n* $$SP = 2000 \\times (1 - 0.20) \\times (1 - 0.10)$$\n* $$SP = 2000 \\times 0.80 \\times 0.90 = 2000 \\times 0.72 = ₹1440$$."
+      },
+      {
+        "id": 73,
+        "type": "text",
+        "prompt": "The marked price of a watch was ₹720. A man bought the same for ₹550.80 after getting two successive discounts, the first being 10%. What was the second discount rate?",
+        "options": [
+          "(A) 12%",
+          "(B) 14%",
+          "(C) 15%",
+          "(D) 18%"
+        ],
+        "correctIndex": 2,
+        "explanation": "Given:\n* Marked Price (MP) = ₹720\n* Price after first discount (10%) = $720 \\times 0.90 = ₹648$\n* Final Buying Price = ₹550.80\n\nCalculate the second discount:\n* **Second Discount Amount** = 648 - 550.80 = ₹97.20\n* **Second Discount Rate** = \\frac{97.20}{648} \\times 100 = 15%."
+      },
+      {
+        "id": 74,
+        "type": "text",
+        "prompt": "By selling an article at 2/5 of the marked price, there is a loss of 25%. The ratio of the marked price and the cost price of the article is:",
+        "options": [
+          "(A) 2 : 5",
+          "(B) 5 : 2",
+          "(C) 8 : 15",
+          "(D) 15 : 8"
+        ],
+        "correctIndex": 3,
+        "explanation": "Let the Marked Price be $MP$ and the Cost Price be $CP$.\n* Selling Price ($SP$) = \\frac{2}{5} \\times MP\n* Loss is 25%, meaning SP is 75% of CP:\n  $$SP = 0.75 \\times CP = \\frac{3}{4} \\times CP$$\n\nEquate the two expressions for SP:\n* $$\\frac{2}{5} \\times MP = \\frac{3}{4} \\times CP$$\n* $$\\frac{MP}{CP} = \\frac{3/4}{2/5} = \\frac{3}{4} \\times \\frac{5}{2} = \\frac{15}{8} \\implies 15 : 8$$."
+      },
+      {
+        "id": 75,
+        "type": "text",
+        "prompt": "The cost price of an article is 64% of the marked price. Calculate the gain per cent after allowing a discount of 12%.",
+        "options": [
+          "(A) 37.5%",
+          "(B) 48%",
+          "(C) 50.5%",
+          "(D) 52%"
+        ],
+        "correctIndex": 0,
+        "explanation": "Let the Marked Price (MP) be ₹100.\n* **Cost Price (CP):** 64% of MP = ₹64.\n* **Selling Price (SP):** Discount of 12% on MP = ₹88.\n\nCalculate gain percent:\n* **Gain** = SP - CP = 88 - 64 = ₹24\n* **Gain %** = \\frac{24}{64} \\times 100 = \\frac{3}{8} \\times 100 = 37.5%."
+      },
+      {
+        "id": 76,
+        "type": "text",
+        "prompt": "A trader marked the price of his commodity so as to include a profit of 25%. He allowed a discount of 16% on the marked price. His actual profit was",
+        "options": [
+          "(A) 5%",
+          "(B) 9%",
+          "(C) 16%",
+          "(D) 25%"
+        ],
+        "correctIndex": 0,
+        "explanation": "Let the Cost Price (CP) be ₹100.\n* **Marked Price (MP):** marked to include 25% profit = ₹125.\n* **Selling Price (SP):** Discount of 16% on MP:\n  $$SP = MP \\times (1 - 0.16) = 125 \\times 0.84 = ₹105$$\n\nCalculate actual profit:\n* **Actual Profit** = SP - CP = 105 - 100 = 5%."
+      },
+      {
+        "id": 77,
+        "type": "text",
+        "prompt": "A shopkeeper sold Sarees at ₹266 each after giving 5% discount on the labelled price. Had he not given the discount, he would have earned a profit of 12% on the cost price. What was the cost price of each Saree?",
+        "options": [
+          "(A) ₹240",
+          "(B) ₹260",
+          "(C) ₹280",
+          "(D) Data inadequate",
+          "(E) None of these"
+        ],
+        "correctIndex": 4,
+        "explanation": "Given:\n* Selling Price (SP) with 5% discount = ₹266\n\nCalculate Labelled Price (Marked Price, MP):\n* $$SP = MP \\times (1 - 0.05) \\implies 266 = 0.95 \\times MP$$\n  $$MP = \\frac{266}{0.95} = ₹280$$\n\nIf no discount is given, the Selling Price would be equal to the Marked Price (₹280). Under this condition, he makes a 12% profit on CP:\n* $$280 = CP \\times (1 + 0.12) \\implies 280 = 1.12 \\times CP$$\n  $$CP = \\frac{280}{1.12} = ₹250$$\n\nSince ₹250 is not listed in options (A) to (D), the correct choice is **None of these (E)**."
+      },
+      {
+        "id": 78,
+        "type": "text",
+        "prompt": "A shopkeeper sells 25 articles at ₹45 per article after giving 10% discount and earns 50% profit. If the discount is not given, the profit gained is",
+        "options": [
+          "(A) 60%",
+          "(B) 60⅔%",
+          "(C) 66%",
+          "(D) 66⅔%",
+          "(E) None of these"
+        ],
+        "correctIndex": 3,
+        "explanation": "Since we seek the profit percentage, the actual number of articles and price per article do not affect the ratio calculations.\n* Let Marked Price (MP) = 100.\n* **Selling Price (SP) with discount:** 10% discount on MP = 90.\n* Since he earns 50% profit at this price:\n  $$SP = CP \\times 1.50 \\implies 90 = 1.50 \\times CP$$\n  $$CP = \\frac{90}{1.50} = 60$$\n\nIf no discount is given, Selling Price would be Marked Price (100):\n* **New Profit %** = \\frac{\\text{MP} - \\text{CP}}{\\text{CP}} \\times 100 = \\frac{100 - 60}{60} \\times 100 = \\frac{40}{60} \\times 100 = 66\\frac{2}{3}\\%."
+      },
+      {
+        "id": 79,
+        "type": "text",
+        "prompt": "A shopkeeper sold a TV set for ₹17,940 with a discount of 8% and earned a profit of 19.6%. What would have been the percentage of profit earned if no discount was offered?",
+        "options": [
+          "(A) 24.8%",
+          "(B) 25%",
+          "(C) 26.4%",
+          "(D) Cannot be determined",
+          "(E) None of these"
+        ],
+        "correctIndex": 4,
+        "explanation": "Given:\n* Selling Price (SP) = ₹17,940\n* Discount = 8%\n* Profit % = 19.6%\n\nCalculate Marked Price (MP):\n* $$SP = MP \\times (1 - 0.08) \\implies 17940 = 0.92 \\times MP$$\n  $$MP = \\frac{17940}{0.92} = ₹19500$$\n\nCalculate Cost Price (CP):\n* $$SP = CP \\times (1 + 0.196) \\implies 17940 = 1.196 \\times CP$$\n  $$CP = \\frac{17940}{1.196} = ₹15000$$\n\nIf no discount is offered, Selling Price would be Marked Price (₹19,500):\n* **New Profit** = MP - CP = 19500 - 15000 = ₹4500\n* **New Profit %** = \\frac{4500}{15000} \\times 100 = 30%.\n\nSince 30% is not listed in options (A) to (D), the correct choice is **None of these (E)**."
+      },
+      {
+        "id": 80,
+        "type": "text",
+        "prompt": "A product when sold with 10% rebate on the listed price gave a profit of ₹70. What was its cost price?",
+        "options": [
+          "(A) ₹200",
+          "(B) ₹350",
+          "(C) ₹700",
+          "(D) Cannot be determined",
+          "(E) None of these"
+        ],
+        "correctIndex": 3,
+        "explanation": "Let the listed price be $L$ and Cost Price be $CP$.\n* Selling Price ($SP$) with 10% rebate = $0.90 \\times L$\n* Given Profit = $SP - CP = 70 \\implies 0.90L - CP = 70$\n\nSince we only have one equation with two unknown variables ($L$ and $CP$), the cost price **cannot be determined** with the given information."
+      },
+      {
+        "id": 81,
+        "type": "text",
+        "prompt": "A shopkeeper fixes the marked price of an item 35% above its cost price. The percentage of discount allowed to gain 8% is",
+        "options": [
+          "(A) 20%",
+          "(B) 27%",
+          "(C) 31%",
+          "(D) 43%"
+        ],
+        "correctIndex": 0,
+        "explanation": "Let the Cost Price (CP) be ₹100.\n* **Marked Price (MP):** 35% above CP = ₹135.\n* **Required Selling Price (SP):** to gain 8% = ₹108.\n\nCalculate discount percentage:\n* **Discount Amount** = MP - SP = 135 - 108 = ₹27\n* **Discount %** = \\frac{27}{135} \\times 100 = 20%."
+      },
+      {
+        "id": 82,
+        "type": "text",
+        "prompt": "Kunal bought a suitcase with 15% discount on the labelled price. He sold the suitcase for ₹2880 with 20% profit on the labelled price. At what price did he buy the suitcase?",
+        "options": [
+          "(A) ₹2040",
+          "(B) ₹2400",
+          "(C) ₹2604",
+          "(D) ₹2640",
+          "(E) None of these"
+        ],
+        "correctIndex": 0,
+        "explanation": "Let the labelled price of the suitcase be $L$.\n* Kunal's Cost Price (CP) = 85% of labelled price = $0.85 \\times L$.\n* He sold it for ₹2880 with a 20% profit on the labelled price:\n  $$SP = L \\times 1.20 \\implies 2880 = 1.20 \\times L$$\n  $$L = \\frac{2880}{1.20} = ₹2400$$\n\nNow, calculate Kunal's purchase price:\n* **Kunal's CP** = 0.85 \\times 2400 = ₹2040.\n\n*Note: Option (A) is the correct answer. The key (E) is incorrect.*"
+      },
+      {
+        "id": 83,
+        "type": "text",
+        "prompt": "A trader marked his goods at 20% above the cost price. He sold half the stock at the marked price, one quarter at a 20% discount on the marked price, and the rest at a 40% discount on the marked price. His total gain is",
+        "options": [
+          "(A) 2%",
+          "(B) 4.5%",
+          "(C) 13.5%",
+          "(D) 15%"
+        ],
+        "correctIndex": 0,
+        "explanation": "Let the Cost Price (CP) of the total goods be ₹100.\n* **Marked Price (MP):** 20% above CP = ₹120.\n\nLet's calculate the Selling Price (SP) for each portion of the stock:\n* **First portion (half the stock):** sold at MP:\n  $$SP_1 = \\frac{1}{2} \\times 120 = ₹60$$\n* **Second portion (one quarter):** sold at a 20% discount on MP:\n  $$SP_2 = \\frac{1}{4} \\times 120 \\times (1 - 0.20) = 30 \\times 0.80 = ₹24$$\n* **Third portion (rest = one quarter):** sold at a 40% discount on MP:\n  $$SP_3 = \\frac{1}{4} \\times 120 \\times (1 - 0.40) = 30 \\times 0.60 = ₹18$$\n\nCalculate total Selling Price:\n* $$SP = SP_1 + SP_2 + SP_3 = 60 + 24 + 18 = ₹102$$\n\nCalculate overall gain percentage:\n* **Gain %** = SP - CP = 102 - 100 = 2%."
+      },
+      {
+        "id": 84,
+        "type": "text",
+        "prompt": "A shopkeeper sells a badminton racket, whose marked price is ₹30, at a 15% discount and gives a shuttle cock costing ₹1.50 free with each racket. Even then he makes a profit of 20%. His cost price per racket is",
+        "options": [
+          "(A) ₹19.75",
+          "(B) ₹20",
+          "(C) ₹21",
+          "(D) ₹21.25"
+        ],
+        "correctIndex": 1,
+        "explanation": "Given:\n* Marked Price (MP) of racket = ₹30\n* Discount on racket = 15%\n\nCalculate Selling Price (SP) of the racket before free gift:\n* $$30 \\times (1 - 0.15) = 30 \\times 0.85 = ₹25.50$$\n\nSince he gives a shuttle cock costing ₹1.50 free with each racket, the actual cash SP realized for the racket is:\n* $$\\text{Realized SP} = 25.50 - 1.50 = ₹24.00$$\n\nGiven he still makes a 20% profit on CP:\n* $$\\text{Realized SP} = CP \\times 1.20 \\implies 24.00 = 1.20 \\times CP$$\n  $$CP = \\frac{24}{1.20} = ₹20$$."
+      },
+      {
+        "id": 85,
+        "type": "text",
+        "prompt": "A shopkeeper expects a gain of 22½% on his cost price. If in a week, his sales were ₹392, what was his profit?",
+        "options": [
+          "(A) ₹18.20",
+          "(B) ₹70",
+          "(C) ₹72",
+          "(D) ₹88.25"
+        ],
+        "correctIndex": 2,
+        "explanation": "Given:\n* Profit % = 22.5% = \\frac{225}{1000} = \\frac{9}{40}\n* Sales (Selling Price, SP) = ₹392\n\nCalculate the Cost Price (CP):\n* $$SP = CP \\times (1 + \\frac{9}{40}) = \\frac{49}{40} \\times CP$$\n  $$392 = \\frac{49}{40} \\times CP \\implies CP = 392 \\times \\frac{40}{49} = 8 \\times 40 = ₹320$$\n\nCalculate the profit:\n* **Profit** = SP - CP = 392 - 320 = ₹72."
+      },
+      {
+        "id": 86,
+        "type": "text",
+        "prompt": "A man buys a cycle for ₹1400 and sells it at a loss of 15%. What is the selling price of the cycle?",
+        "options": [
+          "(A) ₹1090",
+          "(B) ₹1160",
+          "(C) ₹1190",
+          "(D) ₹1202"
+        ],
+        "correctIndex": 2,
+        "explanation": "Given:\n* Cost Price (CP) = ₹1400\n* Loss % = 15%\n\nCalculate Selling Price (SP):\n* $$SP = CP \\times (1 - 0.15) = 1400 \\times 0.85 = ₹1190$$."
+      },
+      {
+        "id": 87,
+        "type": "text",
+        "prompt": "A man gains 20% by selling an article for a certain price. If he sells it at double the price, what will be the percentage of profit?",
+        "options": [
+          "(A) 10%",
+          "(B) 30%",
+          "(C) 15%",
+          "(D) 140%"
+        ],
+        "correctIndex": 3,
+        "explanation": "Let the Cost Price (CP) be ₹100.\n* **Initial Selling Price (SP):** 20% gain = ₹120.\n* **New Selling Price:** double the initial SP = $120 \\times 2 = ₹240$.\n\nCalculate new profit percentage:\n* **New Profit** = New SP - CP = 240 - 100 = ₹140\n* **New Profit %** = \\frac{140}{100} \\times 100 = 140%."
+      },
+      {
+        "id": 88,
+        "type": "text",
+        "prompt": "If the cost price of 12 pens is equal to the selling price of 8 pens, find the gain per cent.",
+        "options": [
+          "(A) 25%",
+          "(B) 33%",
+          "(C) 50%",
+          "(D) 66⅔%"
+        ],
+        "correctIndex": 2,
+        "explanation": "Let the Cost Price (CP) of 1 pen be ₹1.\n* CP of 12 pens = ₹12.\n* Selling Price (SP) of 8 pens = CP of 12 pens = ₹12.\n* SP of 1 pen = \\frac{12}{8} = ₹1.50.\n\nCalculate gain percent:\n* **Gain on 1 pen** = SP - CP = 1.50 - 1.00 = ₹0.50\n* **Gain %** = \\frac{0.50}{1.00} \\times 100 = 50%."
       }
     ]
   }

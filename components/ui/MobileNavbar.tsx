@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { name: "QUESTS", href: "/quests", icon: "/emoji/quest.webp" },
   { name: "SHOP", href: "/shop", icon: "/emoji/shop.webp" },
   { name: "PROFILE", href: "/profile", icon: "/emoji/profile.webp" },
+  { name: "ADMIN", href: "/admin", icon: "/emoji/guidebook.webp" },
 ];
 
 export default function MobileNavbar() {

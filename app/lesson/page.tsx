@@ -137,6 +137,31 @@ function LessonContent() {
     total: number;
   } | null>(null);
 
+  const [economyConfig, setEconomyConfig] = useState<{
+    baseReward: number;
+    passingBonus: number;
+    perfectBonus: number;
+  }>({
+    baseReward: 5,
+    passingBonus: 10,
+    perfectBonus: 5,
+  });
+
+  useEffect(() => {
+    fetch("/api/admin/economy")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && !data.error) {
+          setEconomyConfig({
+            baseReward: Number(data.baseReward ?? 5),
+            passingBonus: Number(data.passingBonus ?? 10),
+            perfectBonus: Number(data.perfectBonus ?? 5),
+          });
+        }
+      })
+      .catch((err) => console.error("Error loading lesson economy config:", err));
+  }, []);
+
   const [showStreakPage, setShowStreakPage] = useState<boolean>(false);
   const [streakIncreased, setStreakIncreased] = useState<boolean>(false);
   const [newStreakCount, setNewStreakCount] = useState<number>(0);
@@ -449,13 +474,16 @@ function LessonContent() {
         }
 
         const saveStats = async () => {
-          const res = await updateProfileStats(profileId, correctAnswers, timeLeft, timerDurationMinutes, hearts, questions.length);
+          const res = await updateProfileStats(profileId, correctAnswers, timeLeft, timerDurationMinutes, hearts, questions.length, economyConfig);
           if (res) {
+            const baseG = economyConfig.baseReward;
+            const passG = isPassed ? economyConfig.passingBonus : 0;
+            const perfG = correctAnswers === questions.length ? economyConfig.perfectBonus : 0;
             setGemsEarnedSummary({
-              lesson: 5,
-              pass: isPassed ? 10 : 0,
-              perfect: correctAnswers === questions.length ? 5 : 0,
-              streakBonus: (res.gemsEarned - 5 - (isPassed ? 10 : 0) - (correctAnswers === questions.length ? 5 : 0)),
+              lesson: baseG,
+              pass: passG,
+              perfect: perfG,
+              streakBonus: Math.max(0, res.gemsEarned - baseG - passG - perfG),
               total: res.gemsEarned
             });
             setStreakIncreased(res.streakIncreased);
@@ -779,8 +807,8 @@ function LessonContent() {
       );
     }
     return (
-      <div className="min-h-dvh flex flex-col bg-white font-din-round text-almost-black pb-[120px]">
-        <header className="sticky top-0 bg-white py-4 px-4 md:px-6 z-30">
+      <div className="min-h-dvh flex flex-col bg-white dark:bg-[#131f24] font-din-round text-almost-black dark:text-white pb-[120px] transition-colors duration-300">
+        <header className="sticky top-0 bg-white dark:bg-[#131f24] border-b border-transparent dark:border-cloud-gray/15 py-4 px-4 md:px-6 z-30 transition-colors duration-300">
           <div className="max-w-[1024px] mx-auto flex items-center gap-4">
             <button
               onClick={() => setShowExitModal(true)}
@@ -798,18 +826,18 @@ function LessonContent() {
         </header>
 
         <main className="grow flex flex-col max-w-[800px] w-full mx-auto px-4 md:px-6 py-4 md:py-6">
-          <h2 className="font-feather text-[22px] md:text-[28px] text-charcoal mb-4 leading-snug">
+          <h2 className="font-feather text-[22px] md:text-[28px] text-charcoal dark:text-white mb-4 leading-snug">
             {parseMathText(example.prompt)}
           </h2>
-          <div className="bg-sky-blue/10 rounded-2xl p-6 border-2 border-sky-blue/20">
+          <div className="bg-sky-blue/10 dark:bg-sky-blue/5 rounded-2xl p-6 border-2 border-sky-blue/20 dark:border-sky-blue/10">
             <p className="text-sky-blue font-bold mb-2 uppercase text-sm tracking-wider">Solution / Explanation</p>
-            <div className="text-[14px] md:text-[17px] text-almost-black whitespace-pre-wrap leading-relaxed">
+            <div className="text-[14px] md:text-[17px] text-almost-black dark:text-[#f1f5f9] whitespace-pre-wrap leading-relaxed">
               {parseMathText(example.explanation)}
             </div>
           </div>
         </main>
 
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-cloud-gray p-4 md:p-6 z-40">
+        <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-[#202f36] border-t-2 border-cloud-gray dark:border-cloud-gray/15 p-4 md:p-6 z-40 transition-colors duration-300">
           <div className="max-w-[1024px] mx-auto flex justify-end">
             <button
               onClick={() => {
@@ -819,9 +847,9 @@ function LessonContent() {
                   setPhase("quiz");
                 }
               }}
-              className="bg-duo-green text-white font-bold text-[17px] h-[50px] px-8 rounded-2xl shadow-[0_4px_0_#3f8f01] active:translate-y-1 active:shadow-none transition-all"
+              className="bg-duo-green text-white font-bold text-[17px] h-[50px] w-[200px] p-8 rounded-2xl shadow-[0_4px_0_#3f8f01] active:translate-y-1 active:shadow-none transition-all"
             >
-              {currentExampleIndex < testExamples.length - 1 ? "NEXT EXAMPLE" : "START TEST"}
+              {currentExampleIndex < testExamples.length - 1 ? "NEXT" : "START"}
             </button>
           </div>
         </div>
@@ -923,21 +951,21 @@ function LessonContent() {
     }
 
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-white font-din-round text-almost-black px-6 text-center">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-[#131f24] font-din-round text-almost-black dark:text-white px-6 text-center transition-colors duration-300">
         <h1 className={`font-feather text-4xl mb-4 ${isTimeUp ? "text-[#ea2b2b]" : "text-duo-green"}`}>
           {isTimeUp ? "Time's Up!" : "Lesson Complete!"}
         </h1>
 
-        <div className="bg-cloud-gray/10 border-2 border-cloud-gray/20 rounded-3xl p-6 mb-6 w-full max-w-sm flex flex-col gap-4">
+        <div className="bg-cloud-gray/10 dark:bg-cloud-gray/5 border-2 border-cloud-gray/20 dark:border-cloud-gray/10 rounded-3xl p-6 mb-6 w-full max-w-sm flex flex-col gap-4">
           <div>
-            <p className="text-graphite font-bold text-base mb-1 uppercase tracking-wide opacity-70">Your Score</p>
+            <p className="text-graphite dark:text-silver font-bold text-base mb-1 uppercase tracking-wide opacity-70">Your Score</p>
             <p className={`text-5xl font-feather ${isPassed ? "text-duo-green" : "text-sky-blue"}`}>
-              {correctAnswers} <span className="text-3xl text-graphite/50 font-din-round">/ {questions.length}</span>
+              {correctAnswers} <span className="text-3xl text-graphite/50 dark:text-silver/30 font-din-round">/ {questions.length}</span>
             </p>
           </div>
 
           {xpBreakdown && (
-            <div className="border-t-2 border-cloud-gray/30 pt-4 mt-2 flex flex-col gap-2 text-left text-xs md:text-sm font-din-round font-bold text-graphite">
+            <div className="border-t-2 border-cloud-gray/30 pt-4 mt-2 flex flex-col gap-2 text-left text-xs md:text-sm font-din-round font-bold text-graphite dark:text-silver">
               <div className="flex justify-between items-center">
                 <span className="opacity-70">Base Score XP (+15/correct):</span>
                 <span>+{xpBreakdown.base} XP</span>
@@ -950,8 +978,8 @@ function LessonContent() {
                 <span className="opacity-70">Duration Bonus (timer weight):</span>
                 <span>+{xpBreakdown.duration} XP</span>
               </div>
-              <div className="flex justify-between items-center border-t border-dashed border-cloud-gray/50 pt-2 mt-1 text-sm">
-                <span className="text-almost-black">Total XP Earned:</span>
+              <div className="flex justify-between items-center border-t border-dashed border-cloud-gray/50 dark:border-cloud-gray/10 pt-2 mt-1 text-sm">
+                <span className="text-almost-black dark:text-white">Total XP Earned:</span>
                 <span className="text-amber-500 font-black text-base md:text-lg">
                   <Image
                     src="/img/gen_imgs/exp.webp"
@@ -965,7 +993,7 @@ function LessonContent() {
           )}
 
           {gemsEarnedSummary && (
-            <div className="border-t-2 border-cloud-gray/30 pt-4 mt-2 flex flex-col gap-2 text-left text-xs md:text-sm font-din-round font-bold text-graphite">
+            <div className="border-t-2 border-cloud-gray/30 pt-4 mt-2 flex flex-col gap-2 text-left text-xs md:text-sm font-din-round font-bold text-graphite dark:text-silver">
               <div className="flex justify-between items-center">
                 <span className="opacity-70">Lesson Completion:</span>
                 <span>+{gemsEarnedSummary.lesson} Gems</span>
@@ -988,8 +1016,8 @@ function LessonContent() {
                   <span>+{gemsEarnedSummary.streakBonus} Gems</span>
                 </div>
               )}
-              <div className="flex justify-between items-center border-t border-dashed border-cloud-gray/50 pt-2 mt-1 text-sm">
-                <span className="text-almost-black">Total Gems Earned:</span>
+              <div className="flex justify-between items-center border-t border-dashed border-cloud-gray/50 dark:border-cloud-gray/10 pt-2 mt-1 text-sm">
+                <span className="text-almost-black dark:text-white">Total Gems Earned:</span>
                 <span className="text-blue-500 font-black text-base md:text-lg flex items-center gap-1">
                   <Image src="/img/gen_imgs/diamond.webp" alt="Gems" width={35} height={35} className="object-contain" />
                   <span>{gemsEarnedSummary.total} Gems</span>
@@ -999,7 +1027,7 @@ function LessonContent() {
           )}
         </div>
 
-        <p className="text-[17px] text-graphite mb-8 max-w-md">
+        <p className="text-[17px] text-graphite dark:text-silver mb-8 max-w-md">
           {isPassed
             ? (isPerfect ? "Perfect score! You've successfully finished this practice set and unlocked the next one." : "Great job! You've successfully finished this practice set and unlocked the next one.")
             : `Great effort! However, you need to score at least 80% (${Math.ceil(questions.length * 0.8)}/${questions.length}) to unlock the next test.`}
@@ -1020,7 +1048,7 @@ function LessonContent() {
           </button>
           <button
             onClick={handleRetake}
-            className="bg-white text-sky-blue border-2 border-sky-blue font-bold text-[17px] h-[50px] px-8 rounded-2xl shadow-[0_4px_0_#189edc] active:translate-y-1 active:shadow-none transition-all cursor-pointer"
+            className="bg-white dark:bg-transparent text-sky-blue border-2 border-sky-blue font-bold text-[17px] h-[50px] px-8 rounded-2xl shadow-[0_4px_0_#189edc] dark:shadow-none active:translate-y-1 active:shadow-none transition-all cursor-pointer"
           >
             RETAKE TEST
           </button>
@@ -1030,10 +1058,10 @@ function LessonContent() {
   }
 
   return (
-    <div className={`min-h-dvh flex flex-col bg-white font-din-round text-almost-black ${status === "correct" || status === "wrong" ? "pb-[250px] md:pb-[200px]" : "pb-[120px] md:pb-80px"
+    <div className={`min-h-dvh flex flex-col bg-white dark:bg-[#131f24] font-din-round text-almost-black dark:text-white transition-colors duration-300 ${status === "correct" || status === "wrong" ? "pb-[250px] md:pb-[200px]" : "pb-[120px] md:pb-80px"
       }`}>
       {/* Header */}
-      <header className="sticky top-0 bg-white py-4 px-4 md:px-6 z-30">
+      <header className="sticky top-0 bg-white dark:bg-[#131f24] border-b border-transparent dark:border-cloud-gray/15 py-4 px-4 md:px-6 z-30 transition-colors duration-300">
         <div className="max-w-[1024px] mx-auto flex items-center gap-4">
           <button
             onClick={() => setShowExitModal(true)}
@@ -1060,7 +1088,7 @@ function LessonContent() {
             </div>
 
             {/* Timer */}
-            <div className={`flex items-center gap-1.5 font-bold shrink-0 px-3 py-1.5 rounded-xl transition-colors ${timeLeft < 60 ? 'text-[#ea2b2b] animate-pulse border-[#ea2b2b]/40 bg-[#ea2b2b]/10' : 'text-graphite'}`}>
+            <div className={`flex items-center gap-1.5 font-bold shrink-0 px-3 py-1.5 rounded-xl transition-colors ${timeLeft < 60 ? 'text-[#ea2b2b] animate-pulse border-[#ea2b2b]/40 bg-[#ea2b2b]/10' : 'text-graphite dark:text-silver'}`}>
               <span className="text-[17px] font-mono">
                 {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
               </span>
@@ -1071,7 +1099,7 @@ function LessonContent() {
 
       {/* Main Quiz Area */}
       <main className="grow flex flex-col max-w-[800px] w-full mx-auto px-4 md:px-6 py-4 md:py-6">
-        <h2 className="font-feather text-[22px] md:text-[28px] text-charcoal mb-4 leading-snug">
+        <h2 className="font-feather text-[22px] md:text-[28px] text-charcoal dark:text-white mb-4 leading-snug">
           {parseMathText(question.prompt)}
         </h2>
 
@@ -1120,27 +1148,27 @@ function LessonContent() {
             const isCorrect = idx === question.correctIndex;
 
             // Highlight styling based on status
-            let cardClass = "border-cloud-gray hover:bg-gray-50 shadow-[0_4px_0_var(--color-cloud-gray)]";
-            let textClass = "text-almost-black";
+            let cardClass = "border-cloud-gray dark:border-cloud-gray/15 hover:bg-gray-50 dark:hover:bg-slate-800/40 bg-white dark:bg-[#202f36] shadow-[0_4px_0_var(--color-cloud-gray)] dark:shadow-none";
+            let textClass = "text-almost-black dark:text-[#f1f5f9]";
 
             if (isSelected) {
               if (status === "none" || status === "selected") {
-                cardClass = "border-sky-blue bg-[#ddf4ff] shadow-[0_4px_0_#189edc]";
+                cardClass = "border-sky-blue bg-[#ddf4ff] dark:bg-[#ddf4ff]/10 shadow-[0_4px_0_#189edc] dark:shadow-none";
                 textClass = "text-sky-blue";
               } else if (status === "correct") {
-                cardClass = "border-duo-green bg-[#d7ffb8] shadow-[0_4px_0_#3f8f01]";
-                textClass = "text-duo-green";
+                cardClass = "border-duo-green bg-[#d7ffb8] dark:bg-[#d7ffb8]/10 shadow-[0_4px_0_#3f8f01] dark:shadow-none";
+                textClass = "text-duo-green dark:text-[#58cc02]";
               } else if (status === "wrong") {
-                cardClass = "border-[#ea2b2b] bg-[#ffdfe0] shadow-[0_4px_0_#ba1c1c]";
+                cardClass = "border-[#ea2b2b] bg-[#ffdfe0] dark:bg-[#ffdfe0]/10 shadow-[0_4px_0_#ba1c1c] dark:shadow-none";
                 textClass = "text-[#ea2b2b]";
               }
             } else if (status === "wrong" && isCorrect) {
               // Highlight the correct answer if they got it wrong
-              cardClass = "border-duo-green bg-[#d7ffb8] shadow-[0_4px_0_#3f8f01] opacity-70";
-              textClass = "text-duo-green";
+              cardClass = "border-duo-green bg-[#d7ffb8] dark:bg-[#d7ffb8]/10 shadow-[0_4px_0_#3f8f01] dark:shadow-none opacity-70";
+              textClass = "text-duo-green dark:text-[#58cc02]";
             } else if (status === "correct" || status === "wrong") {
               // Dim unselected options
-              cardClass = "border-cloud-gray opacity-40 shadow-none";
+              cardClass = "border-cloud-gray dark:border-cloud-gray/15 opacity-40 shadow-none";
             }
 
             return (
@@ -1150,7 +1178,7 @@ function LessonContent() {
                 disabled={status === "correct" || status === "wrong"}
                 className={`py-4 px-3 md:p-4 rounded-2xl border-2 flex items-center justify-center transition-all duration-150 relative ${cardClass}`}
               >
-                <div className="hidden md:flex absolute left-4 w-7 h-7 bg-cloud-gray/20 rounded-md items-center justify-center text-graphite text-xs font-bold border-b-2 border-cloud-gray/40">
+                <div className="hidden md:flex absolute left-4 w-7 h-7 bg-cloud-gray/20 dark:bg-cloud-gray/5 rounded-md items-center justify-center text-graphite dark:text-silver text-xs font-bold border-b-2 border-cloud-gray/40 dark:border-cloud-gray/10">
                   {idx + 1}
                 </div>
                 <span className={`font-bold text-[17px] md:text-xl w-full text-center ${textClass}`}>

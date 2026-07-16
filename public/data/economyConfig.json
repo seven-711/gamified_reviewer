@@ -1,0 +1,7 @@
+{
+  "heartCost": 50,
+  "streakFreezeCost": 200,
+  "baseReward": 5,
+  "passingBonus": 10,
+  "perfectBonus": 20
+}

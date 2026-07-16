@@ -708,14 +708,14 @@ export default function DashboardPage() {
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-2xl">📈</span>
                       <span className="bg-duo-green/10 text-duo-green text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
-                        Ready (7 Chapters)
+                        Ready (8 Chapters)
                       </span>
                     </div>
                     <h4 className="font-feather text-base md:text-lg font-bold text-charcoal">
                       Part 1: Quantitative Aptitude
                     </h4>
                     <p className="text-xs text-graphite font-medium mt-1 leading-normal">
-                      Covers HCF/LCM, Permutations, Probability, Ratios, and Percentages.
+                      Covers HCF/LCM, Permutations, Probability, Ratios, Percentages, Ages, and Profit & Loss.
                     </p>
                   </div>
                   <div className="mt-4 text-sky-blue font-bold text-xs flex items-center gap-1">
@@ -914,6 +914,7 @@ export default function DashboardPage() {
                       else if (testNum === 5) testTitle = "Chapter 5: Percentage";
                       else if (testNum === 6) testTitle = "Chapter 6: Average";
                       else if (testNum === 7) testTitle = "Chapter 7: Problems on Ages";
+                      else if (testNum === 8) testTitle = "Chapter 8: Profit and Loss";
                       else testTitle = `Chapter ${testNum}`;
                     }
                     const testId = `${formattedTopic}_test${testNum}`;

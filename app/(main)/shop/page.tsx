@@ -17,10 +17,24 @@ export default function ShopPage() {
 
   const [purchasingHeart, setPurchasingHeart] = useState(false);
   const [purchasingFreeze, setPurchasingFreeze] = useState(false);
+  const [heartCost, setHeartCost] = useState(50);
+  const [streakFreezeCost, setStreakFreezeCost] = useState(200);
+
+  useEffect(() => {
+    fetch("/api/admin/economy")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && !data.error) {
+          if (data.heartCost) setHeartCost(data.heartCost);
+          if (data.streakFreezeCost) setStreakFreezeCost(data.streakFreezeCost);
+        }
+      })
+      .catch((err) => console.error("Error loading shop economy config:", err));
+  }, []);
 
   const handleBuyHeart = async () => {
-    if (gems < 50) {
-      await showAlert("❌ Not enough Gems! You need 50 Gems to refill hearts.");
+    if (gems < heartCost) {
+      await showAlert(`❌ Not enough Gems! You need ${heartCost} Gems to refill hearts.`);
       return;
     }
     if (hearts === 5) {
@@ -37,7 +51,7 @@ export default function ShopPage() {
     if (profileId) {
       const res = await refillHeartsInDb(profileId);
       if (res.success) {
-        updateStatsLocally({ gems: Math.max(0, gems - 50), hearts: 5 });
+        updateStatsLocally({ gems: Math.max(0, gems - heartCost), hearts: 5 });
         await refreshStats();
         await showAlert("❤️ Hearts refilled successfully!");
       } else {
@@ -48,8 +62,8 @@ export default function ShopPage() {
   };
 
   const handleBuyFreeze = async () => {
-    if (gems < 200) {
-      await showAlert("❌ Not enough Gems! You need 200 Gems to buy a Streak Freeze.");
+    if (gems < streakFreezeCost) {
+      await showAlert(`❌ Not enough Gems! You need ${streakFreezeCost} Gems to buy a Streak Freeze.`);
       return;
     }
     if (streakFreezeCount >= 2) {
@@ -65,7 +79,7 @@ export default function ShopPage() {
 
     if (profileId) {
       try {
-        const nextGems = Math.max(0, gems - 200);
+        const nextGems = Math.max(0, gems - streakFreezeCost);
         const nextFreeze = streakFreezeCount + 1;
         const { error } = await supabase
           .from("profile_game_state")
@@ -134,7 +148,7 @@ export default function ShopPage() {
                   "BUYING..."
                 ) : (
                   <span className="flex items-center justify-center gap-1">
-                    GET FOR <Image src="/img/gen_imgs/diamond.webp" alt="Gems" width={16} height={16} className="inline object-contain" /> 50
+                    GET FOR <Image src="/img/gen_imgs/diamond.webp" alt="Gems" width={16} height={16} className="inline object-contain" /> {heartCost}
                   </span>
                 )}
               </button>
@@ -176,7 +190,7 @@ export default function ShopPage() {
                   "BUYING..."
                 ) : (
                   <span className="flex items-center justify-center gap-1">
-                    GET FOR <Image src="/img/gen_imgs/diamond.webp" alt="Gems" width={16} height={16} className="inline object-contain" /> 200
+                    GET FOR <Image src="/img/gen_imgs/diamond.webp" alt="Gems" width={16} height={16} className="inline object-contain" /> {streakFreezeCost}
                   </span>
                 )}
               </button>
