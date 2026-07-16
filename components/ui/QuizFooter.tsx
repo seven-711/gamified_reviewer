@@ -15,9 +15,9 @@ export function QuizFooter({ status, onCheck, onContinue, explanation, correctAn
 
   return (
     <footer className={`fixed bottom-0 left-0 right-0 border-t-2 z-50 transition-colors duration-200 ${
-      status === "correct" ? "bg-[#d7ffb8] border-[#58cc02]" :
-      status === "wrong" ? "bg-[#ffdfe0] border-[#ea2b2b]" :
-      "bg-white border-cloud-gray"
+      status === "correct" ? "bg-[#d7ffb8] border-[#58cc02] quiz-footer-correct" :
+      status === "wrong" ? "bg-[#ffdfe0] border-[#ea2b2b] quiz-footer-wrong" :
+      "bg-black border-cloud-gray quiz-footer-default"
     }`}>
       <div className="max-w-[1024px] mx-auto px-4 md:px-6 py-3 md:py-4 flex flex-col md:flex-row items-center justify-between gap-3">
         
@@ -48,7 +48,7 @@ export function QuizFooter({ status, onCheck, onContinue, explanation, correctAn
             )}
             
             {(status === "wrong" || status === "correct") && explanation && (
-              <div className={`mt-4 font-din-round text-[15px] md:text-[17px] leading-relaxed ${status === "correct" ? "text-[#3f8f01]" : "text-[#ba1c1c]"}`}>
+              <div className={`mt-4 font-din-round text-[15px] md:text-[17px] leading-relaxed ${status === "correct" ? "text-[#3f8f01] quiz-explanation-correct" : "text-[#ba1c1c] quiz-explanation-wrong"}`}>
                 <div className="opacity-90">
                   {(() => {
                     const lines = explanation.split('\n');
@@ -57,7 +57,7 @@ export function QuizFooter({ status, onCheck, onContinue, explanation, correctAn
   
                     const renderTable = (rows: string[], index: number) => {
                       return (
-                        <div key={`table-${index}`} className="my-4 overflow-x-auto w-full rounded-xl border border-current shadow-sm bg-white/40">
+                        <div key={`table-${index}`} className="my-4 overflow-x-auto w-full rounded-xl border border-current shadow-sm bg-white/40 quiz-explanation-table">
                           <table className="w-full text-left border-collapse">
                             <tbody>
                               {rows.map((row, rIdx) => {

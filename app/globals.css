@@ -103,3 +103,26 @@ body {
   --color-almost-black: #ffffff;
   --color-duo-green-light: #202f36;
 }
+
+/* Quiz Footer Dark Mode Overrides */
+.dark-mode .quiz-footer-correct {
+  background-color: #1a2b21 !important;
+  border-color: rgba(88, 204, 2, 0.3) !important;
+}
+.dark-mode .quiz-footer-wrong {
+  background-color: #2b1b1b !important;
+  border-color: rgba(234, 43, 43, 0.3) !important;
+}
+.dark-mode .quiz-footer-default {
+  background-color: #18252d !important;
+  border-color: rgba(55, 70, 79, 0.3) !important;
+}
+.dark-mode .quiz-explanation-correct {
+  color: #58cc02 !important;
+}
+.dark-mode .quiz-explanation-wrong {
+  color: #ff4b4b !important;
+}
+.dark-mode .quiz-explanation-table {
+  background-color: rgba(0, 0, 0, 0.2) !important;
+}

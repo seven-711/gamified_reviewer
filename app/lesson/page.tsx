@@ -745,7 +745,7 @@ function LessonContent() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-white font-din-round text-almost-black px-6 text-center">
+      <div className="dark-mode min-h-screen flex flex-col items-center justify-center bg-snow-white font-din-round text-almost-black px-6 text-center">
         <div className="w-48 h-48 relative mb-4">
           <Image src="/emoji/wahhh.webp" alt="Error face" fill sizes="192px" className="object-contain drop-shadow-lg mx-auto" />
         </div>
@@ -767,7 +767,7 @@ function LessonContent() {
   }
 
   if (!isLoaded || loadingData) return (
-    <div className="min-h-screen flex items-center justify-center bg-snow-white dark:bg-[#131f24] font-din-round transition-colors duration-300">
+    <div className="dark-mode min-h-screen flex items-center justify-center bg-snow-white font-din-round transition-colors duration-300">
       <div className="flex flex-col items-center gap-4 text-center px-6 animate-[fadeIn_0.5s_ease-out]">
         <div className="relative flex items-center justify-center">
           <div className="absolute h-8 w-8 rounded-full bg-duo-green/20 animate-ping"></div>
@@ -787,7 +787,7 @@ function LessonContent() {
         localStorage.removeItem(`quiz_state_${testId}`);
       }
       return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-snow-white dark:bg-[#131f24] font-din-round text-almost-black dark:text-white px-6 text-center transition-colors duration-300">
+        <div className="dark-mode min-h-screen flex flex-col items-center justify-center bg-snow-white font-din-round text-almost-black px-6 text-center transition-colors duration-300">
           <div className="flex flex-col items-center gap-4 animate-[fadeIn_0.5s_ease-out]">
             <div className="relative flex items-center justify-center">
               <div className="absolute h-8 w-8 rounded-full bg-duo-green/20 animate-ping"></div>
@@ -807,8 +807,8 @@ function LessonContent() {
       );
     }
     return (
-      <div className="min-h-dvh flex flex-col bg-white dark:bg-[#131f24] font-din-round text-almost-black dark:text-white pb-[120px] transition-colors duration-300">
-        <header className="sticky top-0 bg-white dark:bg-[#131f24] border-b border-transparent dark:border-cloud-gray/15 py-4 px-4 md:px-6 z-30 transition-colors duration-300">
+      <div className="dark-mode min-h-dvh flex flex-col bg-snow-white font-din-round text-almost-black pb-[120px] transition-colors duration-300">
+        <header className="sticky top-0 bg-snow-white border-b border-transparent dark:border-cloud-gray/15 py-4 px-4 md:px-6 z-30 transition-colors duration-300">
           <div className="max-w-[1024px] mx-auto flex items-center gap-4">
             <button
               onClick={() => setShowExitModal(true)}
@@ -837,7 +837,7 @@ function LessonContent() {
           </div>
         </main>
 
-        <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-[#202f36] border-t-2 border-cloud-gray dark:border-cloud-gray/15 p-4 md:p-6 z-40 transition-colors duration-300">
+        <div className="fixed bottom-0 left-0 right-0 bg-snow-white border-t-2 border-cloud-gray dark:border-cloud-gray/15 p-4 md:p-6 z-40 transition-colors duration-300">
           <div className="max-w-[1024px] mx-auto flex justify-end">
             <button
               onClick={() => {
@@ -856,7 +856,7 @@ function LessonContent() {
 
         {showExitModal && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center z-50 p-4 animate-[fadeIn_0.2s_ease-out]">
-            <div className="bg-white border-2 border-cloud-gray border-b-8 rounded-[24px] w-full max-w-[460px] p-6 md:p-8 flex flex-col gap-6 md:gap-8 shadow-none animate-[scaleIn_0.2s_ease-out] relative">
+            <div className="bg-snow-white border-2 border-cloud-gray border-b-8 rounded-[24px] w-full max-w-[460px] p-6 md:p-8 flex flex-col gap-6 md:gap-8 shadow-none animate-[scaleIn_0.2s_ease-out] relative">
 
               {/* Mascot & Dialogue */}
               <div className="flex flex-col items-center text-center gap-5">
@@ -924,7 +924,7 @@ function LessonContent() {
       window.location.reload();
     }
     return (
-      <div className="min-h-screen flex items-center justify-center font-din-round bg-white">
+      <div className="dark-mode min-h-screen flex items-center justify-center font-din-round bg-snow-white">
         <div className="flex flex-col items-center gap-4">
           <div className="h-12 w-12 animate-spin rounded-full border-4 border-cloud-gray border-t-duo-green"></div>
           <p className="text-graphite font-bold">Resetting corrupted session...</p>
@@ -951,7 +951,7 @@ function LessonContent() {
     }
 
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-[#131f24] font-din-round text-almost-black dark:text-white px-6 text-center transition-colors duration-300">
+      <div className="dark-mode min-h-screen flex flex-col items-center justify-center bg-snow-white font-din-round text-almost-black px-6 text-center transition-colors duration-300">
         <h1 className={`font-feather text-4xl mb-4 ${isTimeUp ? "text-[#ea2b2b]" : "text-duo-green"}`}>
           {isTimeUp ? "Time's Up!" : "Lesson Complete!"}
         </h1>
@@ -1058,10 +1058,10 @@ function LessonContent() {
   }
 
   return (
-    <div className={`min-h-dvh flex flex-col bg-white dark:bg-[#131f24] font-din-round text-almost-black dark:text-white transition-colors duration-300 ${status === "correct" || status === "wrong" ? "pb-[250px] md:pb-[200px]" : "pb-[120px] md:pb-80px"
+    <div className={`dark-mode min-h-dvh flex flex-col bg-snow-white font-din-round text-almost-black transition-colors duration-300 ${status === "correct" || status === "wrong" ? "pb-[250px] md:pb-[200px]" : "pb-[120px] md:pb-80px"
       }`}>
       {/* Header */}
-      <header className="sticky top-0 bg-white dark:bg-[#131f24] border-b border-transparent dark:border-cloud-gray/15 py-4 px-4 md:px-6 z-30 transition-colors duration-300">
+      <header className="sticky top-0 bg-snow-white border-b border-transparent dark:border-cloud-gray/15 py-4 px-4 md:px-6 z-30 transition-colors duration-300">
         <div className="max-w-[1024px] mx-auto flex items-center gap-4">
           <button
             onClick={() => setShowExitModal(true)}
@@ -1200,7 +1200,7 @@ function LessonContent() {
 
       {showExitModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center z-50 p-4 animate-[fadeIn_0.2s_ease-out]">
-          <div className="bg-white dark:bg-[#202f36] border-2 border-cloud-gray dark:border-cloud-gray/15 border-b-8 rounded-[24px] w-full max-w-[460px] p-6 md:p-8 flex flex-col gap-6 md:gap-8 shadow-none animate-[scaleIn_0.2s_ease-out] relative">
+          <div className="bg-snow-white border-2 border-cloud-gray dark:border-cloud-gray/15 border-b-8 rounded-[24px] w-full max-w-[460px] p-6 md:p-8 flex flex-col gap-6 md:gap-8 shadow-none animate-[scaleIn_0.2s_ease-out] relative">
 
             {/* Mascot & Dialogue */}
             <div className="flex flex-col items-center text-center gap-5">
@@ -1373,7 +1373,7 @@ function LessonContent() {
 export default function LessonPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-snow-white dark:bg-[#131f24] font-din-round transition-colors duration-300">
+      <div className="dark-mode min-h-screen flex items-center justify-center bg-snow-white font-din-round transition-colors duration-300">
         <div className="flex flex-col items-center gap-4 text-center px-6 animate-[fadeIn_0.5s_ease-out]">
           <div className="relative flex items-center justify-center">
             <div className="absolute h-8 w-8 rounded-full bg-duo-green/20 animate-ping"></div>

@@ -473,7 +473,7 @@ export default function AdminDashboard() {
       {/* Title */}
       <div className="mt-4">
         <h1 className="font-feather text-heading text-almost-black tracking-tight uppercase">
-          Administration Dashboard
+          Dashboard
         </h1>
         <p className="text-graphite text-[15px] mt-1">
           Monitor users, refine training question datasets, and configure gamification variables.
