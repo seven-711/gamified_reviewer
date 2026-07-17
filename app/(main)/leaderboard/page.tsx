@@ -8,6 +8,31 @@ import { useUser } from "@clerk/nextjs";
 import { supabase } from "@/lib/supabase";
 import { StreakAsset } from "@/components/ui/StreakAsset";
 
+const LEAGUES = [
+  { name: "Bronze League", image: "/img/gen_imgs/league_/bronze_league.webp" },
+  { name: "Silver League", image: "/img/gen_imgs/league_/silver_league.webp" },
+  { name: "Gold League", image: "/img/gen_imgs/league_/gold_league.webp" },
+  { name: "Crystal League", image: "/img/gen_imgs/league_/crystal_league.webp" },
+  { name: "Master League", image: "/img/gen_imgs/league_/master_league.webp" },
+  { name: "Diamond League", image: "/img/gen_imgs/league_/diamond_league.webp" },
+  { name: "Champion League", image: "/img/gen_imgs/league_/champion league.webp" },
+  { name: "Legend League", image: "/img/gen_imgs/league_/legend_league.webp" },
+];
+
+const getLeagueBrandColor = (name: string) => {
+  switch (name) {
+    case "Legend League": return "text-red-600 dark:text-red-500";
+    case "Champion League": return "text-pink-600 dark:text-pink-500";
+    case "Master League": return "text-purple-600 dark:text-purple-500";
+    case "Diamond League": return "text-blue-500 dark:text-blue-400";
+    case "Crystal League": return "text-teal-600 dark:text-teal-400";
+    case "Gold League": return "text-amber-600 dark:text-amber-500";
+    case "Silver League": return "text-gray-500 dark:text-gray-400";
+    case "Bronze League":
+    default: return "text-[#cc348d] dark:text-[#cc348d]";
+  }
+};
+
 interface LeaderboardUser {
   id: string;
   name: string | null;
@@ -190,6 +215,7 @@ export default function LeaderboardPage() {
   const [currentUserRank, setCurrentUserRank] = useState<number>(1);
   const [loading, setLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
+  const activeRef = React.useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     setIsMounted(true);
@@ -330,13 +356,27 @@ export default function LeaderboardPage() {
     : { name: "Bronze League", image: "/img/gen_imgs/league_/bronze_league.webp" };
 
   const leagueStyle = getLeagueStyle(leagueInfo.name);
+  const activeIndex = LEAGUES.findIndex((l) => l.name === leagueInfo.name);
 
   const [activeTab, setActiveTab] = useState<"league" | "global">("league");
+
+  useEffect(() => {
+    if (!loading && activeRef.current) {
+      const timer = setTimeout(() => {
+        activeRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+          inline: "center",
+        });
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [loading, leagueInfo.name]);
 
   return (
     <>
       {/* Center Column */}
-      <main className="flex-1 w-full max-w-[600px] mx-auto pb-24 pt-6 md:pt-10 px-0 sm:px-4 font-din-round">
+      <main className="flex-1 w-full max-w-[600px] mx-auto px-0 sm:px-4 font-din-round">
 
         {!isMounted || loading ? (
           /* Shimmering Loading State */
@@ -402,9 +442,9 @@ export default function LeaderboardPage() {
             )}
 
             {/* Blurred Mock Leaderboard rankings underneath */}
-            <div className="w-full max-w-[420px] mt-16 flex flex-col gap-5 opacity-30 pointer-events-none filter blur-[2px]">
+            <div className="w-full max-w-[420px] mt-16 flex flex-col gap-5 opacity-30 pointer-events-none filter blur-[3px]">
               {[...Array(5)].map((_, i) => (
-                <div key={i} className="flex items-center justify-between border-b-2 border-cloud-gray pb-4 px-4 bg-snow-white rounded-xl py-3 border">
+                <div key={i} className="flex items-center justify-between border-b-2 border-cloud-gray px-4 bg-snow-white rounded-xl py-3 border">
                   <div className="flex items-center gap-4">
                     <span className="font-bold text-silver w-6">#{i + 1}</span>
                     <div className="w-10 h-10 rounded-full bg-cloud-gray shrink-0"></div>
@@ -419,45 +459,73 @@ export default function LeaderboardPage() {
           /* Active Redesigned Gamified Leaderboard State */
           <div className="w-full flex flex-col items-center">
 
-            {/* League Status Bar - Dynamic Palette */}
-            <div 
-              className={`w-full max-w-[440px] ${leagueStyle.bgClass} border-2 ${leagueStyle.borderClass} rounded-2xl px-5 py-4 flex items-center justify-between mt-4 mb-4 relative z-10 overflow-hidden`}
-              style={{ boxShadow: `0 4px 0 ${leagueStyle.shadowColor}` }}
-            >
-              {/* Glossy Overlay Reflection */}
-              <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/10 to-white/0 pointer-events-none" />
-
-              <span 
-                className={`font-feather font-black text-base ${leagueStyle.textColor} tracking-widest uppercase select-none`}
-                style={{ textShadow: "0 2px 4px rgba(0,0,0,0.3)" }}
-              >
+            {/* League Title & Rankings Horizontal Navigation */}
+            <div className="text-center flex flex-col items-center w-full">
+              <h2 className="font-feather text-2xl text-almost-black font-extrabold tracking-wide dark:text-snow-white">
                 {leagueInfo.name}
-              </span>
+              </h2>
+              <p className="text-silver text-xs font-semibold uppercase tracking-wider dark:text-silver/80">
+                You are ranked <span className={`font-black ${getLeagueBrandColor(leagueInfo.name)}`}>#{currentUserRank}</span> this week
+              </p>
+            </div>
 
-              {/* Badge Container with Radial Glow and micro-animation */}
-              <div className="absolute left-1/2 -translate-x-1/2 -top-6 w-26 h-26 flex items-center justify-center transform hover:scale-110 active:scale-95 transition-all duration-300 cursor-pointer">
-                {/* Radial Glow */}
-                <div 
-                  className="absolute w-20 h-20 rounded-full blur-xl pointer-events-none"
-                  style={{ background: `radial-gradient(circle, ${leagueStyle.glowColor} 0%, transparent 70%)` }}
-                />
-                <div className="w-full h-full relative shrink-0 drop-shadow-[0_4px_6px_rgba(0,0,0,0.25)]">
-                  <Image 
-                    src={leagueInfo.image} 
-                    alt={leagueInfo.name} 
-                    fill 
-                    className="object-contain" 
-                    unoptimized 
-                  />
+            <div className="w-full max-w-[540px] px-4 py-2 mt-2 mb-6">
+              <div className="relative w-full">
+                <div className="flex gap-6 overflow-x-auto py-4 px-6 items-center [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] [mask-image:linear-gradient(to_right,transparent,black_32px,black_calc(100%-32px),transparent)] [webkit-mask-image:linear-gradient(to_right,transparent,black_32px,black_calc(100%-32px),transparent)]">
+                  {/* Left Spacer to allow centering first items */}
+                  <div className="w-[calc(50%-44px)] shrink-0" />
+
+                  {LEAGUES.map((lg, i) => {
+                    const isActive = i === activeIndex;
+                    const isPrevious = i < activeIndex;
+                    const isBeyond = i > activeIndex;
+
+                    return (
+                      <div
+                        key={lg.name}
+                        ref={isActive ? activeRef : undefined}
+                        className={`flex flex-col items-center gap-1.5 shrink-0 transition-all duration-300 ${
+                          isActive 
+                            ? "scale-110 opacity-100 font-extrabold" 
+                            : isPrevious 
+                            ? "scale-95 opacity-50 filter grayscale" 
+                            : "scale-90 opacity-20 filter grayscale blur-[1.5px]"
+                        }`}
+                      >
+                        <div className="w-16 h-16 relative flex items-center justify-center shrink-0">
+                          {isActive && (
+                            <div 
+                              className="absolute w-14 h-14 rounded-full blur-lg pointer-events-none"
+                              style={{ background: `radial-gradient(circle, ${leagueStyle.glowColor} 0%, transparent 70%)` }}
+                            />
+                          )}
+                          <div className="w-14 h-14 relative shrink-0 drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)]">
+                            <Image 
+                              src={lg.image} 
+                              alt={lg.name} 
+                              fill 
+                              className="object-contain" 
+                              unoptimized 
+                            />
+                          </div>
+                        </div>
+                        <span className={`text-[10px] font-black uppercase tracking-wider ${
+                          isActive 
+                            ? getLeagueBrandColor(lg.name) 
+                            : isPrevious 
+                            ? "text-silver" 
+                            : "text-silver/50"
+                        }`}>
+                          {lg.name.split(" ")[0]}
+                        </span>
+                      </div>
+                    );
+                  })}
+
+                  {/* Right Spacer to allow centering last items */}
+                  <div className="w-[calc(50%-44px)] shrink-0" />
                 </div>
               </div>
-
-              <span 
-                className={`font-feather font-black text-sm ${leagueStyle.textColor} tracking-wider uppercase select-none`}
-                style={{ textShadow: "0 2px 4px rgba(0,0,0,0.3)" }}
-              >
-                Rank #{currentUserRank}
-              </span>
             </div>
 
             {/* Podium Columns Container */}
@@ -586,7 +654,7 @@ export default function LeaderboardPage() {
             </div>
 
             {/* Rankings List */}
-            <div className="w-full max-w-[440px] flex flex-col gap-3 z-10">
+            <div className="w-full max-w-[540px] flex flex-col z-10">
               {profiles.slice(3).map((profile, index) => {
                 const rank = index + 4;
                 const { displayName, avatarUrl } = getLeaderboardUserData(profile, currentUserId, user?.imageUrl);
@@ -605,7 +673,7 @@ export default function LeaderboardPage() {
                   <div
                     key={profile.id}
                     onClick={() => router.push(`/profile/${profile.id}`)}
-                    className={`flex items-center justify-between border-2 rounded-xl p-3.5 sm:p-4.5 transition-all duration-150 cursor-pointer hover:bg-white/5 active:scale-[0.99] ${rowBgClass}`}
+                    className={`flex items-center justify-between border-2 rounded-xl sm:p-4.5 transition-all duration-150 cursor-pointer hover:bg-white/5 active:scale-[0.99] ${rowBgClass}`}
                   >
                     <div className="flex items-center gap-4 sm:gap-6 overflow-hidden">
                       {rankBadge}
@@ -669,11 +737,6 @@ export default function LeaderboardPage() {
           <p className="text-silver text-xs md:text-sm font-semibold leading-relaxed">
             Earn XP by completing simulated exam chapters, then climb the ladder to compete with players in the weekly leaderboard rankings.
           </p>
-          <div className="w-full flex justify-end mt-4">
-            <div className="w-36 h-36 relative mt-2 animate-[bounce_4s_infinite]">
-              <Image src="/emoji/hmm.webp" alt="Mascot" fill className="object-contain" unoptimized />
-            </div>
-          </div>
         </div>
       </aside>
     </>

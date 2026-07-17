@@ -1044,7 +1044,7 @@ export default function DashboardPage() {
         </div>
       </main>
 
-      <aside className="hidden lg:block w-[368px] shrink-0">
+      <aside className="w-full lg:w-[368px] shrink-0">
         <RightSidebar />
       </aside>
 

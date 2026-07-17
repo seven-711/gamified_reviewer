@@ -20,6 +20,29 @@ export default function ShopPage() {
   const [heartCost, setHeartCost] = useState(50);
   const [streakFreezeCost, setStreakFreezeCost] = useState(200);
 
+  // Power-Ups counts
+  const [doubleXpCount, setDoubleXpCount] = useState(0);
+  const [card5050Count, setCard5050Count] = useState(0);
+  const [skipCardCount, setSkipCardCount] = useState(0);
+  const [hintCardCount, setHintCardCount] = useState(0);
+
+  // Premium Study Resources unlock flags
+  const [mockExamsUnlocked, setMockExamsUnlocked] = useState(false);
+  const [focusPacksUnlocked, setFocusPacksUnlocked] = useState(false);
+  const [pdfCheatSheetsUnlocked, setPdfCheatSheetsUnlocked] = useState(false);
+
+  // Cosmetics unlock flags & equipment
+  const [neonThemeUnlocked, setNeonThemeUnlocked] = useState(false);
+  const [sakuraThemeUnlocked, setSakuraThemeUnlocked] = useState(false);
+  const [goldenFrameUnlocked, setGoldenFrameUnlocked] = useState(false);
+  const [civilServantBadgeUnlocked, setCivilServantBadgeUnlocked] = useState(false);
+
+  const [equippedTheme, setEquippedTheme] = useState("default");
+  const [equippedFrame, setEquippedFrame] = useState("none");
+  const [equippedBadge, setEquippedBadge] = useState("none");
+
+  const [purchasingItemId, setPurchasingItemId] = useState<string | null>(null);
+
   useEffect(() => {
     fetch("/api/admin/economy")
       .then((res) => res.json())
@@ -30,15 +53,98 @@ export default function ShopPage() {
         }
       })
       .catch((err) => console.error("Error loading shop economy config:", err));
+
+    if (typeof window !== "undefined") {
+      setDoubleXpCount(parseInt(localStorage.getItem("powerup_double_xp_count") || "0", 10));
+      setCard5050Count(parseInt(localStorage.getItem("powerup_5050_card_count") || "0", 10));
+      setSkipCardCount(parseInt(localStorage.getItem("powerup_skip_card_count") || "0", 10));
+      setHintCardCount(parseInt(localStorage.getItem("powerup_hint_card_count") || "0", 10));
+
+      setMockExamsUnlocked(localStorage.getItem("resource_premium_mock_exams_unlocked") === "true");
+      setFocusPacksUnlocked(localStorage.getItem("resource_focus_study_packs_unlocked") === "true");
+      setPdfCheatSheetsUnlocked(localStorage.getItem("resource_pdf_cheat_sheets_unlocked") === "true");
+
+      setNeonThemeUnlocked(localStorage.getItem("cosmetic_theme_neon_unlocked") === "true");
+      setSakuraThemeUnlocked(localStorage.getItem("cosmetic_theme_sakura_unlocked") === "true");
+      setGoldenFrameUnlocked(localStorage.getItem("cosmetic_frame_golden_unlocked") === "true");
+      setCivilServantBadgeUnlocked(localStorage.getItem("cosmetic_badge_civil_servant_unlocked") === "true");
+
+      setEquippedTheme(localStorage.getItem("cosmetics_selected_theme") || "default");
+      setEquippedFrame(localStorage.getItem("cosmetics_selected_frame") || "none");
+      setEquippedBadge(localStorage.getItem("cosmetics_selected_badge") || "none");
+    }
   }, []);
+
+  const handleBuyItem = async (
+    itemId: string,
+    cost: number,
+    updateState: () => void,
+    onSuccessMsg: string
+  ) => {
+    if (gems < cost) {
+      await showAlert(`❌ Not enough Gems! You need ${cost} Gems.`);
+      return;
+    }
+
+    setPurchasingItemId(itemId);
+    let profileId: string | null = null;
+    if (user) {
+      profileId = user.id;
+    }
+
+    if (profileId) {
+      try {
+        const nextGems = Math.max(0, gems - cost);
+        const { error } = await supabase
+          .from("profile_game_state")
+          .update({
+            gems: nextGems
+          })
+          .eq("profile_id", profileId);
+
+        if (!error) {
+          updateStatsLocally({ gems: nextGems });
+          await refreshStats();
+          updateState();
+          if (typeof window !== "undefined") {
+            window.dispatchEvent(new CustomEvent("reviewer-db-update"));
+          }
+          await showAlert(`🎉 ${onSuccessMsg}`);
+        } else {
+          await showAlert("❌ Purchase failed: " + error.message);
+        }
+      } catch (err: any) {
+        await showAlert("❌ An error occurred: " + err.message);
+      }
+    } else {
+      await showAlert("❌ You must be signed in to purchase items.");
+    }
+    setPurchasingItemId(null);
+  };
+
+  const handleEquipCosmetic = (type: "theme" | "frame" | "badge", value: string) => {
+    if (type === "theme") {
+      setEquippedTheme(value);
+      localStorage.setItem("cosmetics_selected_theme", value);
+      window.dispatchEvent(new CustomEvent("cosmetics-update", { detail: { type, value } }));
+    } else if (type === "frame") {
+      setEquippedFrame(value);
+      localStorage.setItem("cosmetics_selected_frame", value);
+      window.dispatchEvent(new CustomEvent("cosmetics-update", { detail: { type, value } }));
+    } else if (type === "badge") {
+      setEquippedBadge(value);
+      localStorage.setItem("cosmetics_selected_badge", value);
+      window.dispatchEvent(new CustomEvent("cosmetics-update", { detail: { type, value } }));
+    }
+  };
 
   const handleBuyHeart = async () => {
     if (gems < heartCost) {
-      await showAlert(`❌ Not enough Gems! You need ${heartCost} Gems to refill hearts.`);
+      await showAlert(`Not enough Gems! You need ${heartCost} Gems to refill hearts.`);
       return;
     }
     if (hearts === 5) {
-      await showAlert("❤️ Your hearts are already full!");
+      await showAlert("Your hearts are already full!");
       return;
     }
 
@@ -124,29 +230,29 @@ export default function ShopPage() {
               Hearts
             </h2>
 
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl border-2 border-cloud-gray bg-snow-white gap-4">
-              <div className="flex items-center gap-4 min-w-0">
-                <div className="w-14 h-14 rounded-2xl bg-red-500/10 flex items-center justify-center shadow-sm shrink-0">
+            <div className="flex flex-col md:flex-row items-center md:justify-between text-center md:text-left p-3 md:p-4 rounded-2xl  bg-snow-white gap-3 md:gap-4 h-full md:h-auto min-w-0">
+              <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 w-full md:w-auto min-w-0">
+                <div className="w-22 h-14 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0 shadow-sm relative">
                   <Image
                     src="/img/gen_imgs/user_life.webp"
                     alt="Life"
-                    width={36}
-                    height={36}
+                    width={42}
+                    height={42}
                     className="object-contain"
                     style={{ height: 'auto' }}
                   />
                 </div>
-                <div className="flex flex-col gap-1 min-w-0">
-                  <span className="font-bold text-lg text-almost-black leading-tight">Refill Hearts</span>
-                  <span className="text-silver text-xs font-semibold leading-normal max-w-[320px]">
+                <div className="flex flex-col items-center md:items-start text-center md:text-left min-w-0">
+                  <span className="font-bold text-sm md:text-lg text-almost-black leading-tight">Refill Hearts</span>
+                  <span className="hidden md:block text-silver text-xs font-semibold leading-normal max-w-[320px]">
                     Get full hearts so you can worry less about making mistakes.
                   </span>
                 </div>
               </div>
               <button
-                disabled={purchasingHeart}
+                disabled={hearts === 5 || purchasingHeart}
                 onClick={handleBuyHeart}
-                className="w-full sm:w-auto bg-transparent text-blue-400 hover:bg-blue-50 border-2 border-cloud-gray font-extrabold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider shrink-0 cursor-pointer active:scale-95 transition-all disabled:opacity-50"
+                className="w-full md:w-auto bg-duo-green hover:bg-duo-green/95 text-white font-extrabold px-3 md:px-4 py-2.5 rounded-xl text-[10px] md:text-xs uppercase tracking-wider shrink-0 cursor-pointer shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-cloud-gray disabled:text-silver disabled:shadow-none"
               >
                 {hearts === 5 ? (
                   "FULL"
@@ -167,48 +273,698 @@ export default function ShopPage() {
               Power-Ups
             </h2>
 
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl border-2 border-cloud-gray bg-snow-white gap-4">
-              <div className="flex items-center gap-4 min-w-0">
-                {/* Frozen blue fire crystal badge */}
-                <div className="w-14 h-14 rounded-2xl bg-sky-blue/15 border-2 border-sky-blue/30 flex items-center justify-center shrink-0 shadow-sm relative">
-                  <span className="text-3xl filter drop-shadow-[0_2px_4px_rgba(28,176,246,0.3)]">❄️</span>
-                </div>
-                <div className="flex flex-col gap-1 min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-bold text-lg text-almost-black leading-tight">Streak Freeze</span>
-                    <span className="bg-duo-green/10 text-duo-green text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider shrink-0">
-                      {streakFreezeCount} / 2 EQUIPPED
+            <div className="grid grid-cols-2 md:grid-cols-1 gap-4">
+              {/* Streak Freeze */}
+              <div className="flex flex-col md:flex-row items-center md:justify-between text-center md:text-left p-3 md:p-4 rounded-2xl  bg-snow-white gap-3 md:gap-4 h-full md:h-auto min-w-0">
+                <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 w-full md:w-auto min-w-0">
+                  <div className="w-22 h-14 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0 shadow-sm relative">
+                    <Image
+                      src="/img/gen_imgs/Streak/streak_freeze.webp"
+                      alt="Streak Freeze"
+                      width={42}
+                      height={42}
+                      className="object-contain"
+                      style={{ height: 'auto' }}
+                    />
+                  </div>
+                  <div className="flex flex-col items-center md:items-start text-center md:text-left min-w-0">
+                    <div className="flex flex-col md:flex-row items-center gap-1 md:gap-2">
+                      <span className="font-bold text-sm md:text-lg text-almost-black leading-tight">Streak Freeze</span>
+                      <span className="bg-duo-green/10 text-duo-green text-[9px] md:text-[10px] font-black px-1.5 py-0.5 md:px-2 rounded-full uppercase tracking-wider shrink-0">
+                        <span className="inline md:hidden">{streakFreezeCount}/2 EQ</span>
+                        <span className="hidden md:inline">{streakFreezeCount} / 2 EQUIPPED</span>
+                      </span>
+                    </div>
+                    <span className="hidden md:block text-silver text-xs font-semibold leading-normal max-w-[320px]">
+                      Streak Freeze allows your streak to remain in place for one full day of inactivity.
                     </span>
                   </div>
-                  <span className="text-silver text-xs font-semibold leading-normal max-w-[320px]">
-                    Streak Freeze allows your streak to remain in place for one full day of inactivity.
-                  </span>
                 </div>
+                <button
+                  disabled={streakFreezeCount >= 2 || purchasingFreeze}
+                  onClick={handleBuyFreeze}
+                  className="w-full md:w-auto bg-duo-green hover:bg-duo-green/95 text-white font-extrabold px-3 md:px-4 py-2.5 rounded-xl text-[10px] md:text-xs uppercase tracking-wider shrink-0 cursor-pointer shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-cloud-gray disabled:text-silver disabled:shadow-none"
+                >
+                  {streakFreezeCount >= 2 ? (
+                    "EQUIPPED"
+                  ) : purchasingFreeze ? (
+                    "BUYING..."
+                  ) : (
+                    <span className="flex items-center justify-center gap-1">
+                      GET FOR <Image src="/img/gen_imgs/diamond.webp" alt="Gems" width={16} height={16} className="inline object-contain" /> {streakFreezeCost}
+                    </span>
+                  )}
+                </button>
               </div>
-              <button
-                disabled={streakFreezeCount >= 2 || purchasingFreeze}
-                onClick={handleBuyFreeze}
-                className="w-full sm:w-auto border-2 border-cloud-gray hover:bg-gray-50 text-almost-black font-extrabold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider shrink-0 cursor-pointer active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {streakFreezeCount >= 2 ? (
-                  "EQUIPPED"
-                ) : purchasingFreeze ? (
-                  "BUYING..."
-                ) : (
-                  <span className="flex items-center justify-center gap-1">
-                    GET FOR <Image src="/img/gen_imgs/diamond.webp" alt="Gems" width={16} height={16} className="inline object-contain" /> {streakFreezeCost}
-                  </span>
-                )}
-              </button>
+
+              {/* Double XP */}
+              <div className="flex flex-col md:flex-row items-center md:justify-between text-center md:text-left p-3 md:p-4 rounded-2xl  bg-snow-white gap-3 md:gap-4 h-full md:h-auto min-w-0">
+                <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 w-full md:w-auto min-w-0">
+                  <div className="w-22 h-14 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0 shadow-sm relative">
+                    <Image
+                      src="/img/gen_imgs/exp.webp"
+                      alt="Double XP"
+                      width={42}
+                      height={42}
+                      className="object-contain"
+                      style={{ height: 'auto' }}
+                    />
+                  </div>
+                  <div className="flex flex-col items-center md:items-start text-center md:text-left min-w-0">
+                    <div className="flex flex-col md:flex-row items-center gap-1 md:gap-2">
+                      <span className="font-bold text-sm md:text-lg text-almost-black leading-tight">Double XP</span>
+                      <span className="bg-duo-green/10 text-duo-green text-[9px] md:text-[10px] font-black px-1.5 py-0.5 md:px-2 rounded-full uppercase tracking-wider shrink-0">
+                        {doubleXpCount} OWNED
+                      </span>
+                    </div>
+                    <span className="hidden md:block text-silver text-xs font-semibold leading-normal max-w-[320px]">
+                      Get double XP for the next 30 minutes of studying.
+                    </span>
+                  </div>
+                </div>
+                <button
+                  disabled={purchasingItemId !== null}
+                  onClick={() =>
+                    handleBuyItem(
+                      "double_xp",
+                      150,
+                      () => {
+                        const next = doubleXpCount + 1;
+                        setDoubleXpCount(next);
+                        localStorage.setItem("powerup_double_xp_count", next.toString());
+                      },
+                      "Double XP Booster purchased!"
+                    )
+                  }
+                  className="w-full md:w-auto bg-duo-green hover:bg-duo-green/95 text-white font-extrabold px-3 md:px-4 py-2.5 rounded-xl text-[10px] md:text-xs uppercase tracking-wider shrink-0 cursor-pointer shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-cloud-gray disabled:text-silver disabled:shadow-none"
+                >
+                  {purchasingItemId === "double_xp" ? (
+                    "BUYING..."
+                  ) : (
+                    <span className="flex items-center justify-center gap-1">
+                      GET FOR <Image src="/img/gen_imgs/diamond.webp" alt="Gems" width={16} height={16} className="inline object-contain" /> 150
+                    </span>
+                  )}
+                </button>
+              </div>
+
+              {/* 50/50 Card */}
+              <div className="flex flex-col md:flex-row items-center md:justify-between text-center md:text-left p-3 md:p-4 rounded-2xl  bg-snow-white gap-3 md:gap-4 h-full md:h-auto min-w-0">
+                <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 w-full md:w-auto min-w-0">
+                  <div className="w-22 h-14 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0 shadow-sm">
+                    <span className="text-2xl md:text-3xl">🌓</span>
+                  </div>
+                  <div className="flex flex-col items-center md:items-start text-center md:text-left min-w-0">
+                    <div className="flex flex-col md:flex-row items-center gap-1 md:gap-2">
+                      <span className="font-bold text-sm md:text-lg text-almost-black leading-tight">50/50 Card</span>
+                      <span className="bg-duo-green/10 text-duo-green text-[9px] md:text-[10px] font-black px-1.5 py-0.5 md:px-2 rounded-full uppercase tracking-wider shrink-0">
+                        {card5050Count} OWNED
+                      </span>
+                    </div>
+                    <span className="hidden md:block text-silver text-xs font-semibold leading-normal max-w-[320px]">
+                      Eliminates two incorrect options from a multiple-choice question.
+                    </span>
+                  </div>
+                </div>
+                <button
+                  disabled={purchasingItemId !== null}
+                  onClick={() =>
+                    handleBuyItem(
+                      "5050_card",
+                      75,
+                      () => {
+                        const next = card5050Count + 1;
+                        setCard5050Count(next);
+                        localStorage.setItem("powerup_5050_card_count", next.toString());
+                      },
+                      "50/50 Card purchased!"
+                    )
+                  }
+                  className="w-full md:w-auto bg-duo-green hover:bg-duo-green/95 text-white font-extrabold px-3 md:px-4 py-2.5 rounded-xl text-[10px] md:text-xs uppercase tracking-wider shrink-0 cursor-pointer shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-cloud-gray disabled:text-silver disabled:shadow-none"
+                >
+                  {purchasingItemId === "5050_card" ? (
+                    "BUYING..."
+                  ) : (
+                    <span className="flex items-center justify-center gap-1">
+                      GET FOR <Image src="/img/gen_imgs/diamond.webp" alt="Gems" width={16} height={16} className="inline object-contain" /> 75
+                    </span>
+                  )}
+                </button>
+              </div>
+
+              {/* Skip Card */}
+              <div className="flex flex-col md:flex-row items-center md:justify-between text-center md:text-left p-3 md:p-4 rounded-2xl  bg-snow-white gap-3 md:gap-4 h-full md:h-auto min-w-0">
+                <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 w-full md:w-auto min-w-0">
+                  <div className="w-22 h-14 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0 shadow-sm">
+                    <span className="text-2xl md:text-3xl">⏭️</span>
+                  </div>
+                  <div className="flex flex-col items-center md:items-start text-center md:text-left min-w-0">
+                    <div className="flex flex-col md:flex-row items-center gap-1 md:gap-2">
+                      <span className="font-bold text-sm md:text-lg text-almost-black leading-tight">Skip Card</span>
+                      <span className="bg-duo-green/10 text-duo-green text-[9px] md:text-[10px] font-black px-1.5 py-0.5 md:px-2 rounded-full uppercase tracking-wider shrink-0">
+                        {skipCardCount} OWNED
+                      </span>
+                    </div>
+                    <span className="hidden md:block text-silver text-xs font-semibold leading-normal max-w-[320px]">
+                      Allows you to skip a question without losing a heart.
+                    </span>
+                  </div>
+                </div>
+                <button
+                  disabled={purchasingItemId !== null}
+                  onClick={() =>
+                    handleBuyItem(
+                      "skip_card",
+                      100,
+                      () => {
+                        const next = skipCardCount + 1;
+                        setSkipCardCount(next);
+                        localStorage.setItem("powerup_skip_card_count", next.toString());
+                      },
+                      "Question Skip Card purchased!"
+                    )
+                  }
+                  className="w-full md:w-auto bg-duo-green hover:bg-duo-green/95 text-white font-extrabold px-3 md:px-4 py-2.5 rounded-xl text-[10px] md:text-xs uppercase tracking-wider shrink-0 cursor-pointer shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-cloud-gray disabled:text-silver disabled:shadow-none"
+                >
+                  {purchasingItemId === "skip_card" ? (
+                    "BUYING..."
+                  ) : (
+                    <span className="flex items-center justify-center gap-1">
+                      GET FOR <Image src="/img/gen_imgs/diamond.webp" alt="Gems" width={16} height={16} className="inline object-contain" /> 100
+                    </span>
+                  )}
+                </button>
+              </div>
+
+              {/* Hint Card */}
+              <div className="flex flex-col md:flex-row items-center md:justify-between text-center md:text-left p-3 md:p-4 rounded-2xl  bg-snow-white gap-3 md:gap-4 h-full md:h-auto min-w-0">
+                <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 w-full md:w-auto min-w-0">
+                  <div className="w-22 h-14 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0 shadow-sm">
+                    <span className="text-2xl md:text-3xl">💡</span>
+                  </div>
+                  <div className="flex flex-col items-center md:items-start text-center md:text-left min-w-0">
+                    <div className="flex flex-col md:flex-row items-center gap-1 md:gap-2">
+                      <span className="font-bold text-sm md:text-lg text-almost-black leading-tight">Hint Card</span>
+                      <span className="bg-duo-green/10 text-duo-green text-[9px] md:text-[10px] font-black px-1.5 py-0.5 md:px-2 rounded-full uppercase tracking-wider shrink-0">
+                        {hintCardCount} OWNED
+                      </span>
+                    </div>
+                    <span className="hidden md:block text-silver text-xs font-semibold leading-normal max-w-[320px]">
+                      Unlocks detailed formulas/explainers for numerical reasoning questions.
+                    </span>
+                  </div>
+                </div>
+                <button
+                  disabled={purchasingItemId !== null}
+                  onClick={() =>
+                    handleBuyItem(
+                      "hint_card",
+                      40,
+                      () => {
+                        const next = hintCardCount + 1;
+                        setHintCardCount(next);
+                        localStorage.setItem("powerup_hint_card_count", next.toString());
+                      },
+                      "Hint Card purchased!"
+                    )
+                  }
+                  className="w-full md:w-auto bg-duo-green hover:bg-duo-green/95 text-white font-extrabold px-3 md:px-4 py-2.5 rounded-xl text-[10px] md:text-xs uppercase tracking-wider shrink-0 cursor-pointer shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-cloud-gray disabled:text-silver disabled:shadow-none"
+                >
+                  {purchasingItemId === "hint_card" ? (
+                    "BUYING..."
+                  ) : (
+                    <span className="flex items-center justify-center gap-1">
+                      GET FOR <Image src="/img/gen_imgs/diamond.webp" alt="Gems" width={16} height={16} className="inline object-contain" /> 40
+                    </span>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
 
+          {/* Premium Study Resources Section */}
+          <div className="flex flex-col gap-4">
+            <h2 className="font-feather text-xl md:text-2xl text-almost-black font-bold tracking-wide border-b-2 border-cloud-gray pb-2">
+              Premium Study Resources
+            </h2>
+
+            <div className="grid grid-cols-2 md:grid-cols-1 gap-4">
+              {/* Premium Mock Exam Packs */}
+              <div className="flex flex-col md:flex-row items-center md:justify-between text-center md:text-left p-3 md:p-4 rounded-2xl  bg-snow-white gap-3 md:gap-4 h-full md:h-auto min-w-0">
+                <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 w-full md:w-auto min-w-0">
+                  <div className="w-22 h-14 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0 shadow-sm">
+                    <span className="text-2xl md:text-3xl">📚</span>
+                  </div>
+                  <div className="flex flex-col items-center md:items-start text-center md:text-left min-w-0">
+                    <div className="flex flex-col md:flex-row items-center gap-1 md:gap-2">
+                      <span className="font-bold text-sm md:text-lg text-almost-black leading-tight">Mock Exams</span>
+                      {mockExamsUnlocked && (
+                        <span className="bg-duo-green/10 text-duo-green text-[9px] md:text-[10px] font-black px-1.5 py-0.5 md:px-2 rounded-full uppercase tracking-wider shrink-0">
+                          UNLOCKED
+                        </span>
+                      )}
+                    </div>
+                    <span className="hidden md:block text-silver text-xs font-semibold leading-normal max-w-[320px]">
+                      Unlock full-length, 150-question simulated CSE exams.
+                    </span>
+                  </div>
+                </div>
+                {mockExamsUnlocked ? (
+                  <button
+                    disabled
+                    className="w-full md:w-auto border-2 border-duo-green/20 bg-duo-green/10 text-duo-green font-extrabold px-3 md:px-4 py-2.5 rounded-xl text-[10px] md:text-xs uppercase tracking-wider shrink-0 cursor-not-allowed"
+                  >
+                    UNLOCKED
+                  </button>
+                ) : (
+                  <button
+                    disabled={purchasingItemId !== null}
+                    onClick={() =>
+                      handleBuyItem(
+                        "mock_exams",
+                        500,
+                        () => {
+                          setMockExamsUnlocked(true);
+                          localStorage.setItem("resource_premium_mock_exams_unlocked", "true");
+                        },
+                        "Premium Mock Exam Packs unlocked!"
+                      )
+                    }
+                    className="w-full md:w-auto bg-duo-green hover:bg-duo-green/95 text-white font-extrabold px-3 md:px-4 py-2.5 rounded-xl text-[10px] md:text-xs uppercase tracking-wider shrink-0 cursor-pointer shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-cloud-gray disabled:text-silver disabled:shadow-none"
+                  >
+                    {purchasingItemId === "mock_exams" ? (
+                      "BUYING..."
+                    ) : (
+                      <span className="flex items-center justify-center gap-1">
+                        GET FOR <Image src="/img/gen_imgs/diamond.webp" alt="Gems" width={16} height={16} className="inline object-contain" /> 500
+                      </span>
+                    )}
+                  </button>
+                )}
+              </div>
+
+              {/* Focus Study Packs */}
+              <div className="flex flex-col md:flex-row items-center md:justify-between text-center md:text-left p-3 md:p-4 rounded-2xl  bg-snow-white gap-3 md:gap-4 h-full md:h-auto min-w-0">
+                <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 w-full md:w-auto min-w-0">
+                  <div className="w-22 h-14 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0 shadow-sm">
+                    <span className="text-2xl md:text-3xl">🎯</span>
+                  </div>
+                  <div className="flex flex-col items-center md:items-start text-center md:text-left min-w-0">
+                    <div className="flex flex-col md:flex-row items-center gap-1 md:gap-2">
+                      <span className="font-bold text-sm md:text-lg text-almost-black leading-tight">Focus Packs</span>
+                      {focusPacksUnlocked && (
+                        <span className="bg-duo-green/10 text-duo-green text-[9px] md:text-[10px] font-black px-1.5 py-0.5 md:px-2 rounded-full uppercase tracking-wider shrink-0">
+                          UNLOCKED
+                        </span>
+                      )}
+                    </div>
+                    <span className="hidden md:block text-silver text-xs font-semibold leading-normal max-w-[320px]">
+                      Practice target sub-topics: Constitution, Numerical, or Vocabulary.
+                    </span>
+                  </div>
+                </div>
+                {focusPacksUnlocked ? (
+                  <button
+                    disabled
+                    className="w-full md:w-auto border-2 border-duo-green/20 bg-duo-green/10 text-duo-green font-extrabold px-3 md:px-4 py-2.5 rounded-xl text-[10px] md:text-xs uppercase tracking-wider shrink-0 cursor-not-allowed"
+                  >
+                    UNLOCKED
+                  </button>
+                ) : (
+                  <button
+                    disabled={purchasingItemId !== null}
+                    onClick={() =>
+                      handleBuyItem(
+                        "focus_packs",
+                        300,
+                        () => {
+                          setFocusPacksUnlocked(true);
+                          localStorage.setItem("resource_focus_study_packs_unlocked", "true");
+                        },
+                        "Focus Study Packs unlocked!"
+                      )
+                    }
+                    className="w-full md:w-auto bg-duo-green hover:bg-duo-green/95 text-white font-extrabold px-3 md:px-4 py-2.5 rounded-xl text-[10px] md:text-xs uppercase tracking-wider shrink-0 cursor-pointer shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-cloud-gray disabled:text-silver disabled:shadow-none"
+                  >
+                    {purchasingItemId === "focus_packs" ? (
+                      "BUYING..."
+                    ) : (
+                      <span className="flex items-center justify-center gap-1">
+                        GET FOR <Image src="/img/gen_imgs/diamond.webp" alt="Gems" width={16} height={16} className="inline object-contain" /> 300
+                      </span>
+                    )}
+                  </button>
+                )}
+              </div>
+
+              {/* Downloadable PDF Cheat Sheets */}
+              <div className="flex flex-col md:flex-row items-center md:justify-between text-center md:text-left p-3 md:p-4 rounded-2xl  bg-snow-white gap-3 md:gap-4 h-full md:h-auto min-w-0">
+                <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 w-full md:w-auto min-w-0">
+                  <div className="w-22 h-14 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0 shadow-sm">
+                    <span className="text-2xl md:text-3xl">📄</span>
+                  </div>
+                  <div className="flex flex-col items-center md:items-start text-center md:text-left min-w-0">
+                    <div className="flex flex-col md:flex-row items-center gap-1 md:gap-2">
+                      <span className="font-bold text-sm md:text-lg text-almost-black leading-tight">PDF Sheets</span>
+                      {pdfCheatSheetsUnlocked && (
+                        <span className="bg-duo-green/10 text-duo-green text-[9px] md:text-[10px] font-black px-1.5 py-0.5 md:px-2 rounded-full uppercase tracking-wider shrink-0">
+                          UNLOCKED
+                        </span>
+                      )}
+                    </div>
+                    <span className="hidden md:block text-silver text-xs font-semibold leading-normal max-w-[320px]">
+                      Download printable cheat sheets with formulas, vocabulary, and exam tips.
+                    </span>
+                  </div>
+                </div>
+                {pdfCheatSheetsUnlocked ? (
+                  <button
+                    disabled
+                    className="w-full md:w-auto border-2 border-duo-green/20 bg-duo-green/10 text-duo-green font-extrabold px-3 md:px-4 py-2.5 rounded-xl text-[10px] md:text-xs uppercase tracking-wider shrink-0 cursor-not-allowed"
+                  >
+                    UNLOCKED
+                  </button>
+                ) : (
+                  <button
+                    disabled={purchasingItemId !== null}
+                    onClick={() =>
+                      handleBuyItem(
+                        "pdf_sheets",
+                        400,
+                        () => {
+                          setPdfCheatSheetsUnlocked(true);
+                          localStorage.setItem("resource_pdf_cheat_sheets_unlocked", "true");
+                        },
+                        "Downloadable PDF Cheat Sheets unlocked!"
+                      )
+                    }
+                    className="w-full md:w-auto bg-duo-green hover:bg-duo-green/95 text-white font-extrabold px-3 md:px-4 py-2.5 rounded-xl text-[10px] md:text-xs uppercase tracking-wider shrink-0 cursor-pointer shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-cloud-gray disabled:text-silver disabled:shadow-none"
+                  >
+                    {purchasingItemId === "pdf_sheets" ? (
+                      "BUYING..."
+                    ) : (
+                      <span className="flex items-center justify-center gap-1">
+                        GET FOR <Image src="/img/gen_imgs/diamond.webp" alt="Gems" width={16} height={16} className="inline object-contain" /> 400
+                      </span>
+                    )}
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Cosmetics & Personalization Section */}
+          <div className="flex flex-col gap-4">
+            <h2 className="font-feather text-xl md:text-2xl text-almost-black font-bold tracking-wide border-b-2 border-cloud-gray pb-2">
+              Cosmetics & Personalization
+            </h2>
+
+            <div className="grid grid-cols-2 md:grid-cols-1 gap-4">
+              {/* Neon Glow Theme */}
+              <div className="flex flex-col md:flex-row items-center md:justify-between text-center md:text-left p-3 md:p-4 rounded-2xl  bg-snow-white gap-3 md:gap-4 h-full md:h-auto min-w-0">
+                <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 w-full md:w-auto min-w-0">
+                  <div className="w-22 h-14 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0 shadow-sm">
+                    <span className="text-2xl md:text-3xl">🎨</span>
+                  </div>
+                  <div className="flex flex-col items-center md:items-start text-center md:text-left min-w-0">
+                    <div className="flex flex-col md:flex-row items-center gap-1 md:gap-2">
+                      <span className="font-bold text-sm md:text-lg text-almost-black leading-tight">Neon Theme</span>
+                      {equippedTheme === "neon" && (
+                        <span className="bg-duo-green/10 text-duo-green text-[9px] md:text-[10px] font-black px-1.5 py-0.5 md:px-2 rounded-full uppercase tracking-wider shrink-0">
+                          EQUIPPED
+                        </span>
+                      )}
+                    </div>
+                    <span className="hidden md:block text-silver text-xs font-semibold leading-normal max-w-[320px]">
+                      Give your application a dark, sleek design with vibrant neon highlights.
+                    </span>
+                  </div>
+                </div>
+                {neonThemeUnlocked ? (
+                  equippedTheme === "neon" ? (
+                    <button
+                      disabled
+                      className="w-full md:w-auto border-2 border-duo-green/20 bg-duo-green/10 text-duo-green font-extrabold px-3 md:px-4 py-2.5 rounded-xl text-[10px] md:text-xs uppercase tracking-wider shrink-0 cursor-not-allowed"
+                    >
+                      EQUIPPED
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => handleEquipCosmetic("theme", "neon")}
+                      className="w-full md:w-auto bg-duo-green hover:bg-duo-green/95 text-white font-extrabold px-3 md:px-4 py-2.5 rounded-xl text-[10px] md:text-xs uppercase tracking-wider shrink-0 cursor-pointer shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none transition-all"
+                    >
+                      EQUIP
+                    </button>
+                  )
+                ) : (
+                  <button
+                    disabled={purchasingItemId !== null}
+                    onClick={() =>
+                      handleBuyItem(
+                        "theme_neon",
+                        250,
+                        () => {
+                          setNeonThemeUnlocked(true);
+                          localStorage.setItem("cosmetic_theme_neon_unlocked", "true");
+                        },
+                        "Neon Glow Theme unlocked!"
+                      )
+                    }
+                    className="w-full md:w-auto bg-duo-green hover:bg-duo-green/95 text-white font-extrabold px-3 md:px-4 py-2.5 rounded-xl text-[10px] md:text-xs uppercase tracking-wider shrink-0 cursor-pointer shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-cloud-gray disabled:text-silver disabled:shadow-none"
+                  >
+                    {purchasingItemId === "theme_neon" ? (
+                      "BUYING..."
+                    ) : (
+                      <span className="flex items-center justify-center gap-1">
+                        GET FOR <Image src="/img/gen_imgs/diamond.webp" alt="Gems" width={16} height={16} className="inline object-contain" /> 250
+                      </span>
+                    )}
+                  </button>
+                )}
+              </div>
+
+              {/* Sakura Theme */}
+              <div className="flex flex-col md:flex-row items-center md:justify-between text-center md:text-left p-3 md:p-4 rounded-2xl  bg-snow-white gap-3 md:gap-4 h-full md:h-auto min-w-0">
+                <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 w-full md:w-auto min-w-0">
+                  <div className="w-22 h-14 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0 shadow-sm">
+                    <span className="text-2xl md:text-3xl">🌸</span>
+                  </div>
+                  <div className="flex flex-col items-center md:items-start text-center md:text-left min-w-0">
+                    <div className="flex flex-col md:flex-row items-center gap-1 md:gap-2">
+                      <span className="font-bold text-sm md:text-lg text-almost-black leading-tight">Sakura Theme</span>
+                      {equippedTheme === "sakura" && (
+                        <span className="bg-duo-green/10 text-duo-green text-[9px] md:text-[10px] font-black px-1.5 py-0.5 md:px-2 rounded-full uppercase tracking-wider shrink-0">
+                          EQUIPPED
+                        </span>
+                      )}
+                    </div>
+                    <span className="hidden md:block text-silver text-xs font-semibold leading-normal max-w-[320px]">
+                      Decorate the interface in a calming cherry blossom theme.
+                    </span>
+                  </div>
+                </div>
+                {sakuraThemeUnlocked ? (
+                  equippedTheme === "sakura" ? (
+                    <button
+                      disabled
+                      className="w-full md:w-auto border-2 border-duo-green/20 bg-duo-green/10 text-duo-green font-extrabold px-3 md:px-4 py-2.5 rounded-xl text-[10px] md:text-xs uppercase tracking-wider shrink-0 cursor-not-allowed"
+                    >
+                      EQUIPPED
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => handleEquipCosmetic("theme", "sakura")}
+                      className="w-full md:w-auto bg-duo-green hover:bg-duo-green/95 text-white font-extrabold px-3 md:px-4 py-2.5 rounded-xl text-[10px] md:text-xs uppercase tracking-wider shrink-0 cursor-pointer shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none transition-all"
+                    >
+                      EQUIP
+                    </button>
+                  )
+                ) : (
+                  <button
+                    disabled={purchasingItemId !== null}
+                    onClick={() =>
+                      handleBuyItem(
+                        "theme_sakura",
+                        250,
+                        () => {
+                          setSakuraThemeUnlocked(true);
+                          localStorage.setItem("cosmetic_theme_sakura_unlocked", "true");
+                        },
+                        "Sakura Theme unlocked!"
+                      )
+                    }
+                    className="w-full md:w-auto bg-duo-green hover:bg-duo-green/95 text-white font-extrabold px-3 md:px-4 py-2.5 rounded-xl text-[10px] md:text-xs uppercase tracking-wider shrink-0 cursor-pointer shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-cloud-gray disabled:text-silver disabled:shadow-none"
+                  >
+                    {purchasingItemId === "theme_sakura" ? (
+                      "BUYING..."
+                    ) : (
+                      <span className="flex items-center justify-center gap-1">
+                        GET FOR <Image src="/img/gen_imgs/diamond.webp" alt="Gems" width={16} height={16} className="inline object-contain" /> 250
+                      </span>
+                    )}
+                  </button>
+                )}
+              </div>
+
+              {/* Golden Avatar Frame */}
+              <div className="flex flex-col md:flex-row items-center md:justify-between text-center md:text-left p-3 md:p-4 rounded-2xl  bg-snow-white gap-3 md:gap-4 h-full md:h-auto min-w-0">
+                <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 w-full md:w-auto min-w-0">
+                  <div className="w-22 h-14 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0 shadow-sm">
+                    <span className="text-2xl md:text-3xl">🖼️</span>
+                  </div>
+                  <div className="flex flex-col items-center md:items-start text-center md:text-left min-w-0">
+                    <div className="flex flex-col md:flex-row items-center gap-1 md:gap-2">
+                      <span className="font-bold text-sm md:text-lg text-almost-black leading-tight">Golden Frame</span>
+                      {equippedFrame === "golden" && (
+                        <span className="bg-duo-green/10 text-duo-green text-[9px] md:text-[10px] font-black px-1.5 py-0.5 md:px-2 rounded-full uppercase tracking-wider shrink-0">
+                          EQUIPPED
+                        </span>
+                      )}
+                    </div>
+                    <span className="hidden md:block text-silver text-xs font-semibold leading-normal max-w-[320px]">
+                      Decorate your profile picture with a luxurious golden border on leaderboards.
+                    </span>
+                  </div>
+                </div>
+                {goldenFrameUnlocked ? (
+                  equippedFrame === "golden" ? (
+                    <button
+                      disabled
+                      className="w-full md:w-auto border-2 border-duo-green/20 bg-duo-green/10 text-duo-green font-extrabold px-3 md:px-4 py-2.5 rounded-xl text-[10px] md:text-xs uppercase tracking-wider shrink-0 cursor-not-allowed"
+                    >
+                      EQUIPPED
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => handleEquipCosmetic("frame", "golden")}
+                      className="w-full md:w-auto bg-duo-green hover:bg-duo-green/95 text-white font-extrabold px-3 md:px-4 py-2.5 rounded-xl text-[10px] md:text-xs uppercase tracking-wider shrink-0 cursor-pointer shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none transition-all"
+                    >
+                      EQUIP
+                    </button>
+                  )
+                ) : (
+                  <button
+                    disabled={purchasingItemId !== null}
+                    onClick={() =>
+                      handleBuyItem(
+                        "frame_golden",
+                        300,
+                        () => {
+                          setGoldenFrameUnlocked(true);
+                          localStorage.setItem("cosmetic_frame_golden_unlocked", "true");
+                        },
+                        "Golden Avatar Frame unlocked!"
+                      )
+                    }
+                    className="w-full md:w-auto bg-duo-green hover:bg-duo-green/95 text-white font-extrabold px-3 md:px-4 py-2.5 rounded-xl text-[10px] md:text-xs uppercase tracking-wider shrink-0 cursor-pointer shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-cloud-gray disabled:text-silver disabled:shadow-none"
+                  >
+                    {purchasingItemId === "frame_golden" ? (
+                      "BUYING..."
+                    ) : (
+                      <span className="flex items-center justify-center gap-1">
+                        GET FOR <Image src="/img/gen_imgs/diamond.webp" alt="Gems" width={16} height={16} className="inline object-contain" /> 300
+                      </span>
+                    )}
+                  </button>
+                )}
+              </div>
+
+              {/* "Civil Servant" Profile Badge */}
+              <div className="flex flex-col md:flex-row items-center md:justify-between text-center md:text-left p-3 md:p-4 rounded-2xl  bg-snow-white gap-3 md:gap-4 h-full md:h-auto min-w-0">
+                <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 w-full md:w-auto min-w-0">
+                  <div className="w-22 h-14 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0 shadow-sm">
+                    <span className="text-2xl md:text-3xl">🏅</span>
+                  </div>
+                  <div className="flex flex-col items-center md:items-start text-center md:text-left min-w-0">
+                    <div className="flex flex-col md:flex-row items-center gap-1 md:gap-2">
+                      <span className="font-bold text-sm md:text-lg text-almost-black leading-tight">Servant Badge</span>
+                      {equippedBadge === "civil_servant" && (
+                        <span className="bg-duo-green/10 text-duo-green text-[9px] md:text-[10px] font-black px-1.5 py-0.5 md:px-2 rounded-full uppercase tracking-wider shrink-0">
+                          EQUIPPED
+                        </span>
+                      )}
+                    </div>
+                    <span className="hidden md:block text-silver text-xs font-semibold leading-normal max-w-[320px]">
+                      Display an honor badge next to your username to show your dedication.
+                    </span>
+                  </div>
+                </div>
+                {civilServantBadgeUnlocked ? (
+                  equippedBadge === "civil_servant" ? (
+                    <button
+                      disabled
+                      className="w-full md:w-auto border-2 border-duo-green/20 bg-duo-green/10 text-duo-green font-extrabold px-3 md:px-4 py-2.5 rounded-xl text-[10px] md:text-xs uppercase tracking-wider shrink-0 cursor-not-allowed"
+                    >
+                      EQUIPPED
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => handleEquipCosmetic("badge", "civil_servant")}
+                      className="w-full md:w-auto bg-duo-green hover:bg-duo-green/95 text-white font-extrabold px-3 md:px-4 py-2.5 rounded-xl text-[10px] md:text-xs uppercase tracking-wider shrink-0 cursor-pointer shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none transition-all"
+                    >
+                      EQUIP
+                    </button>
+                  )
+                ) : (
+                  <button
+                    disabled={purchasingItemId !== null}
+                    onClick={() =>
+                      handleBuyItem(
+                        "badge_civil_servant",
+                        150,
+                        () => {
+                          setCivilServantBadgeUnlocked(true);
+                          localStorage.setItem("cosmetic_badge_civil_servant_unlocked", "true");
+                        },
+                        "Civil Servant Badge unlocked!"
+                      )
+                    }
+                    className="w-full md:w-auto bg-duo-green hover:bg-duo-green/95 text-white font-extrabold px-3 md:px-4 py-2.5 rounded-xl text-[10px] md:text-xs uppercase tracking-wider shrink-0 cursor-pointer shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-cloud-gray disabled:text-silver disabled:shadow-none"
+                  >
+                    {purchasingItemId === "badge_civil_servant" ? (
+                      "BUYING..."
+                    ) : (
+                      <span className="flex items-center justify-center gap-1">
+                        GET FOR <Image src="/img/gen_imgs/diamond.webp" alt="Gems" width={16} height={16} className="inline object-contain" /> 150
+                      </span>
+                    )}
+                  </button>
+                )}
+              </div>
+
+              {/* Clear Selection Option */}
+              <div className="flex flex-col md:flex-row items-center md:justify-between text-center md:text-left p-3 md:p-4 rounded-2xl  bg-snow-white gap-3 md:gap-4 h-full md:h-auto min-w-0">
+                <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 w-full md:w-auto min-w-0">
+                  <div className="w-22 h-14 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0 shadow-sm">
+                    <span className="text-2xl md:text-3xl">🧹</span>
+                  </div>
+                  <div className="flex flex-col items-center md:items-start text-center md:text-left min-w-0">
+                    <span className="font-bold text-sm md:text-lg text-almost-black leading-tight">Default Styles</span>
+                    <span className="hidden md:block text-silver text-xs font-semibold leading-normal max-w-[320px]">
+                      Reset your theme, avatar frame, and profile badges to default settings.
+                    </span>
+                  </div>
+                </div>
+                <button
+                  disabled={equippedTheme === "default" && equippedFrame === "none" && equippedBadge === "none"}
+                  onClick={() => {
+                    handleEquipCosmetic("theme", "default");
+                    handleEquipCosmetic("frame", "none");
+                    handleEquipCosmetic("badge", "none");
+                  }}
+                  className="w-full md:w-auto bg-duo-green hover:bg-duo-green/95 text-white font-extrabold px-3 md:px-4 py-2.5 rounded-xl text-[10px] md:text-xs uppercase tracking-wider shrink-0 cursor-pointer shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-cloud-gray disabled:text-silver disabled:shadow-none"
+                >
+                  RESET
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
         {(!isSignedIn || !user) && (
           /* Create Profile Overlay Modal */
           <div className="absolute inset-0 flex items-center justify-center z-20 px-4 mt-8 md:mt-16">
-            <div className="bg-snow-white border-2 border-cloud-gray border-b-8 rounded-[24px] w-full max-w-[420px] p-6 md:p-8 flex flex-col gap-6 text-center shadow-lg">
+            <div className="bg-snow-white  border-b-8 rounded-[24px] w-full max-w-[420px] p-6 md:p-8 flex flex-col gap-6 text-center shadow-lg">
               {/* Animated coins/chest display */}
               <div className="w-full flex justify-center gap-2">
                 <div className="w-28 h-28 relative">
@@ -286,7 +1042,7 @@ export default function ShopPage() {
           </div>
 
           {/* Unlock Leaderboards Widget */}
-          <div className="border-2 border-cloud-gray rounded-2xl p-5 flex flex-col gap-4 bg-snow-white">
+          <div className=" rounded-2xl p-5 flex flex-col gap-4 bg-snow-white">
             <h3 className="font-bold text-[17px] text-almost-black border-b-2 border-cloud-gray pb-2">
               Unlock Leaderboards!
             </h3>
@@ -301,7 +1057,7 @@ export default function ShopPage() {
           </div>
 
           {/* Daily Quests Widget */}
-          <div className="border-2 border-cloud-gray rounded-2xl p-5 flex flex-col gap-3 bg-snow-white">
+          <div className=" rounded-2xl p-5 flex flex-col gap-3 bg-snow-white">
             <div className="flex justify-between items-center">
               <h3 className="font-bold text-[17px] text-almost-black">Daily Quests</h3>
               <Link href="/quests" className="text-sky-blue font-bold text-xs uppercase tracking-wider cursor-pointer hover:underline">
@@ -326,7 +1082,7 @@ export default function ShopPage() {
           </div>
 
           {/* Create Profile / Sign In Widget */}
-          <div className="border-2 border-cloud-gray rounded-2xl p-5 flex flex-col gap-4 bg-snow-white">
+          <div className=" rounded-2xl p-5 flex flex-col gap-4 bg-snow-white">
             <h3 className="font-bold text-[17px] text-almost-black leading-snug">
               Create a profile to save your progress!
             </h3>

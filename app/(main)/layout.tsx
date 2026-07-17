@@ -21,7 +21,7 @@ export default function DashboardLayout({
 
       {/* Main Content & Right Sidebar Container */}
       <div className="flex-1 flex justify-center md:pl-[256px] min-w-0">
-        <div className="w-full max-w-[1056px] flex px-4 py-4 md:px-6 md:py-6 gap-12 min-w-0">
+        <div className="w-full max-w-[1056px] flex flex-col lg:flex-row px-4 py-4 md:px-6 md:py-6 gap-6 lg:gap-12 min-w-0">
           {children}
         </div>
       </div>

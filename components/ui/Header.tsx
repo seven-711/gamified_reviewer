@@ -129,13 +129,13 @@ export function Header() {
                       )}
 
                       {/* Desktop stats (hidden on mobile, visible on desktop) */}
-                      <div className="hidden sm:flex items-center gap-6 border-l pl-5 border-cloud-gray">
-                        <div title="Streak" className="flex items-center gap-2 cursor-help select-none">
+                      <div className="hidden sm:flex items-center gap-6 pl-5 border-cloud-gray">
+                        <div title="Streak" className="flex items-center cursor-help select-none">
                           <StreakAsset
                             streak={streak}
-                            width={32}
-                            height={32}
-                            className="object-contain"
+                            width={36}
+                            height={36}
+                            className="object-contain pb-1"
                           />
                           <span className={`${isStreakActive ? "text-orange-500" : "text-silver"} font-black text-lg`}>{streak}</span>
                         </div>
@@ -143,10 +143,9 @@ export function Header() {
                           <Image
                             src="/img/gen_imgs/exp.webp"
                             alt="XP"
-                            width={32}
-                            height={32}
+                            width={25}
+                            height={25}
                             className="object-contain"
-                            style={{ height: 'auto' }}
                           />
                           <span className="text-amber-500 font-black text-lg">{xp} XP</span>
                         </div>
@@ -166,7 +165,7 @@ export function Header() {
                   {isSignedIn && user ? (
                     <div className="relative w-9 h-9 sm:w-10 sm:h-10 cursor-pointer">
                       {/* Custom gamified avatar */}
-                      <div className="absolute inset-0 rounded-full overflow-hidden border-2 border-cloud-gray hover:border-sky-blue transition-colors bg-duo-green-light p-0.5 flex items-center justify-center">
+                      <div className="absolute inset-0 rounded-full overflow-hidden border-0 border-cloud-gray hover:border-sky-blue transition-colors bg-duo-green-light p-0.5 flex items-center justify-center">
                         <img src={user.hasImage ? user.imageUrl : "/emoji/profile.webp"} alt="Profile" className={`object-cover w-full h-full ${!user.hasImage && 'rounded-full'}`} />
                       </div>
                       {/* Invisible Clerk UserButton overlay to capture clicks and show the dropdown popup */}

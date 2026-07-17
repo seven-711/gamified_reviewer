@@ -50,6 +50,7 @@ export default function QuestsPage() {
 
   const [claimedAchievements, setClaimedAchievements] = useState<string[]>([]);
   const [claimingAchievementId, setClaimingAchievementId] = useState<string | null>(null);
+  const [timeLeft, setTimeLeft] = useState("24h LEFT");
 
   const fetchClaimedAchievements = useCallback(async () => {
     let profileId: string | null = null;
@@ -135,6 +136,31 @@ export default function QuestsPage() {
     return () => {
       window.removeEventListener("reviewer-db-update", handleUpdate);
     };
+  }, [refreshQuests]);
+
+  useEffect(() => {
+    const updateCountdown = () => {
+      const now = new Date();
+      const midnight = new Date();
+      midnight.setHours(24, 0, 0, 0);
+      const diffMs = midnight.getTime() - now.getTime();
+      const diffSec = Math.max(0, Math.floor(diffMs / 1000));
+
+      const hours = Math.floor(diffSec / 3600);
+      const minutes = Math.floor((diffSec % 3600) / 60);
+      const seconds = diffSec % 60;
+
+      setTimeLeft(`${hours}h ${minutes}m ${seconds}s LEFT`);
+
+      if (diffSec === 0) {
+        refreshQuests();
+      }
+    };
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+
+    return () => clearInterval(interval);
   }, [refreshQuests]);
 
   const handleClaimQuest = async (questNum: number, gemReward: number) => {
@@ -455,8 +481,8 @@ export default function QuestsPage() {
             <h2 className="font-feather text-[17px] md:text-lg text-almost-black dark:text-white font-bold tracking-wide">
               Daily Quests
             </h2>
-            <div className="flex items-center gap-1.5 text-orange-500 font-bold text-xs md:text-sm tracking-wide">
-              <span>14 HOURS LEFT</span>
+            <div className="flex items-center gap-1.5 text-orange-500 font-bold text-xs md:text-sm tracking-wide font-din-round">
+              <span>{timeLeft}</span>
             </div>
           </div>
 
@@ -471,14 +497,14 @@ export default function QuestsPage() {
                 <div className="flex flex-col min-w-0">
                   <span className="font-bold text-sm sm:text-base md:text-lg text-almost-black dark:text-white truncate">Daily Sprint</span>
                   <div className="text-[10px] sm:text-xs text-silver font-semibold flex flex-wrap items-center gap-1.5 mt-0.5 leading-tight">
-                    <span>Earn 30 XP today </span>
+                    <span>Earn 3000 XP today </span>
                     <span className="inline-flex items-center gap-1">
                       <Image src="/img/gen_imgs/diamond.webp" alt="Gems" width={12} height={12} className="object-contain" />
                       <span>5 Gems</span>
                     </span>
                   </div>
                 </div>
-                {dailyXp >= 30 && !quest1Claimed && (
+                {dailyXp >= 3000 && !quest1Claimed && (
                   <button
                     disabled={claiming !== null}
                     onClick={() => handleClaimQuest(1, 5)}
@@ -499,10 +525,10 @@ export default function QuestsPage() {
                   <div className="h-6 w-full bg-cloud-gray dark:bg-cloud-gray/10 rounded-full overflow-hidden relative flex items-center justify-center">
                     <div
                       className="absolute left-0 top-0 h-full bg-sunshine-yellow rounded-full transition-all duration-300"
-                      style={{ width: `${Math.min(100, (dailyXp / 30) * 100)}%` }}
+                      style={{ width: `${Math.min(100, (dailyXp / 3000) * 100)}%` }}
                     ></div>
                     <span className="relative z-10 text-almost-black dark:text-white font-extrabold text-xs">
-                      {Math.min(30, dailyXp)} / 30
+                      {Math.min(3000, dailyXp)} / 3000
                     </span>
                   </div>
                 </div>
@@ -510,10 +536,10 @@ export default function QuestsPage() {
             </div>
           </div>
 
-          {/* Quest 2: Complete 1 Lesson */}
+          {/* Quest 2: Complete 3 Lessons */}
           <div className="p-4 flex items-center gap-4 bg-snow-white rounded-2xl w-full">
             <div className="w-22 h-22 flex items-center justify-center shrink-0 relative">
-              <Image src="/img/gen_imgs/achievements/gold_star.webp" alt="Complete 1 Lesson" fill className="object-contain" unoptimized />
+              <Image src="/img/gen_imgs/achievements/gold_star.webp" alt="Complete 3 Lessons" fill className="object-contain" unoptimized />
             </div>
 
             <div className="flex flex-col w-full gap-2 min-w-0">
@@ -521,14 +547,14 @@ export default function QuestsPage() {
                 <div className="flex flex-col min-w-0">
                   <span className="font-bold text-sm sm:text-base md:text-lg text-almost-black dark:text-white truncate">First Steps</span>
                   <div className="text-[10px] sm:text-xs text-silver font-semibold flex flex-wrap items-center gap-1.5 mt-0.5 leading-tight">
-                    <span>Complete 1 lesson today </span>
+                    <span>Complete 3 lessons today </span>
                     <span className="inline-flex items-center gap-1">
                       <Image src="/img/gen_imgs/diamond.webp" alt="Gems" width={12} height={12} className="object-contain" />
                       <span>5 Gems</span>
                     </span>
                   </div>
                 </div>
-                {dailyLessons >= 1 && !quest2Claimed && (
+                {dailyLessons >= 3 && !quest2Claimed && (
                   <button
                     disabled={claiming !== null}
                     onClick={() => handleClaimQuest(2, 5)}
@@ -549,10 +575,10 @@ export default function QuestsPage() {
                   <div className="h-6 w-full bg-cloud-gray dark:bg-cloud-gray/10 rounded-full overflow-hidden relative flex items-center justify-center">
                     <div
                       className="absolute left-0 top-0 h-full bg-duo-green rounded-full transition-all duration-300"
-                      style={{ width: `${Math.min(100, (dailyLessons / 1) * 100)}%` }}
+                      style={{ width: `${Math.min(100, (dailyLessons / 3) * 100)}%` }}
                     ></div>
                     <span className="relative z-10 text-almost-black dark:text-white font-extrabold text-xs">
-                      {Math.min(1, dailyLessons)} / 1
+                      {Math.min(3, dailyLessons)} / 3
                     </span>
                   </div>
                 </div>
