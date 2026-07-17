@@ -10,6 +10,60 @@ import { useAlert } from "@/components/ui/AlertContext";
 import { useStats } from "@/components/ui/StatsContext";
 import { StreakAsset } from "@/components/ui/StreakAsset";
 
+interface LeagueInfo {
+  name: string;
+  image: string;
+}
+
+function getLeagueInfo(xp: number, lessonsCompleted: number, rank: number): LeagueInfo {
+  if (xp >= 8000 && rank === 1) {
+    return {
+      name: "Legend League",
+      image: "/img/gen_imgs/league_/legend_league.webp",
+    };
+  }
+  if (xp >= 6000 && rank <= 3) {
+    return {
+      name: "Champion League",
+      image: "/img/gen_imgs/league_/champion league.webp",
+    };
+  }
+  if (xp >= 4000 && rank <= 3) {
+    return {
+      name: "Master League",
+      image: "/img/gen_imgs/league_/master_league.webp",
+    };
+  }
+  if (xp >= 2500 && rank <= 5) {
+    return {
+      name: "Diamond League",
+      image: "/img/gen_imgs/league_/diamond_league.webp",
+    };
+  }
+  if (xp >= 1500 && rank <= 7) {
+    return {
+      name: "Crystal League",
+      image: "/img/gen_imgs/league_/crystal_league.webp",
+    };
+  }
+  if (xp >= 800 && rank <= 10) {
+    return {
+      name: "Gold League",
+      image: "/img/gen_imgs/league_/gold_league.webp",
+    };
+  }
+  if (xp >= 300 || lessonsCompleted >= 5) {
+    return {
+      name: "Silver League",
+      image: "/img/gen_imgs/silver_league.webp",
+    };
+  }
+  return {
+    name: "Bronze League",
+    image: "/img/gen_imgs/league_/bronze_league.webp",
+  };
+}
+
 export default function ShopPage() {
   const { showAlert } = useAlert();
   const { user, isLoaded, isSignedIn } = useUser();
@@ -25,6 +79,9 @@ export default function ShopPage() {
   const [card5050Count, setCard5050Count] = useState(0);
   const [skipCardCount, setSkipCardCount] = useState(0);
   const [hintCardCount, setHintCardCount] = useState(0);
+
+  const [doubleXpExpiresAt, setDoubleXpExpiresAt] = useState<number>(0);
+  const [doubleXpTimeLeft, setDoubleXpTimeLeft] = useState<string>("");
 
   // Premium Study Resources unlock flags
   const [mockExamsUnlocked, setMockExamsUnlocked] = useState(false);
@@ -43,6 +100,22 @@ export default function ShopPage() {
 
   const [purchasingItemId, setPurchasingItemId] = useState<string | null>(null);
 
+  // Leaderboard data states
+  const [userRank, setUserRank] = useState<number | null>(null);
+  const [totalScore, setTotalScore] = useState(0);
+  const [lessonsCompletedCount, setLessonsCompletedCount] = useState(0);
+
+  // Daily Quests states
+  const [dailyXp, setDailyXp] = useState(0);
+  const [dailyLessons, setDailyLessons] = useState(0);
+  const [dailyPassed, setDailyPassed] = useState(0);
+
+  const [quest1Claimed, setQuest1Claimed] = useState(false);
+  const [quest2Claimed, setQuest2Claimed] = useState(false);
+  const [quest3Claimed, setQuest3Claimed] = useState(false);
+
+  const [claimingQuest, setClaimingQuest] = useState<number | null>(null);
+
   useEffect(() => {
     fetch("/api/admin/economy")
       .then((res) => res.json())
@@ -59,6 +132,7 @@ export default function ShopPage() {
       setCard5050Count(parseInt(localStorage.getItem("powerup_5050_card_count") || "0", 10));
       setSkipCardCount(parseInt(localStorage.getItem("powerup_skip_card_count") || "0", 10));
       setHintCardCount(parseInt(localStorage.getItem("powerup_hint_card_count") || "0", 10));
+      setDoubleXpExpiresAt(parseInt(localStorage.getItem("double_xp_expires_at") || "0", 10));
 
       setMockExamsUnlocked(localStorage.getItem("resource_premium_mock_exams_unlocked") === "true");
       setFocusPacksUnlocked(localStorage.getItem("resource_focus_study_packs_unlocked") === "true");
@@ -74,6 +148,147 @@ export default function ShopPage() {
       setEquippedBadge(localStorage.getItem("cosmetics_selected_badge") || "none");
     }
   }, []);
+
+  useEffect(() => {
+    const updateTimer = () => {
+      const now = Date.now();
+      if (now < doubleXpExpiresAt) {
+        const diff = doubleXpExpiresAt - now;
+        const minutes = Math.floor(diff / 60000);
+        const seconds = Math.floor((diff % 60000) / 1000);
+        setDoubleXpTimeLeft(`${minutes}:${seconds.toString().padStart(2, "0")} LEFT`);
+      } else {
+        setDoubleXpTimeLeft("");
+      }
+    };
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    return () => clearInterval(interval);
+  }, [doubleXpExpiresAt]);
+
+  const fetchQuestsData = () => {
+    if (typeof window !== "undefined") {
+      const todayStr = new Date().toLocaleDateString("en-CA");
+      const lastResetDate = localStorage.getItem("last_quest_reset_date");
+      if (lastResetDate !== todayStr) {
+        localStorage.setItem("last_quest_reset_date", todayStr);
+        localStorage.setItem("daily_xp_earned", "0");
+        localStorage.setItem("daily_lessons_completed", "0");
+        localStorage.setItem("daily_passed_completed", "0");
+        localStorage.setItem("quest_1_claimed", "false");
+        localStorage.setItem("quest_2_claimed", "false");
+        localStorage.setItem("quest_3_claimed", "false");
+      }
+
+      setDailyXp(parseInt(localStorage.getItem("daily_xp_earned") || "0", 10));
+      setDailyLessons(parseInt(localStorage.getItem("daily_lessons_completed") || "0", 10));
+      setDailyPassed(parseInt(localStorage.getItem("daily_passed_completed") || "0", 10));
+
+      setQuest1Claimed(localStorage.getItem("quest_1_claimed") === "true");
+      setQuest2Claimed(localStorage.getItem("quest_2_claimed") === "true");
+      setQuest3Claimed(localStorage.getItem("quest_3_claimed") === "true");
+    }
+  };
+
+  useEffect(() => {
+    fetchQuestsData();
+    window.addEventListener("reviewer-db-update", fetchQuestsData);
+    return () => {
+      window.removeEventListener("reviewer-db-update", fetchQuestsData);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isSignedIn || !user) return;
+
+    const fetchRank = async () => {
+      try {
+        const [profilesRes, progressRes] = await Promise.all([
+          supabase.from("profiles").select("id"),
+          supabase.from("profile_progress").select("profile_id, total_score, lessons_completed"),
+        ]);
+
+        if (profilesRes.data && progressRes.data) {
+          const progressMap = new Map(
+            progressRes.data.map((p) => [
+              p.profile_id,
+              { total_score: p.total_score, lessons_completed: p.lessons_completed },
+            ])
+          );
+
+          const mapped = profilesRes.data
+            .map((p: any) => {
+              const prog = progressMap.get(p.id) || { total_score: 0, lessons_completed: 0 };
+              return {
+                id: p.id,
+                total_score: prog.total_score,
+                lessons_completed: prog.lessons_completed,
+              };
+            })
+            .sort((a, b) => b.total_score - a.total_score);
+
+          const registeredProfiles = mapped.filter((p) => !p.id.startsWith("guest_"));
+          const rankIdx = registeredProfiles.findIndex((p) => p.id === user.id);
+          if (rankIdx !== -1) {
+            setUserRank(rankIdx + 1);
+          }
+
+          const userProg = progressMap.get(user.id);
+          if (userProg) {
+            setTotalScore(userProg.total_score);
+            setLessonsCompletedCount(userProg.lessons_completed || 0);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load user rank for shop:", err);
+      }
+    };
+
+    fetchRank();
+    window.addEventListener("reviewer-db-update", fetchRank);
+    return () => {
+      window.removeEventListener("reviewer-db-update", fetchRank);
+    };
+  }, [user, isSignedIn]);
+
+  const handleClaimQuest = async (questNum: number, gemReward: number) => {
+    setClaimingQuest(questNum);
+    let profileId: string | null = null;
+    if (user) {
+      profileId = user.id;
+    } else if (typeof window !== "undefined") {
+      profileId = localStorage.getItem("guest_session_id");
+    }
+
+    if (profileId) {
+      try {
+        const { error } = await supabase
+          .from("profile_game_state")
+          .update({
+            gems: gems + gemReward
+          })
+          .eq("profile_id", profileId);
+
+        if (!error) {
+          localStorage.setItem(`quest_${questNum}_claimed`, "true");
+          updateStatsLocally({ gems: gems + gemReward });
+          await refreshStats();
+          if (questNum === 1) setQuest1Claimed(true);
+          if (questNum === 2) setQuest2Claimed(true);
+          if (questNum === 3) setQuest3Claimed(true);
+          if (typeof window !== "undefined") {
+            window.dispatchEvent(new CustomEvent("reviewer-db-update"));
+          }
+          await showAlert(`🎉 Quest completed! You received 💎 ${gemReward} Gems.`);
+        } else {
+          await showAlert("❌ Claim failed: " + error.message);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    setClaimingQuest(null);
+  };
 
   const handleBuyItem = async (
     itemId: string,
@@ -140,11 +355,11 @@ export default function ShopPage() {
 
   const handleBuyHeart = async () => {
     if (gems < heartCost) {
-      await showAlert(`Not enough Gems! You need ${heartCost} Gems to refill hearts.`);
+      await showAlert(`❌ Not enough Gems! You need ${heartCost} Gems to refill hearts.`);
       return;
     }
     if (hearts === 5) {
-      await showAlert("Your hearts are already full!");
+      await showAlert("❤️ Your hearts are already full!");
       return;
     }
 
@@ -216,6 +431,36 @@ export default function ShopPage() {
     setPurchasingFreeze(false);
   };
 
+  const quests = [
+    {
+      title: "Earn 3000 XP",
+      current: dailyXp,
+      target: 3000,
+      isCompleted: dailyXp >= 3000,
+      isClaimed: quest1Claimed,
+      color: "bg-sunshine-yellow",
+      image: "/img/gen_imgs/exp.webp",
+    },
+    {
+      title: "Complete 3 lessons",
+      current: dailyLessons,
+      target: 3,
+      isCompleted: dailyLessons >= 3,
+      isClaimed: quest2Claimed,
+      color: "bg-duo-green",
+      image: "/img/gen_imgs/achievements/gold_star.webp",
+    },
+    {
+      title: "Pass test with 80%",
+      current: dailyPassed,
+      target: 1,
+      isCompleted: dailyPassed >= 1,
+      isClaimed: quest3Claimed,
+      color: "bg-sky-blue",
+      image: "/img/gen_imgs/trophy.webp",
+    },
+  ];
+
   return (
     <>
       {/* Center Column */}
@@ -230,16 +475,15 @@ export default function ShopPage() {
               Hearts
             </h2>
 
-            <div className="flex flex-col md:flex-row items-center md:justify-between text-center md:text-left p-3 md:p-4 rounded-2xl  bg-snow-white gap-3 md:gap-4 h-full md:h-auto min-w-0">
+            <div className="flex flex-col md:flex-row items-center md:justify-between text-center md:text-left p-3 md:p-4 rounded-2xl bg-snow-white gap-3 md:gap-4 h-full md:h-auto min-w-0 border-none">
               <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 w-full md:w-auto min-w-0">
-                <div className="w-22 h-14 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0 shadow-sm relative">
+                <div className="w-22 h-14 flex items-center justify-center shrink-0 relative">
                   <Image
                     src="/img/gen_imgs/user_life.webp"
                     alt="Life"
                     width={42}
                     height={42}
                     className="object-contain"
-                    style={{ height: 'auto' }}
                   />
                 </div>
                 <div className="flex flex-col items-center md:items-start text-center md:text-left min-w-0">
@@ -275,16 +519,15 @@ export default function ShopPage() {
 
             <div className="grid grid-cols-2 md:grid-cols-1 gap-4">
               {/* Streak Freeze */}
-              <div className="flex flex-col md:flex-row items-center md:justify-between text-center md:text-left p-3 md:p-4 rounded-2xl  bg-snow-white gap-3 md:gap-4 h-full md:h-auto min-w-0">
+              <div className="flex flex-col md:flex-row items-center md:justify-between text-center md:text-left p-3 md:p-4 rounded-2xl bg-snow-white gap-3 md:gap-4 h-full md:h-auto min-w-0 border-none">
                 <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 w-full md:w-auto min-w-0">
-                  <div className="w-22 h-14 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0 shadow-sm relative">
+                  <div className="w-22 h-14 flex items-center justify-center shrink-0 relative">
                     <Image
                       src="/img/gen_imgs/Streak/streak_freeze.webp"
                       alt="Streak Freeze"
                       width={42}
                       height={42}
                       className="object-contain"
-                      style={{ height: 'auto' }}
                     />
                   </div>
                   <div className="flex flex-col items-center md:items-start text-center md:text-left min-w-0">
@@ -318,24 +561,29 @@ export default function ShopPage() {
               </div>
 
               {/* Double XP */}
-              <div className="flex flex-col md:flex-row items-center md:justify-between text-center md:text-left p-3 md:p-4 rounded-2xl  bg-snow-white gap-3 md:gap-4 h-full md:h-auto min-w-0">
+              <div className="flex flex-col md:flex-row items-center md:justify-between text-center md:text-left p-3 md:p-4 rounded-2xl bg-snow-white gap-3 md:gap-4 h-full md:h-auto min-w-0 border-none">
                 <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 w-full md:w-auto min-w-0">
-                  <div className="w-22 h-14 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0 shadow-sm relative">
+                  <div className="w-22 h-14 flex items-center justify-center shrink-0 relative">
                     <Image
                       src="/img/gen_imgs/exp.webp"
                       alt="Double XP"
                       width={42}
                       height={42}
                       className="object-contain"
-                      style={{ height: 'auto' }}
                     />
                   </div>
                   <div className="flex flex-col items-center md:items-start text-center md:text-left min-w-0">
                     <div className="flex flex-col md:flex-row items-center gap-1 md:gap-2">
                       <span className="font-bold text-sm md:text-lg text-almost-black leading-tight">Double XP</span>
-                      <span className="bg-duo-green/10 text-duo-green text-[9px] md:text-[10px] font-black px-1.5 py-0.5 md:px-2 rounded-full uppercase tracking-wider shrink-0">
-                        {doubleXpCount} OWNED
-                      </span>
+                      {doubleXpTimeLeft ? (
+                        <span className="bg-amber-500/10 text-amber-500 text-[9px] md:text-[10px] font-black px-1.5 py-0.5 md:px-2 rounded-full uppercase tracking-wider shrink-0 animate-pulse">
+                          ACTIVE • {doubleXpTimeLeft}
+                        </span>
+                      ) : (
+                        <span className="bg-duo-green/10 text-duo-green text-[9px] md:text-[10px] font-black px-1.5 py-0.5 md:px-2 rounded-full uppercase tracking-wider shrink-0">
+                          {doubleXpCount} OWNED
+                        </span>
+                      )}
                     </div>
                     <span className="hidden md:block text-silver text-xs font-semibold leading-normal max-w-[320px]">
                       Get double XP for the next 30 minutes of studying.
@@ -349,11 +597,15 @@ export default function ShopPage() {
                       "double_xp",
                       150,
                       () => {
-                        const next = doubleXpCount + 1;
-                        setDoubleXpCount(next);
-                        localStorage.setItem("powerup_double_xp_count", next.toString());
+                        const currentExpiry = Math.max(Date.now(), doubleXpExpiresAt);
+                        const nextExpiry = currentExpiry + 30 * 60 * 1000;
+                        setDoubleXpExpiresAt(nextExpiry);
+                        localStorage.setItem("double_xp_expires_at", nextExpiry.toString());
+                        const nextCount = doubleXpCount + 1;
+                        setDoubleXpCount(nextCount);
+                        localStorage.setItem("powerup_double_xp_count", nextCount.toString());
                       },
-                      "Double XP Booster purchased!"
+                      "Double XP Booster purchased & activated!"
                     )
                   }
                   className="w-full md:w-auto bg-duo-green hover:bg-duo-green/95 text-white font-extrabold px-3 md:px-4 py-2.5 rounded-xl text-[10px] md:text-xs uppercase tracking-wider shrink-0 cursor-pointer shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-cloud-gray disabled:text-silver disabled:shadow-none"
@@ -369,10 +621,10 @@ export default function ShopPage() {
               </div>
 
               {/* 50/50 Card */}
-              <div className="flex flex-col md:flex-row items-center md:justify-between text-center md:text-left p-3 md:p-4 rounded-2xl  bg-snow-white gap-3 md:gap-4 h-full md:h-auto min-w-0">
+              <div className="flex flex-col md:flex-row items-center md:justify-between text-center md:text-left p-3 md:p-4 rounded-2xl bg-snow-white gap-3 md:gap-4 h-full md:h-auto min-w-0 border-none">
                 <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 w-full md:w-auto min-w-0">
-                  <div className="w-22 h-14 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0 shadow-sm">
-                    <span className="text-2xl md:text-3xl">🌓</span>
+                  <div className="w-22 h-14 flex items-center justify-center shrink-0">
+                    <span className="text-3xl">🌓</span>
                   </div>
                   <div className="flex flex-col items-center md:items-start text-center md:text-left min-w-0">
                     <div className="flex flex-col md:flex-row items-center gap-1 md:gap-2">
@@ -413,10 +665,10 @@ export default function ShopPage() {
               </div>
 
               {/* Skip Card */}
-              <div className="flex flex-col md:flex-row items-center md:justify-between text-center md:text-left p-3 md:p-4 rounded-2xl  bg-snow-white gap-3 md:gap-4 h-full md:h-auto min-w-0">
+              <div className="flex flex-col md:flex-row items-center md:justify-between text-center md:text-left p-3 md:p-4 rounded-2xl bg-snow-white gap-3 md:gap-4 h-full md:h-auto min-w-0 border-none">
                 <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 w-full md:w-auto min-w-0">
-                  <div className="w-22 h-14 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0 shadow-sm">
-                    <span className="text-2xl md:text-3xl">⏭️</span>
+                  <div className="w-22 h-14 flex items-center justify-center shrink-0">
+                    <span className="text-3xl">⏭️</span>
                   </div>
                   <div className="flex flex-col items-center md:items-start text-center md:text-left min-w-0">
                     <div className="flex flex-col md:flex-row items-center gap-1 md:gap-2">
@@ -457,10 +709,10 @@ export default function ShopPage() {
               </div>
 
               {/* Hint Card */}
-              <div className="flex flex-col md:flex-row items-center md:justify-between text-center md:text-left p-3 md:p-4 rounded-2xl  bg-snow-white gap-3 md:gap-4 h-full md:h-auto min-w-0">
+              <div className="flex flex-col md:flex-row items-center md:justify-between text-center md:text-left p-3 md:p-4 rounded-2xl bg-snow-white gap-3 md:gap-4 h-full md:h-auto min-w-0 border-none">
                 <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 w-full md:w-auto min-w-0">
-                  <div className="w-22 h-14 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0 shadow-sm">
-                    <span className="text-2xl md:text-3xl">💡</span>
+                  <div className="w-22 h-14 flex items-center justify-center shrink-0">
+                    <span className="text-3xl">💡</span>
                   </div>
                   <div className="flex flex-col items-center md:items-start text-center md:text-left min-w-0">
                     <div className="flex flex-col md:flex-row items-center gap-1 md:gap-2">
@@ -510,9 +762,9 @@ export default function ShopPage() {
 
             <div className="grid grid-cols-2 md:grid-cols-1 gap-4">
               {/* Premium Mock Exam Packs */}
-              <div className="flex flex-col md:flex-row items-center md:justify-between text-center md:text-left p-3 md:p-4 rounded-2xl  bg-snow-white gap-3 md:gap-4 h-full md:h-auto min-w-0">
+              <div className="flex flex-col md:flex-row items-center md:justify-between text-center md:text-left p-3 md:p-4 rounded-2xl bg-snow-white gap-3 md:gap-4 h-full md:h-auto min-w-0 border-none">
                 <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 w-full md:w-auto min-w-0">
-                  <div className="w-22 h-14 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0 shadow-sm">
+                  <div className="w-22 h-14 flex items-center justify-center shrink-0">
                     <span className="text-2xl md:text-3xl">📚</span>
                   </div>
                   <div className="flex flex-col items-center md:items-start text-center md:text-left min-w-0">
@@ -564,10 +816,10 @@ export default function ShopPage() {
               </div>
 
               {/* Focus Study Packs */}
-              <div className="flex flex-col md:flex-row items-center md:justify-between text-center md:text-left p-3 md:p-4 rounded-2xl  bg-snow-white gap-3 md:gap-4 h-full md:h-auto min-w-0">
+              <div className="flex flex-col md:flex-row items-center md:justify-between text-center md:text-left p-3 md:p-4 rounded-2xl bg-snow-white gap-3 md:gap-4 h-full md:h-auto min-w-0 border-none">
                 <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 w-full md:w-auto min-w-0">
-                  <div className="w-22 h-14 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0 shadow-sm">
-                    <span className="text-2xl md:text-3xl">🎯</span>
+                  <div className="w-22 h-14 flex items-center justify-center shrink-0">
+                    <span className="text-3xl">🎯</span>
                   </div>
                   <div className="flex flex-col items-center md:items-start text-center md:text-left min-w-0">
                     <div className="flex flex-col md:flex-row items-center gap-1 md:gap-2">
@@ -618,10 +870,10 @@ export default function ShopPage() {
               </div>
 
               {/* Downloadable PDF Cheat Sheets */}
-              <div className="flex flex-col md:flex-row items-center md:justify-between text-center md:text-left p-3 md:p-4 rounded-2xl  bg-snow-white gap-3 md:gap-4 h-full md:h-auto min-w-0">
+              <div className="flex flex-col md:flex-row items-center md:justify-between text-center md:text-left p-3 md:p-4 rounded-2xl bg-snow-white gap-3 md:gap-4 h-full md:h-auto min-w-0 border-none">
                 <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 w-full md:w-auto min-w-0">
-                  <div className="w-22 h-14 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0 shadow-sm">
-                    <span className="text-2xl md:text-3xl">📄</span>
+                  <div className="w-22 h-14 flex items-center justify-center shrink-0">
+                    <span className="text-3xl">📄</span>
                   </div>
                   <div className="flex flex-col items-center md:items-start text-center md:text-left min-w-0">
                     <div className="flex flex-col md:flex-row items-center gap-1 md:gap-2">
@@ -681,10 +933,10 @@ export default function ShopPage() {
 
             <div className="grid grid-cols-2 md:grid-cols-1 gap-4">
               {/* Neon Glow Theme */}
-              <div className="flex flex-col md:flex-row items-center md:justify-between text-center md:text-left p-3 md:p-4 rounded-2xl  bg-snow-white gap-3 md:gap-4 h-full md:h-auto min-w-0">
+              <div className="flex flex-col md:flex-row items-center md:justify-between text-center md:text-left p-3 md:p-4 rounded-2xl bg-snow-white gap-3 md:gap-4 h-full md:h-auto min-w-0 border-none">
                 <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 w-full md:w-auto min-w-0">
-                  <div className="w-22 h-14 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0 shadow-sm">
-                    <span className="text-2xl md:text-3xl">🎨</span>
+                  <div className="w-22 h-14 flex items-center justify-center shrink-0">
+                    <span className="text-3xl">🎨</span>
                   </div>
                   <div className="flex flex-col items-center md:items-start text-center md:text-left min-w-0">
                     <div className="flex flex-col md:flex-row items-center gap-1 md:gap-2">
@@ -744,10 +996,10 @@ export default function ShopPage() {
               </div>
 
               {/* Sakura Theme */}
-              <div className="flex flex-col md:flex-row items-center md:justify-between text-center md:text-left p-3 md:p-4 rounded-2xl  bg-snow-white gap-3 md:gap-4 h-full md:h-auto min-w-0">
+              <div className="flex flex-col md:flex-row items-center md:justify-between text-center md:text-left p-3 md:p-4 rounded-2xl bg-snow-white gap-3 md:gap-4 h-full md:h-auto min-w-0 border-none">
                 <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 w-full md:w-auto min-w-0">
-                  <div className="w-22 h-14 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0 shadow-sm">
-                    <span className="text-2xl md:text-3xl">🌸</span>
+                  <div className="w-22 h-14 flex items-center justify-center shrink-0">
+                    <span className="text-3xl">🌸</span>
                   </div>
                   <div className="flex flex-col items-center md:items-start text-center md:text-left min-w-0">
                     <div className="flex flex-col md:flex-row items-center gap-1 md:gap-2">
@@ -807,10 +1059,10 @@ export default function ShopPage() {
               </div>
 
               {/* Golden Avatar Frame */}
-              <div className="flex flex-col md:flex-row items-center md:justify-between text-center md:text-left p-3 md:p-4 rounded-2xl  bg-snow-white gap-3 md:gap-4 h-full md:h-auto min-w-0">
+              <div className="flex flex-col md:flex-row items-center md:justify-between text-center md:text-left p-3 md:p-4 rounded-2xl bg-snow-white gap-3 md:gap-4 h-full md:h-auto min-w-0 border-none">
                 <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 w-full md:w-auto min-w-0">
-                  <div className="w-22 h-14 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0 shadow-sm">
-                    <span className="text-2xl md:text-3xl">🖼️</span>
+                  <div className="w-22 h-14 flex items-center justify-center shrink-0">
+                    <span className="text-3xl">🖼️</span>
                   </div>
                   <div className="flex flex-col items-center md:items-start text-center md:text-left min-w-0">
                     <div className="flex flex-col md:flex-row items-center gap-1 md:gap-2">
@@ -870,10 +1122,10 @@ export default function ShopPage() {
               </div>
 
               {/* "Civil Servant" Profile Badge */}
-              <div className="flex flex-col md:flex-row items-center md:justify-between text-center md:text-left p-3 md:p-4 rounded-2xl  bg-snow-white gap-3 md:gap-4 h-full md:h-auto min-w-0">
+              <div className="flex flex-col md:flex-row items-center md:justify-between text-center md:text-left p-3 md:p-4 rounded-2xl bg-snow-white gap-3 md:gap-4 h-full md:h-auto min-w-0 border-none">
                 <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 w-full md:w-auto min-w-0">
-                  <div className="w-22 h-14 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0 shadow-sm">
-                    <span className="text-2xl md:text-3xl">🏅</span>
+                  <div className="w-22 h-14 flex items-center justify-center shrink-0">
+                    <span className="text-3xl">🏅</span>
                   </div>
                   <div className="flex flex-col items-center md:items-start text-center md:text-left min-w-0">
                     <div className="flex flex-col md:flex-row items-center gap-1 md:gap-2">
@@ -933,10 +1185,10 @@ export default function ShopPage() {
               </div>
 
               {/* Clear Selection Option */}
-              <div className="flex flex-col md:flex-row items-center md:justify-between text-center md:text-left p-3 md:p-4 rounded-2xl  bg-snow-white gap-3 md:gap-4 h-full md:h-auto min-w-0">
+              <div className="flex flex-col md:flex-row items-center md:justify-between text-center md:text-left p-3 md:p-4 rounded-2xl bg-snow-white gap-3 md:gap-4 h-full md:h-auto min-w-0 border-none">
                 <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 w-full md:w-auto min-w-0">
-                  <div className="w-22 h-14 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0 shadow-sm">
-                    <span className="text-2xl md:text-3xl">🧹</span>
+                  <div className="w-22 h-14 flex items-center justify-center shrink-0">
+                    <span className="text-3xl">🧹</span>
                   </div>
                   <div className="flex flex-col items-center md:items-start text-center md:text-left min-w-0">
                     <span className="font-bold text-sm md:text-lg text-almost-black leading-tight">Default Styles</span>
@@ -964,7 +1216,7 @@ export default function ShopPage() {
         {(!isSignedIn || !user) && (
           /* Create Profile Overlay Modal */
           <div className="absolute inset-0 flex items-center justify-center z-20 px-4 mt-8 md:mt-16">
-            <div className="bg-snow-white  border-b-8 rounded-[24px] w-full max-w-[420px] p-6 md:p-8 flex flex-col gap-6 text-center shadow-lg">
+            <div className="bg-snow-white border-2 border-cloud-gray border-b-8 rounded-[24px] w-full max-w-[420px] p-6 md:p-8 flex flex-col gap-6 text-center shadow-lg">
               {/* Animated coins/chest display */}
               <div className="w-full flex justify-center gap-2">
                 <div className="w-28 h-28 relative">
@@ -1041,48 +1293,119 @@ export default function ShopPage() {
             </div>
           </div>
 
-          {/* Unlock Leaderboards Widget */}
-          <div className=" rounded-2xl p-5 flex flex-col gap-4 bg-snow-white">
-            <h3 className="font-bold text-[17px] text-almost-black border-b-2 border-cloud-gray pb-2">
-              Unlock Leaderboards!
-            </h3>
-            <div className="flex items-center gap-4 mt-1">
-              <div className="w-28 h-28 relative shrink-0">
-                <Image src="/emoji/unlockleaderboard.webp" alt="Leaderboard Locked" fill className="object-contain" unoptimized />
+          {/* Leaderboard / Unlock Leaderboards Widget */}
+          {(() => {
+            if (isSignedIn && user && userRank !== null) {
+              const leagueInfo = getLeagueInfo(totalScore, lessonsCompletedCount, userRank);
+              return (
+                <div className="border-2 border-cloud-gray rounded-2xl p-5 flex flex-col gap-4 bg-snow-white">
+                  <div className="flex justify-between items-center border-b-2 border-cloud-gray pb-2">
+                    <h3 className="font-bold text-[17px] text-almost-black">{leagueInfo.name}</h3>
+                    <Link href="/leaderboard" className="text-sky-blue font-bold text-xs uppercase tracking-wider cursor-pointer hover:underline">
+                      View League
+                    </Link>
+                  </div>
+                  <div className="flex items-center gap-4 mt-2">
+                    <div className="w-20 h-20 relative shrink-0">
+                      <Image
+                        src={leagueInfo.image}
+                        alt={leagueInfo.name}
+                        fill
+                        className="object-contain"
+                        unoptimized
+                      />
+                    </div>
+                    <div className="flex flex-col">
+                      <p className="text-almost-black text-sm font-extrabold leading-tight">
+                        You&apos;re ranked <span className="text-duo-green">#{userRank}</span>
+                      </p>
+                      <p className="text-silver text-[11px] font-semibold leading-normal mt-1">
+                        {userRank === 1 ? "Keep it up to stay on top!" : "Keep it up to stay in the top 3!"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+
+            return (
+              <div className="border-2 border-cloud-gray rounded-2xl p-5 flex flex-col gap-4 bg-snow-white">
+                <h3 className="font-bold text-[17px] text-almost-black border-b-2 border-cloud-gray pb-2">
+                  Unlock Leaderboards!
+                </h3>
+                <div className="flex items-center gap-4 mt-1">
+                  <div className="w-28 h-28 relative shrink-0">
+                    <Image src="/emoji/unlockleaderboard.webp" alt="Leaderboard Locked" fill className="object-contain" unoptimized />
+                  </div>
+                  <p className="text-silver text-xs font-semibold leading-normal">
+                    Complete 2 more lessons to start competing
+                  </p>
+                </div>
               </div>
-              <p className="text-silver text-xs font-semibold leading-normal">
-                Complete 2 more lessons to start competing
-              </p>
-            </div>
-          </div>
+            );
+          })()}
 
           {/* Daily Quests Widget */}
-          <div className=" rounded-2xl p-5 flex flex-col gap-3 bg-snow-white">
-            <div className="flex justify-between items-center">
+          <div className="border-2 border-cloud-gray rounded-2xl p-5 flex flex-col gap-4 bg-snow-white">
+            <div className="flex justify-between items-center border-b-2 border-cloud-gray pb-3">
               <h3 className="font-bold text-[17px] text-almost-black">Daily Quests</h3>
               <Link href="/quests" className="text-sky-blue font-bold text-xs uppercase tracking-wider cursor-pointer hover:underline">
                 View All
               </Link>
             </div>
 
-            <div className="flex items-center gap-4 mt-2">
-              <div className="w-16 h-16 relative shrink-0 bg-sunshine-yellow rounded-xl flex items-center justify-center text-2xl text-white font-bold">
-                ⚡
-              </div>
-              <div className="flex flex-col w-full gap-2">
-                <span className="font-bold text-sm text-almost-black">Earn 10 XP</span>
-                <div className="w-full flex items-center gap-3">
-                  <div className="h-4 w-full bg-cloud-gray rounded-full overflow-hidden relative flex items-center justify-center">
-                    <div className="absolute left-0 top-0 h-full bg-sunshine-yellow w-full rounded-full"></div>
-                    <span className="relative z-10 text-white font-bold text-[10px]">10 / 10</span>
+            <div className="flex flex-col gap-4 mt-2">
+              {quests.map((quest, index) => {
+                return (
+                  <div key={index} className="flex items-center gap-4">
+                    <div className="w-10 h-10 relative shrink-0 select-none">
+                      <Image
+                        src={quest.image}
+                        alt={quest.title}
+                        fill
+                        className="object-contain"
+                        unoptimized
+                      />
+                    </div>
+                    <div className="flex flex-col w-full gap-1.5 min-w-0">
+                      <span className="font-bold text-[13px] md:text-sm text-almost-black leading-none">
+                        {quest.title}
+                      </span>
+                      <div className="flex items-center gap-3">
+                        <div className="h-5 grow bg-cloud-gray rounded-full relative flex items-center justify-center overflow-hidden">
+                          <div
+                            className={`h-full absolute left-0 top-0 rounded-full transition-all duration-300 ${quest.color}`}
+                            style={{ width: `${Math.min(100, (quest.current / quest.target) * 100)}%` }}
+                          />
+                          <span className="relative z-10 text-almost-black font-black text-[10px]">
+                            {quest.current} / {quest.target}
+                          </span>
+                        </div>
+                        {quest.isClaimed ? (
+                          <span className="text-duo-green font-extrabold text-sm shrink-0">✓</span>
+                        ) : quest.isCompleted ? (
+                          <button
+                            disabled={claimingQuest !== null}
+                            onClick={() => handleClaimQuest(index + 1, index === 2 ? 10 : 5)}
+                            className="bg-duo-green hover:brightness-105 disabled:opacity-60 disabled:cursor-not-allowed text-white font-extrabold text-[10px] uppercase tracking-wider px-2.5 py-1.5 rounded-xl shadow-[0_3px_0_#3f8f01] active:translate-y-[3px] active:shadow-none transition-all cursor-pointer shrink-0"
+                          >
+                            {claimingQuest === index + 1 ? "..." : "Claim"}
+                          </button>
+                        ) : (
+                          <div className="shrink-0 opacity-70 select-none">
+                            <Image src="/emoji/quest.webp" alt="Quest Chest" width={28} height={28} className="object-contain grayscale" unoptimized />
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
+                );
+              })}
             </div>
           </div>
 
           {/* Create Profile / Sign In Widget */}
-          <div className=" rounded-2xl p-5 flex flex-col gap-4 bg-snow-white">
+          <div className="border-2 border-cloud-gray rounded-2xl p-5 flex flex-col gap-4 bg-snow-white">
             <h3 className="font-bold text-[17px] text-almost-black leading-snug">
               Create a profile to save your progress!
             </h3>

@@ -149,6 +149,84 @@ function LessonContent() {
   const [profileXp, setProfileXp] = useState<number>(0);
   const [profileGems, setProfileGems] = useState<number>(50);
   const [refilling, setRefilling] = useState<boolean>(false);
+
+  // Power-Ups inventory states
+  const [doubleXpExpiresAt, setDoubleXpExpiresAt] = useState<number>(0);
+  const [card5050Count, setCard5050Count] = useState<number>(0);
+  const [skipCardCount, setSkipCardCount] = useState<number>(0);
+  const [hintCardCount, setHintCardCount] = useState<number>(0);
+
+  // Power-up active states for current question
+  const [eliminatedOptions, setEliminatedOptions] = useState<number[]>([]);
+  const [hintRevealed, setHintRevealed] = useState<boolean>(false);
+  const [isDoubleXpActive, setIsDoubleXpActive] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setDoubleXpExpiresAt(parseInt(localStorage.getItem("double_xp_expires_at") || "0", 10));
+      setCard5050Count(parseInt(localStorage.getItem("powerup_5050_card_count") || "0", 10));
+      setSkipCardCount(parseInt(localStorage.getItem("powerup_skip_card_count") || "0", 10));
+      setHintCardCount(parseInt(localStorage.getItem("powerup_hint_card_count") || "0", 10));
+    }
+  }, []);
+
+  useEffect(() => {
+    const checkDoubleXp = () => {
+      const expiresAt = parseInt(localStorage.getItem("double_xp_expires_at") || "0", 10);
+      setIsDoubleXpActive(Date.now() < expiresAt);
+    };
+    checkDoubleXp();
+    const interval = setInterval(checkDoubleXp, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleUse5050Card = () => {
+    if (card5050Count <= 0 || status === "correct" || status === "wrong" || eliminatedOptions.length > 0) return;
+    const nextCount = card5050Count - 1;
+    setCard5050Count(nextCount);
+    localStorage.setItem("powerup_5050_card_count", nextCount.toString());
+
+    const incorrects = Array.from({ length: question.options.length }, (_, i) => i)
+      .filter(idx => idx !== question.correctIndex);
+    const toEliminate = incorrects.sort(() => 0.5 - Math.random()).slice(0, 2);
+    setEliminatedOptions(toEliminate);
+
+    if (selectedOption !== null && toEliminate.includes(selectedOption)) {
+      setSelectedOption(null);
+      setStatus("none");
+    }
+    showAlert("🌓 Eliminated two wrong choices!");
+  };
+
+  const handleUseSkipCard = () => {
+    if (skipCardCount <= 0) return;
+    const nextCount = skipCardCount - 1;
+    setSkipCardCount(nextCount);
+    localStorage.setItem("powerup_skip_card_count", nextCount.toString());
+
+    setEliminatedOptions([]);
+    setHintRevealed(false);
+
+    if (currentIndex < questions.length - 1) {
+      setCurrentIndex((prev) => prev + 1);
+      setSelectedOption(null);
+      setStatus("none");
+    } else {
+      setStatus("completed");
+      localStorage.removeItem(`quiz_state_${testId}`);
+    }
+    showAlert("⏭️ Question skipped using Skip Card!");
+  };
+
+  const handleUseHintCard = () => {
+    if (hintCardCount <= 0 || status === "correct" || status === "wrong" || hintRevealed) return;
+    const nextCount = hintCardCount - 1;
+    setHintCardCount(nextCount);
+    localStorage.setItem("powerup_hint_card_count", nextCount.toString());
+    setHintRevealed(true);
+    showAlert("💡 Hint unlocked for this question!");
+  };
+
   const [gemsEarnedSummary, setGemsEarnedSummary] = useState<{
     lesson: number;
     pass: number;
@@ -455,7 +533,11 @@ function LessonContent() {
       const speedFactor = totalSeconds > 0 ? (timeLeft / totalSeconds) : 0;
       const speedBonus = Math.floor(speedFactor * timerDurationMinutes * 8);
       const durationBaseXp = timerDurationMinutes * 5;
-      const totalXp = baseScoreXp + speedBonus + durationBaseXp;
+      
+      let baseTotalXp = baseScoreXp + speedBonus + durationBaseXp;
+      const doubleXpExpiry = typeof window !== "undefined" ? parseInt(localStorage.getItem("double_xp_expires_at") || "0", 10) : 0;
+      const isDoubleActive = Date.now() < doubleXpExpiry;
+      const totalXp = isDoubleActive ? baseTotalXp * 2 : baseTotalXp;
 
       setXpBreakdown({
         base: baseScoreXp,
@@ -662,6 +744,8 @@ function LessonContent() {
           }
         } else if (status === "correct" || status === "wrong") {
           // Equivalent to handleContinue logic
+          setEliminatedOptions([]);
+          setHintRevealed(false);
           if (currentIndex < questions.length - 1) {
             setCurrentIndex((prev) => prev + 1);
             setSelectedOption(null);
@@ -727,6 +811,8 @@ function LessonContent() {
   };
 
   const handleContinue = () => {
+    setEliminatedOptions([]);
+    setHintRevealed(false);
     if (currentIndex < questions.length - 1) {
       setCurrentIndex((prev) => prev + 1);
       setSelectedOption(null);
@@ -751,6 +837,8 @@ function LessonContent() {
     setStatus("none");
     setCorrectAnswers(0);
     setConsecutiveCorrect(0);
+    setEliminatedOptions([]);
+    setHintRevealed(false);
     scoreSavedRef.current = false;
     const savedDuration = localStorage.getItem("timer_duration");
     setTimeLeft((savedDuration ? parseInt(savedDuration, 10) : 5) * 60);
@@ -981,21 +1069,21 @@ function LessonContent() {
     }
 
     return (
-      <div className="dark-mode min-h-screen flex flex-col items-center justify-center bg-snow-white font-din-round text-almost-black px-6 text-center transition-colors duration-300">
-        <h1 className={`font-feather text-4xl mb-4 ${isTimeUp ? "text-[#ea2b2b]" : "text-duo-green"}`}>
+      <div className="dark-mode min-h-screen flex flex-col items-center justify-center bg-snow-white font-din-round text-almost-black px-4 py-6 md:px-6 text-center transition-colors duration-300">
+        <h1 className={`font-feather text-2xl md:text-4xl mb-3 md:mb-4 ${isTimeUp ? "text-[#ea2b2b]" : "text-duo-green"}`}>
           {isTimeUp ? "Time's Up!" : "Lesson Complete!"}
         </h1>
 
-        <div className="bg-cloud-gray/10 dark:bg-cloud-gray/5 border-2 border-cloud-gray/20 dark:border-cloud-gray/10 rounded-3xl p-6 mb-6 w-full max-w-sm flex flex-col gap-4">
+        <div className="bg-cloud-gray/10 dark:bg-cloud-gray/5 border-2 border-cloud-gray/20 dark:border-cloud-gray/10 rounded-2xl md:rounded-3xl p-4 md:p-6 mb-4 md:mb-6 w-full max-w-[340px] md:max-w-sm flex flex-col gap-3 md:gap-4">
           <div>
-            <p className="text-graphite dark:text-silver font-bold text-base mb-1 uppercase tracking-wide opacity-70">Your Score</p>
-            <p className={`text-5xl font-feather ${isPassed ? "text-duo-green" : "text-sky-blue"}`}>
-              {correctAnswers} <span className="text-3xl text-graphite/50 dark:text-silver/30 font-din-round">/ {questions.length}</span>
+            <p className="text-graphite dark:text-silver font-bold text-xs md:text-base mb-0.5 md:mb-1 uppercase tracking-wide opacity-70">Your Score</p>
+            <p className={`text-3xl md:text-5xl font-feather ${isPassed ? "text-duo-green" : "text-sky-blue"}`}>
+              {correctAnswers} <span className="text-xl md:text-3xl text-graphite/50 dark:text-silver/30 font-din-round">/ {questions.length}</span>
             </p>
           </div>
 
           {xpBreakdown && (
-            <div className="border-t-2 border-cloud-gray/30 pt-4 mt-2 flex flex-col gap-2 text-left text-xs md:text-sm font-din-round font-bold text-graphite dark:text-silver">
+            <div className="border-t-2 border-cloud-gray/30 pt-3 md:pt-4 mt-1 md:mt-2 flex flex-col gap-1.5 md:gap-2 text-left text-[11px] md:text-sm font-din-round font-bold text-graphite dark:text-silver">
               <div className="flex justify-between items-center">
                 <span className="opacity-70">Base Score XP (+15/correct):</span>
                 <span>+{xpBreakdown.base} XP</span>
@@ -1008,22 +1096,30 @@ function LessonContent() {
                 <span className="opacity-70">Duration Bonus (timer weight):</span>
                 <span>+{xpBreakdown.duration} XP</span>
               </div>
-              <div className="flex justify-between items-center border-t border-dashed border-cloud-gray/50 dark:border-cloud-gray/10 pt-2 mt-1 text-sm">
+              {isDoubleXpActive && (
+                <div className="flex justify-between items-center text-amber-500">
+                  <span className="opacity-70">Double XP Boost:</span>
+                  <span className="font-extrabold flex items-center gap-1">
+                    <span>⚡ x2 Active</span>
+                  </span>
+                </div>
+              )}
+              <div className="flex justify-between items-center border-t border-dashed border-cloud-gray/50 dark:border-cloud-gray/10 pt-2 mt-1 text-xs md:text-sm">
                 <span className="text-almost-black dark:text-white">Total XP Earned:</span>
-                <span className="text-amber-500 font-black text-base md:text-lg">
+                <span className="text-amber-500 font-black text-sm md:text-lg flex items-center">
                   <Image
                     src="/img/gen_imgs/exp.webp"
                     alt="exp icon"
-                    width={35}
-                    height={35}
-                    className="inline mr-1"
+                    width={26}
+                    height={26}
+                    className="inline mr-1 object-contain"
                   />{xpBreakdown.total} XP</span>
               </div>
             </div>
           )}
 
           {gemsEarnedSummary && (
-            <div className="border-t-2 border-cloud-gray/30 pt-4 mt-2 flex flex-col gap-2 text-left text-xs md:text-sm font-din-round font-bold text-graphite dark:text-silver">
+            <div className="border-t-2 border-cloud-gray/30 pt-3 md:pt-4 mt-1 md:mt-2 flex flex-col gap-1.5 md:gap-2 text-left text-[11px] md:text-sm font-din-round font-bold text-graphite dark:text-silver">
               <div className="flex justify-between items-center">
                 <span className="opacity-70">Lesson Completion:</span>
                 <span>+{gemsEarnedSummary.lesson} Gems</span>
@@ -1046,10 +1142,10 @@ function LessonContent() {
                   <span>+{gemsEarnedSummary.streakBonus} Gems</span>
                 </div>
               )}
-              <div className="flex justify-between items-center border-t border-dashed border-cloud-gray/50 dark:border-cloud-gray/10 pt-2 mt-1 text-sm">
+              <div className="flex justify-between items-center border-t border-dashed border-cloud-gray/50 dark:border-cloud-gray/10 pt-2 mt-1 text-xs md:text-sm">
                 <span className="text-almost-black dark:text-white">Total Gems Earned:</span>
-                <span className="text-blue-500 font-black text-base md:text-lg flex items-center gap-1">
-                  <Image src="/img/gen_imgs/diamond.webp" alt="Gems" width={35} height={35} className="object-contain" />
+                <span className="text-blue-500 font-black text-sm md:text-lg flex items-center gap-1">
+                  <Image src="/img/gen_imgs/diamond.webp" alt="Gems" width={26} height={26} className="object-contain" />
                   <span>{gemsEarnedSummary.total} Gems</span>
                 </span>
               </div>
@@ -1057,13 +1153,13 @@ function LessonContent() {
           )}
         </div>
 
-        <p className="text-[17px] text-graphite dark:text-silver mb-8 max-w-md">
+        <p className="text-xs md:text-[17px] text-graphite dark:text-silver mb-4 md:mb-8 max-w-xs md:max-w-md px-2 leading-relaxed">
           {isPassed
             ? (isPerfect ? "Perfect score! You've successfully finished this practice set and unlocked the next one." : "Great job! You've successfully finished this practice set and unlocked the next one.")
             : `Great effort! However, you need to score at least 80% (${Math.ceil(questions.length * 0.8)}/${questions.length}) to unlock the next test.`}
         </p>
 
-        <div className="flex flex-col gap-4 w-full max-w-xs">
+        <div className="flex flex-col gap-3 w-full max-w-[280px] md:max-w-xs px-2">
           <button
             onClick={() => {
               if (streakIncreased) {
@@ -1072,13 +1168,13 @@ function LessonContent() {
                 router.push("/dashboard");
               }
             }}
-            className="bg-duo-green text-white font-bold text-[17px] h-[50px] px-8 rounded-2xl shadow-[0_4px_0_#3f8f01] active:translate-y-1 active:shadow-none transition-all"
+            className="bg-duo-green text-white font-bold text-sm md:text-[17px] h-[46px] md:h-[50px] px-6 md:px-8 rounded-2xl shadow-[0_4px_0_#3f8f01] active:translate-y-1 active:shadow-none transition-all"
           >
             BACK TO DASHBOARD
           </button>
           <button
             onClick={handleRetake}
-            className="bg-white dark:bg-transparent text-sky-blue border-2 border-sky-blue font-bold text-[17px] h-[50px] px-8 rounded-2xl shadow-[0_4px_0_#189edc] dark:shadow-none active:translate-y-1 active:shadow-none transition-all cursor-pointer"
+            className="bg-white dark:bg-transparent text-sky-blue border-2 border-sky-blue font-bold text-sm md:text-[17px] h-[46px] md:h-[50px] px-6 md:px-8 rounded-2xl shadow-[0_4px_0_#189edc] dark:shadow-none active:translate-y-1 active:shadow-none transition-all cursor-pointer"
           >
             RETAKE TEST
           </button>
@@ -1112,6 +1208,14 @@ function LessonContent() {
           </div>
 
           <div className="flex items-center gap-2 select-none">
+            {/* Double XP Indicator */}
+            {isDoubleXpActive && (
+              <div className="flex items-center gap-1 font-bold bg-amber-500/10 text-amber-500 text-[11px] px-2.5 py-1.5 rounded-xl border border-amber-500/20 animate-pulse shrink-0">
+                <span>⚡</span>
+                <span className="hidden sm:inline font-extrabold uppercase">XP Boost</span>
+              </div>
+            )}
+
             {/* Hearts Indicator */}
             <div className="flex items-center gap-1.5 font-bold shrink-0 px-3 py-1.5 rounded-xl text-red-500">
               <Image
@@ -1178,17 +1282,65 @@ function LessonContent() {
           </div>
         )}
 
+        {hintRevealed && (
+          <div className="bg-amber-500/10 border-2 border-amber-500/20 rounded-2xl p-4 mb-4 text-xs md:text-sm font-bold text-amber-600 dark:text-amber-400">
+            <span className="text-lg mr-1.5">💡</span>
+            {question.explanation || "No hint available for this question."}
+          </div>
+        )}
+
+        {/* Power-Ups Toolbar */}
+        {phase === "quiz" && (status === "none" || status === "selected") && (
+          <div className="flex items-center justify-center gap-4 mb-4 select-none">
+            <button
+              disabled={card5050Count <= 0 || eliminatedOptions.length > 0}
+              onClick={handleUse5050Card}
+              className="flex items-center gap-1.5 bg-white dark:bg-[#202f36] border-2 border-cloud-gray dark:border-cloud-gray/10 hover:bg-cloud-gray/10 dark:hover:bg-slate-800/40 px-3.5 py-2 rounded-2xl text-xs md:text-sm font-bold text-charcoal dark:text-silver transition-all shadow-[0_3px_0_var(--color-cloud-gray)] dark:shadow-none active:translate-y-[3px] active:shadow-none disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none disabled:translate-y-0"
+              title="Eliminate 2 wrong answers"
+            >
+              <span className="text-base md:text-lg">🌓</span>
+              <span>50/50</span>
+              <span className="bg-sky-blue/10 text-sky-blue text-[10px] px-1.5 py-0.5 rounded-md font-extrabold">{card5050Count}</span>
+            </button>
+
+            <button
+              disabled={skipCardCount <= 0}
+              onClick={handleUseSkipCard}
+              className="flex items-center gap-1.5 bg-white dark:bg-[#202f36] border-2 border-cloud-gray dark:border-cloud-gray/10 hover:bg-cloud-gray/10 dark:hover:bg-slate-800/40 px-3.5 py-2 rounded-2xl text-xs md:text-sm font-bold text-charcoal dark:text-silver transition-all shadow-[0_3px_0_var(--color-cloud-gray)] dark:shadow-none active:translate-y-[3px] active:shadow-none disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none disabled:translate-y-0"
+              title="Skip this question"
+            >
+              <span className="text-base md:text-lg">⏭️</span>
+              <span>Skip</span>
+              <span className="bg-duo-green/10 text-duo-green text-[10px] px-1.5 py-0.5 rounded-md font-extrabold">{skipCardCount}</span>
+            </button>
+
+            <button
+              disabled={hintCardCount <= 0 || hintRevealed}
+              onClick={handleUseHintCard}
+              className="flex items-center gap-1.5 bg-white dark:bg-[#202f36] border-2 border-cloud-gray dark:border-cloud-gray/10 hover:bg-cloud-gray/10 dark:hover:bg-slate-800/40 px-3.5 py-2 rounded-2xl text-xs md:text-sm font-bold text-charcoal dark:text-silver transition-all shadow-[0_3px_0_var(--color-cloud-gray)] dark:shadow-none active:translate-y-[3px] active:shadow-none disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none disabled:translate-y-0"
+              title="Show numerical explainer"
+            >
+              <span className="text-base md:text-lg">💡</span>
+              <span>Hint</span>
+              <span className="bg-amber-500/10 text-amber-500 text-[10px] px-1.5 py-0.5 rounded-md font-extrabold">{hintCardCount}</span>
+            </button>
+          </div>
+        )}
+
         {/* Options Grid */}
         <div className={`grid gap-2 md:gap-3 w-full mt-auto mb-6 ${question.options.length > 5 ? 'grid-cols-4 md:grid-cols-6' : 'grid-cols-2 md:grid-cols-2'}`}>
           {question.options.map((opt: string, idx: number) => {
             const isSelected = selectedOption === idx;
             const isCorrect = idx === question.correctIndex;
+            const isEliminated = eliminatedOptions.includes(idx);
 
             // Highlight styling based on status
             let cardClass = "border-cloud-gray dark:border-cloud-gray/15 hover:bg-gray-50 dark:hover:bg-slate-800/40 bg-white dark:bg-[#202f36] shadow-[0_4px_0_var(--color-cloud-gray)] dark:shadow-none";
             let textClass = "text-almost-black dark:text-[#f1f5f9]";
 
-            if (isSelected) {
+            if (isEliminated) {
+              cardClass = "border-cloud-gray dark:border-cloud-gray/15 opacity-20 pointer-events-none line-through shadow-none";
+            } else if (isSelected) {
               if (status === "none" || status === "selected") {
                 cardClass = "border-sky-blue bg-[#ddf4ff] dark:bg-[#ddf4ff]/10 shadow-[0_4px_0_#189edc] dark:shadow-none";
                 textClass = "text-sky-blue";
@@ -1212,7 +1364,7 @@ function LessonContent() {
               <button
                 key={idx}
                 onClick={() => handleOptionSelect(idx)}
-                disabled={status === "correct" || status === "wrong"}
+                disabled={status === "correct" || status === "wrong" || isEliminated}
                 className={`py-4 px-3 md:p-4 rounded-2xl border-2 flex items-center justify-center transition-all duration-150 relative ${cardClass}`}
               >
                 <div className="hidden md:flex absolute left-4 w-7 h-7 bg-cloud-gray/20 dark:bg-cloud-gray/5 rounded-md items-center justify-center text-graphite dark:text-silver text-xs font-bold border-b-2 border-cloud-gray/40 dark:border-cloud-gray/10">

@@ -144,7 +144,16 @@ export async function updateProfileStats(
   const speedFactor = totalSeconds > 0 ? (timeLeft / totalSeconds) : 0;
   const speedBonus = Math.floor(speedFactor * timerDurationMinutes * 8);
   const durationBaseXp = timerDurationMinutes * 5;
-  const xpEarned = baseScoreXp + speedBonus + durationBaseXp;
+  
+  let baseTotalXp = baseScoreXp + speedBonus + durationBaseXp;
+  let doubleXpMultiplier = 1;
+  if (typeof window !== "undefined") {
+    const expiresAt = parseInt(localStorage.getItem("double_xp_expires_at") || "0", 10);
+    if (Date.now() < expiresAt) {
+      doubleXpMultiplier = 2;
+    }
+  }
+  const xpEarned = baseTotalXp * doubleXpMultiplier;
 
   let streakIncreased = false;
   let finalStreakVal = 0;
