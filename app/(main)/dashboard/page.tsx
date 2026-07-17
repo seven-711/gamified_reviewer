@@ -268,6 +268,7 @@ export default function DashboardPage() {
           if (guestDbProfile) {
             const streakInfo = await checkDailyStreakValidation(guestDbProfile, showAlert);
             const heartsInfo = await checkHeartsRegeneration(guestDbProfile);
+            await refreshStats();
 
             let gGems = guestDbProfile.gems !== undefined && guestDbProfile.gems !== null ? guestDbProfile.gems : 50;
             gGems = await checkDailyLoginReward(guestSessionId, gGems, showAlert);
@@ -436,6 +437,7 @@ export default function DashboardPage() {
 
           const streakInfo = await checkDailyStreakValidation(userProfile, showAlert);
           const heartsInfo = await checkHeartsRegeneration(userProfile);
+          await refreshStats();
 
           let uGems = userProfile.gems !== undefined && userProfile.gems !== null ? userProfile.gems : 50;
           uGems = await checkDailyLoginReward(userProfile.id, uGems, showAlert);
@@ -491,6 +493,14 @@ export default function DashboardPage() {
       }
     }
     loadData();
+
+    const handleUpdate = () => {
+      loadData();
+    };
+    window.addEventListener("reviewer-db-update", handleUpdate);
+    return () => {
+      window.removeEventListener("reviewer-db-update", handleUpdate);
+    };
   }, [router, user, isLoaded, isSignedIn]);
 
   // Load scores from localStorage

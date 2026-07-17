@@ -19,7 +19,9 @@ const playSound = (src: string) => {
 export default function QuestsPage() {
   const { showAlert } = useAlert();
   const { user } = useUser();
-  const { streak, xp, hearts, gems, lessonsCompleted, refreshStats, updateStatsLocally } = useStats();
+  const { streak, xp, hearts, gems, lessonsCompleted, lastLessonDate, refreshStats, updateStatsLocally } = useStats();
+  const todayStr = new Date().toLocaleDateString("en-CA");
+  const isStreakActive = streak > 0 && lastLessonDate === todayStr;
 
   const [activeTab, setActiveTab] = useState<"achievements" | "quests">("achievements");
   const [dailyRewardsCount, setDailyRewardsCount] = useState(1);
@@ -90,7 +92,7 @@ export default function QuestsPage() {
     }
   }, [user]);
 
-  useEffect(() => {
+  const refreshQuests = useCallback(() => {
     if (typeof window !== "undefined") {
       const stored = localStorage.getItem("daily_rewards_claimed_count");
       if (stored) {
@@ -122,6 +124,18 @@ export default function QuestsPage() {
     }
     fetchClaimedAchievements();
   }, [fetchClaimedAchievements]);
+
+  useEffect(() => {
+    refreshQuests();
+
+    const handleUpdate = () => {
+      refreshQuests();
+    };
+    window.addEventListener("reviewer-db-update", handleUpdate);
+    return () => {
+      window.removeEventListener("reviewer-db-update", handleUpdate);
+    };
+  }, [refreshQuests]);
 
   const handleClaimQuest = async (questNum: number, gemReward: number) => {
     setClaiming(questNum);
@@ -647,7 +661,7 @@ export default function QuestsPage() {
               <div className="w-25 h-25 relative">
                 <StreakAsset streak={streak} alt="Longest Streak" fill className="object-contain" unoptimized />
               </div>
-              <span className="text-xl md:text-2xl font-black text-orange-500">{streak}</span>
+              <span className={`text-xl md:text-2xl font-black ${isStreakActive ? "text-orange-500" : "text-silver"}`}>{streak}</span>
               <span className="text-[11px] md:text-[12px] font-extrabold text-charcoal dark:text-white mt-1.5 leading-tight">Longest Streak</span>
               <span className="text-[9px] md:text-[10px] text-silver font-semibold mt-1 uppercase">{todayDateStr}</span>
             </div>
@@ -760,7 +774,7 @@ export default function QuestsPage() {
             </div>
 
             {/* Streak */}
-            <div className="flex items-center gap-1.5 text-orange-500 cursor-pointer hover:bg-duo-green-light dark:hover:bg-white/5 p-2 rounded-xl transition-colors">
+            <div className={`flex items-center gap-1.5 ${isStreakActive ? "text-orange-500" : "text-silver"} cursor-pointer hover:bg-duo-green-light dark:hover:bg-white/5 p-2 rounded-xl transition-colors`}>
               <StreakAsset
                 streak={streak}
                 width={28}

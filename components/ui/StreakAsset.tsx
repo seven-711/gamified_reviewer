@@ -3,9 +3,11 @@
 import React from "react";
 import Image from "next/image";
 import { getStreakImage } from "@/lib/streak";
+import { StatsContext } from "@/components/ui/StatsContext";
 
 interface StreakAssetProps {
   streak: number;
+  lastLessonDate?: string | null;
   width?: number;
   height?: number;
   fill?: boolean;
@@ -17,6 +19,7 @@ interface StreakAssetProps {
 
 export function StreakAsset({
   streak,
+  lastLessonDate,
   width,
   height,
   fill,
@@ -25,7 +28,10 @@ export function StreakAsset({
   unoptimized,
   style,
 }: StreakAssetProps) {
-  const src = getStreakImage(streak);
+  const stats = React.useContext(StatsContext);
+  const contextLastLessonDate = stats ? stats.lastLessonDate : null;
+  const effectiveLastLessonDate = lastLessonDate !== undefined ? lastLessonDate : contextLastLessonDate;
+  const src = getStreakImage(streak, effectiveLastLessonDate);
   const isVideo = src.endsWith(".webm");
 
   const [isSafari, setIsSafari] = React.useState(false);

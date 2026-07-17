@@ -5,6 +5,7 @@ import { useUser } from "@clerk/nextjs";
 import { useAlert } from "@/components/ui/AlertContext";
 import { useStats } from "@/components/ui/StatsContext";
 import { checkIsAdmin } from "@/lib/admin";
+import { StreakAsset } from "@/components/ui/StreakAsset";
 
 type Tab = "overview" | "users" | "questions" | "economy";
 
@@ -32,6 +33,7 @@ interface UserRecord {
   streak_freeze_count: number;
   hearts: number;
   gems: number;
+  last_lesson_date: string | null;
 }
 
 interface Question {
@@ -543,14 +545,22 @@ export default function AdminDashboard() {
                             </span>
                           </div>
                         </div>
-                        <div className="text-[#ff5e00] font-extrabold text-sm shrink-0 flex items-center">
-                          <img
-                            src="/img/gen_imgs/Streak/streak.webp"
-                            alt="Streak"
-                            className="w-7 h-7 object-contain shrink-0"
-                          />
-                          <span>{u.streak}d</span>
-                        </div>
+                        {(() => {
+                          const todayStr = new Date().toLocaleDateString("en-CA");
+                          const isStreakActive = u.streak > 0 && u.last_lesson_date === todayStr;
+                          return (
+                            <div className={`font-extrabold text-sm shrink-0 flex items-center ${isStreakActive ? "text-[#ff5e00]" : "text-silver"}`}>
+                              <StreakAsset
+                                streak={u.streak}
+                                lastLessonDate={u.last_lesson_date}
+                                width={28}
+                                height={28}
+                                className="object-contain shrink-0"
+                              />
+                              <span>{u.streak}d</span>
+                            </div>
+                          );
+                        })()}
                       </div>
                     );
                   })}

@@ -227,6 +227,9 @@ export default function OnboardingPage() {
         }
 
         localStorage.setItem("timer_duration", timerDuration.toString());
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("reviewer-db-update"));
+        }
         router.push("/dashboard");
       } catch (err: any) {
         console.error("Error updating profile during onboarding:", err);
@@ -284,6 +287,9 @@ export default function OnboardingPage() {
         studyStyle: "Flashcards",
         difficulty: "Beginner",
       }));
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("reviewer-db-update"));
+      }
       router.push("/dashboard");
     }
   };

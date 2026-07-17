@@ -9,7 +9,9 @@ import { StreakAsset } from "@/components/ui/StreakAsset";
 
 export default function RightSidebar() {
   const { user, isLoaded, isSignedIn } = useUser();
-  const { streak, xp, hearts, gems } = useStats();
+  const { streak, xp, hearts, gems, lastLessonDate } = useStats();
+  const todayStr = new Date().toLocaleDateString("en-CA");
+  const isStreakActive = streak > 0 && lastLessonDate === todayStr;
 
   return (
     <div className="sticky top-6 flex flex-col gap-6 pt-8">
@@ -20,7 +22,7 @@ export default function RightSidebar() {
           <span className="text-xl">🇵🇭</span>
         </div>
         {/* Streak */}
-        <div className="flex items-center gap-2 text-orange-500 cursor-pointer hover:bg-duo-green-light p-2 rounded-xl transition-colors">
+        <div className={`flex items-center gap-2 ${isStreakActive ? "text-orange-500" : "text-silver"} cursor-pointer hover:bg-duo-green-light p-2 rounded-xl transition-colors`}>
           <StreakAsset
             streak={streak}
             width={28}

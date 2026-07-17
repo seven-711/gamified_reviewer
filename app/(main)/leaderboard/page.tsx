@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -14,6 +14,7 @@ interface LeaderboardUser {
   total_score: number;
   streak: number;
   lessons_completed?: number;
+  last_lesson_date?: string | null;
 }
 
 interface LeagueInfo {
@@ -194,89 +195,130 @@ export default function LeaderboardPage() {
     setIsMounted(true);
   }, []);
 
-  useEffect(() => {
-    async function fetchLeaderboard() {
-      if (!isLoaded) return;
-      try {
-        const [profilesRes, progressRes, gameStateRes] = await Promise.all([
-          supabase.from("profiles").select("id, name"),
-          supabase.from("profile_progress").select("profile_id, total_score, lessons_completed"),
-          supabase.from("profile_game_state").select("profile_id, streak"),
-        ]);
+  const fetchLeaderboard = useCallback(async () => {
+    if (!isLoaded) return;
+    try {
+      const [profilesRes, progressRes, gameStateRes] = await Promise.all([
+        supabase.from("profiles").select("id, name"),
+        supabase.from("profile_progress").select("profile_id, total_score, lessons_completed, last_lesson_date"),
+        supabase.from("profile_game_state").select("profile_id, streak"),
+      ]);
 
-        if (profilesRes.error) {
-          console.error("Error fetching profiles:", profilesRes.error);
-        } else if (profilesRes.data) {
-          const progressMap = new Map(
-            progressRes.data?.map(p => [p.profile_id, { total_score: p.total_score, lessons_completed: p.lessons_completed }]) || []
-          );
-          const streakMap = new Map(gameStateRes.data?.map(s => [s.profile_id, s.streak]) || []);
+      if (profilesRes.error) {
+        console.error("Error fetching profiles:", profilesRes.error);
+      } else if (profilesRes.data) {
+        const progressMap = new Map(
+          progressRes.data?.map(p => [p.profile_id, { 
+            total_score: p.total_score, 
+            lessons_completed: p.lessons_completed, 
+            last_lesson_date: p.last_lesson_date 
+          }]) || []
+        );
+        const streakMap = new Map(gameStateRes.data?.map(s => [s.profile_id, s.streak]) || []);
 
-          const mapped = profilesRes.data.map((p: any) => {
-            const prog = progressMap.get(p.id) || { total_score: 0, lessons_completed: 0 };
-            return {
-              id: p.id,
-              name: p.name,
-              total_score: prog.total_score,
-              lessons_completed: prog.lessons_completed,
-              streak: streakMap.get(p.id) || 0,
-            };
-          }).sort((a, b) => b.total_score - a.total_score);
+        const mapped = profilesRes.data.map((p: any) => {
+          const prog = progressMap.get(p.id) || { total_score: 0, lessons_completed: 0, last_lesson_date: null };
+          return {
+            id: p.id,
+            name: p.name,
+            total_score: prog.total_score,
+            lessons_completed: prog.lessons_completed,
+            streak: streakMap.get(p.id) || 0,
+            last_lesson_date: prog.last_lesson_date || null,
+          };
+        }).sort((a, b) => b.total_score - a.total_score);
 
-          // Filter out guest accounts from public leaderboard rankings
-          const registeredProfiles = mapped.filter((p) => !p.id.startsWith("guest_"));
-          setProfiles(registeredProfiles);
+        // Filter out guest accounts from public leaderboard rankings
+        const registeredProfiles = mapped.filter((p) => !p.id.startsWith("guest_"));
+        setProfiles(registeredProfiles);
 
-          // In the background, fetch other users' images from Clerk API
-          const registeredIds = registeredProfiles.map((p) => p.id);
-          if (registeredIds.length > 0) {
-            fetch("/api/users/avatars", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ userIds: registeredIds }),
+        // In the background, fetch other users' images from Clerk API
+        const registeredIds = registeredProfiles.map((p) => p.id);
+        if (registeredIds.length > 0) {
+          fetch("/api/users/avatars", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ userIds: registeredIds }),
+          })
+            .then((res) => res.json())
+            .then((avatarData) => {
+              if (avatarData && avatarData.users) {
+                // Merge avatar info into local profile state
+                setProfiles((prev) =>
+                  prev.map((p) => {
+                    const uInfo = avatarData.users[p.id];
+                    if (uInfo) {
+                      const combinedName = `${uInfo.name || p.name || "Learner"}|${uInfo.imageUrl}`;
+                      return {
+                        ...p,
+                        name: combinedName,
+                      };
+                    }
+                    return p;
+                  })
+                );
+              }
             })
-              .then((res) => res.json())
-              .then((avatarData) => {
-                if (avatarData && avatarData.users) {
-                  // Merge avatar info into local profile state
-                  setProfiles((prev) =>
-                    prev.map((p) => {
-                      const uInfo = avatarData.users[p.id];
-                      if (uInfo) {
-                        const combinedName = `${uInfo.name || p.name || "Learner"}|${uInfo.imageUrl}`;
-                        return {
-                          ...p,
-                          name: combinedName,
-                        };
-                      }
-                      return p;
-                    })
-                  );
-                }
-              })
-              .catch((err) => console.error("Error fetching avatars:", err));
-          }
+            .catch((err) => console.error("Error fetching avatars:", err));
+        }
 
-          const profileId = user ? user.id : (typeof window !== "undefined" ? localStorage.getItem("guest_session_id") : null);
-          if (profileId) {
-            const current = mapped.find((p) => p.id === profileId);
-            if (current) {
-              setCurrentUserProfile(current);
-            }
-            const rankIdx = registeredProfiles.findIndex((p) => p.id === profileId);
-            if (rankIdx !== -1) {
-              setCurrentUserRank(rankIdx + 1);
-            }
+        const profileId = user ? user.id : (typeof window !== "undefined" ? localStorage.getItem("guest_session_id") : null);
+        if (profileId) {
+          const current = mapped.find((p) => p.id === profileId);
+          if (current) {
+            setCurrentUserProfile(current);
+          }
+          const rankIdx = registeredProfiles.findIndex((p) => p.id === profileId);
+          if (rankIdx !== -1) {
+            setCurrentUserRank(rankIdx + 1);
           }
         }
-      } catch (err) {
-        console.error("Failed to load leaderboard:", err);
-      } finally {
-        setLoading(false);
       }
+    } catch (err) {
+      console.error("Failed to load leaderboard:", err);
+    } finally {
+      setLoading(false);
     }
-    fetchLeaderboard();
   }, [user, isLoaded]);
+
+  useEffect(() => {
+    fetchLeaderboard();
+
+    // Listen to local update events
+    const handleUpdate = () => {
+      fetchLeaderboard();
+    };
+    window.addEventListener("reviewer-db-update", handleUpdate);
+
+    // Listen to global changes in progress or game state for real-time leaderboard rankings
+    const progressChannel = supabase
+      .channel("realtime:leaderboard_progress")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "profile_progress" },
+        () => {
+          fetchLeaderboard();
+        }
+      )
+      .subscribe();
+
+    const gameStateChannel = supabase
+      .channel("realtime:leaderboard_game")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "profile_game_state" },
+        () => {
+          fetchLeaderboard();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      window.removeEventListener("reviewer-db-update", handleUpdate);
+      supabase.removeChannel(progressChannel);
+      supabase.removeChannel(gameStateChannel);
+    };
+  }, [fetchLeaderboard]);
 
   // Determine if unlocked (must be logged in AND has at least 1 lesson completed -> total_score > 0)
   const isUnlocked = !!user && currentUserProfile ? currentUserProfile.total_score > 0 : false;
@@ -580,12 +622,22 @@ export default function LeaderboardPage() {
                     </div>
 
                     <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
-                      {profile.streak > 0 && (
-                        <span title={`${profile.streak} Day Streak`} className="font-din-round font-bold text-[10px] sm:text-xs md:text-sm flex items-center gap-0.5 sm:gap-1 select-none text-[#f97316] tracking-[0.053em]">
-                          <StreakAsset streak={profile.streak} width={20} height={20} className="object-contain" />
-                          <span>{profile.streak}</span>
-                        </span>
-                      )}
+                      {profile.streak > 0 && (() => {
+                        const todayStr = new Date().toLocaleDateString("en-CA");
+                        const isStreakActive = profile.streak > 0 && profile.last_lesson_date === todayStr;
+                        return (
+                          <span title={`${profile.streak} Day Streak`} className={`font-din-round font-bold text-[10px] sm:text-xs md:text-sm flex items-center gap-0.5 sm:gap-1 select-none tracking-[0.053em] ${isStreakActive ? "text-[#f97316]" : "text-silver"}`}>
+                            <StreakAsset
+                              streak={profile.streak}
+                              lastLessonDate={profile.last_lesson_date}
+                              width={20}
+                              height={20}
+                              className="object-contain"
+                            />
+                            <span>{profile.streak}</span>
+                          </span>
+                        );
+                      })()}
                       <span className="font-din-round font-bold text-xs sm:text-sm md:text-base flex items-center gap-1 select-none tracking-[0.053em]">
                         <Image src="/img/gen_imgs/exp.webp" alt="XP" width={20} height={20} className="object-contain" style={{ height: 'auto' }} />
                         <span>{profile.total_score} <span className="text-[9px] sm:text-[10px] md:text-xs font-bold uppercase tracking-normal">XP</span></span>

@@ -11,6 +11,7 @@ interface StatsContextProps {
   hearts: number;
   streakFreezeCount: number;
   lessonsCompleted: number;
+  lastLessonDate: string | null;
   isLoaded: boolean;
   refreshStats: () => Promise<void>;
   updateStatsLocally: (updates: Partial<{
@@ -20,10 +21,11 @@ interface StatsContextProps {
     hearts: number;
     streakFreezeCount: number;
     lessonsCompleted: number;
+    lastLessonDate: string | null;
   }>) => void;
 }
 
-const StatsContext = createContext<StatsContextProps | undefined>(undefined);
+export const StatsContext = createContext<StatsContextProps | undefined>(undefined);
 
 export const useStats = () => {
   const context = useContext(StatsContext);
@@ -41,6 +43,7 @@ export const StatsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [hearts, setHearts] = useState(5);
   const [streakFreezeCount, setStreakFreezeCount] = useState(0);
   const [lessonsCompleted, setLessonsCompleted] = useState(0);
+  const [lastLessonDate, setLastLessonDate] = useState<string | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
 
   const fetchStats = useCallback(async () => {
@@ -73,7 +76,7 @@ export const StatsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           .single(),
         supabase
           .from("profile_progress")
-          .select("total_score, lessons_completed")
+          .select("total_score, lessons_completed, last_lesson_date")
           .eq("profile_id", profileId)
           .single(),
       ]);
@@ -102,6 +105,7 @@ export const StatsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (progress) {
         setXp(progress.total_score || 0);
         setLessonsCompleted(progress.lessons_completed || 0);
+        setLastLessonDate(progress.last_lesson_date || null);
       }
     } catch (err) {
       console.error("Error loading stats in StatsProvider:", err);
@@ -114,6 +118,85 @@ export const StatsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     fetchStats();
   }, [fetchStats]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const channel = new BroadcastChannel("reviewer_channel");
+    const handleBroadcastMessage = (event: MessageEvent) => {
+      if (event.data === "reviewer-db-update") {
+        fetchStats();
+        window.dispatchEvent(new CustomEvent("reviewer-db-update", { detail: { fromBroadcast: true } }));
+      }
+    };
+    channel.addEventListener("message", handleBroadcastMessage);
+
+    const handleLocalUpdate = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      if (!customEvent.detail?.fromBroadcast) {
+        channel.postMessage("reviewer-db-update");
+      }
+    };
+    window.addEventListener("reviewer-db-update", handleLocalUpdate);
+
+    return () => {
+      channel.removeEventListener("message", handleBroadcastMessage);
+      channel.close();
+      window.removeEventListener("reviewer-db-update", handleLocalUpdate);
+    };
+  }, [fetchStats]);
+
+  useEffect(() => {
+    if (!isLoaded) return;
+    
+    let profileId: string | null = null;
+    if (isSignedIn && user) {
+      profileId = user.id;
+    } else if (typeof window !== "undefined") {
+      profileId = localStorage.getItem("guest_session_id");
+    }
+
+    if (!profileId) return;
+
+    const gameStateChannel = supabase
+      .channel(`realtime:profile_game_state:${profileId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "profile_game_state",
+          filter: `profile_id=eq.${profileId}`,
+        },
+        () => {
+          fetchStats();
+          window.dispatchEvent(new CustomEvent("reviewer-db-update"));
+        }
+      )
+      .subscribe();
+
+    const progressChannel = supabase
+      .channel(`realtime:profile_progress:${profileId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "profile_progress",
+          filter: `profile_id=eq.${profileId}`,
+        },
+        () => {
+          fetchStats();
+          window.dispatchEvent(new CustomEvent("reviewer-db-update"));
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(gameStateChannel);
+      supabase.removeChannel(progressChannel);
+    };
+  }, [isLoaded, fetchStats, isSignedIn, user]);
+
   const updateStatsLocally = useCallback((updates: Partial<{
     streak: number;
     xp: number;
@@ -121,6 +204,7 @@ export const StatsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     hearts: number;
     streakFreezeCount: number;
     lessonsCompleted: number;
+    lastLessonDate: string | null;
   }>) => {
     if (updates.streak !== undefined) setStreak(updates.streak);
     if (updates.xp !== undefined) setXp(updates.xp);
@@ -128,6 +212,7 @@ export const StatsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (updates.hearts !== undefined) setHearts(updates.hearts);
     if (updates.streakFreezeCount !== undefined) setStreakFreezeCount(updates.streakFreezeCount);
     if (updates.lessonsCompleted !== undefined) setLessonsCompleted(updates.lessonsCompleted);
+    if (updates.lastLessonDate !== undefined) setLastLessonDate(updates.lastLessonDate);
   }, []);
 
   return (
@@ -139,6 +224,7 @@ export const StatsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         hearts,
         streakFreezeCount,
         lessonsCompleted,
+        lastLessonDate,
         isLoaded,
         refreshStats: fetchStats,
         updateStatsLocally,

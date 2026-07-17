@@ -50,6 +50,7 @@ export async function GET(request: Request) {
         streak_freeze_count: pGame.streak_freeze_count || 0,
         hearts: pGame.hearts !== undefined && pGame.hearts !== null ? pGame.hearts : 5,
         gems: pGame.gems !== undefined && pGame.gems !== null ? pGame.gems : 50,
+        last_lesson_date: pProgress.last_lesson_date || null,
       };
     });
 

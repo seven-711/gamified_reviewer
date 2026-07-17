@@ -53,6 +53,9 @@ export default function ShopPage() {
       if (res.success) {
         updateStatsLocally({ gems: Math.max(0, gems - heartCost), hearts: 5 });
         await refreshStats();
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("reviewer-db-update"));
+        }
         await showAlert("❤️ Hearts refilled successfully!");
       } else {
         await showAlert("❌ Purchase failed: " + res.error);
@@ -93,6 +96,9 @@ export default function ShopPage() {
           updateStatsLocally({ gems: nextGems, streakFreezeCount: nextFreeze });
           await refreshStats();
           localStorage.setItem("streak_freeze_count", nextFreeze.toString());
+          if (typeof window !== "undefined") {
+            window.dispatchEvent(new CustomEvent("reviewer-db-update"));
+          }
           await showAlert("❄️ Streak Freeze purchased! Equipped.");
         } else {
           await showAlert("❌ Purchase failed: " + error.message);

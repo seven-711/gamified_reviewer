@@ -550,6 +550,9 @@ function LessonContent() {
             }
 
             await refreshStats();
+            if (typeof window !== "undefined") {
+              window.dispatchEvent(new CustomEvent("reviewer-db-update"));
+            }
           }
         };
         saveStats();

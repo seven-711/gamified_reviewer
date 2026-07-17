@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { supabase } from "@/lib/supabase";
@@ -26,6 +26,7 @@ interface UserProfile {
   streak: number;
   timer_duration?: number;
   lessons_completed?: number;
+  last_lesson_date?: string | null;
 }
 
 interface LeagueInfo {
@@ -213,140 +214,149 @@ export default function ProfilePage() {
 
   const { user, isLoaded, isSignedIn } = useUser();
 
-  useEffect(() => {
-    async function loadData() {
-      if (!isLoaded) return;
-      if (!isSignedIn || !user) {
+  const loadData = useCallback(async (bypassCache = false) => {
+    if (!isLoaded) return;
+    if (!isSignedIn || !user) {
+      const saved = localStorage.getItem("timer_duration");
+      if (saved) {
+        setTimerDuration(parseInt(saved, 10));
+      }
+      setLoading(false);
+      return;
+    }
+
+    const currentUserId = user ? user.id : (typeof window !== "undefined" ? localStorage.getItem("guest_session_id") : null);
+    let hasLoadedFromCache = false;
+    if (currentUserId && !bypassCache) {
+      const cache = getProfileCache(currentUserId);
+      if (cache) {
+        setProfile(cache.profile);
+        setRank(cache.rank);
+        setTotalUsers(cache.totalUsers);
+        setFollowingCount(cache.followingCount);
+        setFollowersCount(cache.followersCount);
+        if (cache.viewedUserEvents) setLessonEvents(cache.viewedUserEvents);
+        setLoading(false);
+        hasLoadedFromCache = true;
+      }
+    }
+
+    try {
+      const userProfile = await fetchFullProfile(user.id);
+
+      if (!userProfile) {
+        router.replace("/onboarding");
+        return;
+      }
+
+      const freshProfile = userProfile as UserProfile;
+      setProfile(freshProfile);
+      
+      if (userProfile.timer_duration) {
+        setTimerDuration(userProfile.timer_duration);
+        localStorage.setItem("timer_duration", userProfile.timer_duration.toString());
+      } else {
         const saved = localStorage.getItem("timer_duration");
         if (saved) {
           setTimerDuration(parseInt(saved, 10));
         }
-        setLoading(false);
-        return;
       }
 
-      const currentUserId = user ? user.id : (typeof window !== "undefined" ? localStorage.getItem("guest_session_id") : null);
-      let hasLoadedFromCache = false;
-      if (currentUserId) {
-        const cache = getProfileCache(currentUserId);
-        if (cache) {
-          setProfile(cache.profile);
-          setRank(cache.rank);
-          setTotalUsers(cache.totalUsers);
-          setFollowingCount(cache.followingCount);
-          setFollowersCount(cache.followersCount);
-          if (cache.viewedUserEvents) setLessonEvents(cache.viewedUserEvents);
-          setLoading(false);
-          hasLoadedFromCache = true;
-        }
-      }
-
+      // Fetch rank and total users count
+      let freshRank = 1;
+      let freshTotalUsers = 1;
       try {
-        const userProfile = await fetchFullProfile(user.id);
+        const [{ count: rankCount }, { count: totalCount }] = await Promise.all([
+          supabase
+            .from("profile_progress")
+            .select("*", { count: "exact", head: true })
+            .gt("total_score", userProfile.total_score || 0),
+          supabase
+            .from("profile_progress")
+            .select("*", { count: "exact", head: true })
+        ]);
+        freshRank = (rankCount || 0) + 1;
+        freshTotalUsers = totalCount || 1;
+        setRank(freshRank);
+        setTotalUsers(freshTotalUsers);
+      } catch (e) {
+        console.error("Failed to fetch rank or total users count", e);
+      }
 
-        if (!userProfile) {
-          router.replace("/onboarding");
-          return;
+      // Fetch completed lesson events
+      let freshLessonEvents: any[] = [];
+      try {
+        const { data: eventsData, error: eventsError } = await supabase
+          .from("lesson_events")
+          .select("created_at")
+          .eq("profile_id", user.id)
+          .eq("event_type", "lesson_completed");
+
+        if (!eventsError && eventsData) {
+          freshLessonEvents = eventsData || [];
+          setLessonEvents(freshLessonEvents);
         }
+      } catch (e) {
+        console.error("Failed to fetch lesson events", e);
+      }
 
-        const freshProfile = userProfile as UserProfile;
-        setProfile(freshProfile);
-        
-        if (userProfile.timer_duration) {
-          setTimerDuration(userProfile.timer_duration);
-          localStorage.setItem("timer_duration", userProfile.timer_duration.toString());
-        } else {
-          const saved = localStorage.getItem("timer_duration");
-          if (saved) {
-            setTimerDuration(parseInt(saved, 10));
-          }
-        }
-
-        // Fetch rank and total users count
-        let freshRank = 1;
-        let freshTotalUsers = 1;
-        try {
-          const [{ count: rankCount }, { count: totalCount }] = await Promise.all([
-            supabase
-              .from("profile_progress")
-              .select("*", { count: "exact", head: true })
-              .gt("total_score", userProfile.total_score || 0),
-            supabase
-              .from("profile_progress")
-              .select("*", { count: "exact", head: true })
-          ]);
-          freshRank = (rankCount || 0) + 1;
-          freshTotalUsers = totalCount || 1;
-          setRank(freshRank);
-          setTotalUsers(freshTotalUsers);
-        } catch (e) {
-          console.error("Failed to fetch rank or total users count", e);
-        }
-
-        // Fetch completed lesson events
-        let freshLessonEvents: any[] = [];
-        try {
-          const { data: eventsData, error: eventsError } = await supabase
-            .from("lesson_events")
-            .select("created_at")
-            .eq("profile_id", user.id)
-            .eq("event_type", "lesson_completed");
-
-          if (!eventsError && eventsData) {
-            freshLessonEvents = eventsData || [];
-            setLessonEvents(freshLessonEvents);
-          }
-        } catch (e) {
-          console.error("Failed to fetch lesson events", e);
-        }
-
-        // Fetch following and followers count
-        let freshFollowingCount = 0;
-        let freshFollowersCount = 0;
-        try {
-          if (currentUserId) {
-            const [followingRes, followersRes] = await Promise.all([
-              supabase
-                .from("lesson_events")
-                .select("id", { count: "exact", head: true })
-                .eq("profile_id", currentUserId)
-                .like("event_type", "claimed_achievement_follow:%"),
-              supabase
-                .from("lesson_events")
-                .select("id", { count: "exact", head: true })
-                .eq("event_type", `claimed_achievement_follow:${currentUserId}`),
-            ]);
-            freshFollowingCount = followingRes.count || 0;
-            freshFollowersCount = followersRes.count || 0;
-            setFollowingCount(freshFollowingCount);
-            setFollowersCount(freshFollowersCount);
-          }
-        } catch (e) {
-          console.error("Failed to fetch own follows count", e);
-        }
-
-        // Save to cache
+      // Fetch following and followers count
+      let freshFollowingCount = 0;
+      let freshFollowersCount = 0;
+      try {
         if (currentUserId) {
-          setProfileCache(currentUserId, {
-            profile: freshProfile,
-            rank: freshRank,
-            totalUsers: freshTotalUsers,
-            followingCount: freshFollowingCount,
-            followersCount: freshFollowersCount,
-            viewedUserEvents: freshLessonEvents
-          });
+          const [followingRes, followersRes] = await Promise.all([
+            supabase
+              .from("lesson_events")
+              .select("id", { count: "exact", head: true })
+              .eq("profile_id", currentUserId)
+              .like("event_type", "claimed_achievement_follow:%"),
+            supabase
+              .from("lesson_events")
+              .select("id", { count: "exact", head: true })
+              .eq("event_type", `claimed_achievement_follow:${currentUserId}`),
+          ]);
+          freshFollowingCount = followingRes.count || 0;
+          freshFollowersCount = followersRes.count || 0;
+          setFollowingCount(freshFollowingCount);
+          setFollowersCount(freshFollowersCount);
         }
+      } catch (e) {
+        console.error("Failed to fetch own follows count", e);
+      }
 
-        setLoading(false);
-      } catch (err) {
-        console.error("Profile load failed", err);
-        if (!hasLoadedFromCache) {
-          router.replace("/login");
-        }
+      // Save to cache
+      if (currentUserId) {
+        setProfileCache(currentUserId, {
+          profile: freshProfile,
+          rank: freshRank,
+          totalUsers: freshTotalUsers,
+          followingCount: freshFollowingCount,
+          followersCount: freshFollowersCount,
+          viewedUserEvents: freshLessonEvents
+        });
+      }
+
+      setLoading(false);
+    } catch (err) {
+      console.error("Profile load failed", err);
+      if (!hasLoadedFromCache) {
+        router.replace("/login");
       }
     }
-    loadData();
   }, [router, user, isLoaded, isSignedIn]);
+
+  useEffect(() => {
+    loadData(false);
+
+    const handleUpdate = () => {
+      loadData(true);
+    };
+    window.addEventListener("reviewer-db-update", handleUpdate);
+    return () => {
+      window.removeEventListener("reviewer-db-update", handleUpdate);
+    };
+  }, [loadData]);
 
   const handleTimerChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = parseInt(e.target.value, 10);
@@ -635,14 +645,48 @@ export default function ProfilePage() {
             {/* Streak */}
             <div className="flex flex-col items-center justify-center p-5 hover:-translate-y-0.5 transition-transform text-center gap-1.5">
               <div className="w-[100px] h-[100px] flex items-center justify-center shrink-0 select-none">
-                <DotLottiePlayer
-                  src="/img/gen_imgs/Streak/Fire.lottie"
-                  autoplay
-                  loop
-                  className="w-full h-full object-contain"
-                />
+                {(() => {
+                  const todayStr = new Date().toLocaleDateString("en-CA");
+                  const isStreakActive = !!(profile?.streak && profile.streak > 0 && profile.last_lesson_date === todayStr);
+                  const isStreakFrozenOrMissed = !profile?.streak || profile.streak < 1;
+                  
+                  if (isStreakActive) {
+                    return (
+                      <DotLottiePlayer
+                        src="/img/gen_imgs/Streak/Fire.lottie"
+                        autoplay
+                        loop
+                        className="w-full h-full object-contain"
+                      />
+                    );
+                  } else if (isStreakFrozenOrMissed) {
+                    return (
+                      <Image
+                        src="/img/gen_imgs/Streak/streak_freeze.webp"
+                        alt="Streak Missed"
+                        width={90}
+                        height={90}
+                        className="object-contain"
+                      />
+                    );
+                  } else {
+                    return (
+                      <Image
+                        src="/img/gen_imgs/Streak/off_streak.webp"
+                        alt="Streak Unactivated"
+                        width={90}
+                        height={90}
+                        className="object-contain"
+                      />
+                    );
+                  }
+                })()}
               </div>
-              <span className="font-black text-2xl text-orange-400 dark:text-orange-500">
+              <span className={`font-black text-2xl ${(() => {
+                const todayStr = new Date().toLocaleDateString("en-CA");
+                const isStreakActive = !!(profile?.streak && profile.streak > 0 && profile.last_lesson_date === todayStr);
+                return isStreakActive ? "text-orange-400 dark:text-orange-500" : "text-gray-400";
+              })()}`}>
                 {profile?.streak || 0} Days
               </span>
               <span className="text-[11px] font-extrabold text-silver uppercase tracking-wider">

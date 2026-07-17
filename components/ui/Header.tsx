@@ -13,8 +13,11 @@ export function Header() {
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
-  const { streak, xp, hearts, gems, isLoaded: isStatsLoaded } = useStats();
+  const { streak, xp, hearts, gems, lastLessonDate, isLoaded: isStatsLoaded } = useStats();
   const { user, isLoaded, isSignedIn } = useUser();
+
+  const todayStr = new Date().toLocaleDateString("en-CA");
+  const isStreakActive = streak > 0 && lastLessonDate === todayStr;
 
   useEffect(() => {
     setIsMounted(true);
@@ -99,7 +102,7 @@ export function Header() {
                               height={26}
                               className="object-contain"
                             />
-                            <span className="text-orange-500 font-extrabold text-sm">{streak}</span>
+                            <span className={`${isStreakActive ? "text-orange-500" : "text-silver"} font-extrabold text-sm`}>{streak}</span>
                           </div>
                           <div title="Hearts" className="flex items-center gap-1 cursor-help select-none text-red-500">
                             <Image
@@ -134,7 +137,7 @@ export function Header() {
                             height={32}
                             className="object-contain"
                           />
-                          <span className="text-orange-500 font-black text-lg">{streak}</span>
+                          <span className={`${isStreakActive ? "text-orange-500" : "text-silver"} font-black text-lg`}>{streak}</span>
                         </div>
                         <div title="XP" className="flex items-center gap-2 cursor-help select-none">
                           <Image

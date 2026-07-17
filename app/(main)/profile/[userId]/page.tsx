@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, useEffect, Suspense, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useUser } from "@clerk/nextjs";
@@ -23,6 +23,7 @@ interface UserProfile {
   streak: number;
   lessons_completed?: number;
   created_at?: string;
+  last_lesson_date?: string | null;
 }
 
 interface MonthlyBadge {
@@ -240,6 +241,7 @@ function UserProfileContent({ userId }: { userId: string }) {
           });
         if (error) throw error;
       }
+      window.dispatchEvent(new CustomEvent("reviewer-db-update"));
     } catch (err) {
       console.error("Follow status change failed:", err);
       // Rollback on failure
@@ -256,8 +258,158 @@ function UserProfileContent({ userId }: { userId: string }) {
     }
   };
 
+  const loadData = useCallback(async (bypassCache = false) => {
+    try {
+      const userProfile = await fetchFullProfile(userId);
+      if (!userProfile) {
+        router.replace("/leaderboard");
+        return;
+      }
+
+      const freshProfile = userProfile as UserProfile;
+      setProfile(freshProfile);
+
+      // Fetch rank and total users count
+      let freshRank = 1;
+      let freshTotalUsers = 1;
+      try {
+        const [{ count: rankCount }, { count: totalCount }] = await Promise.all([
+          supabase
+            .from("profile_progress")
+            .select("*", { count: "exact", head: true })
+            .gt("total_score", userProfile.total_score || 0),
+          supabase
+            .from("profile_progress")
+            .select("*", { count: "exact", head: true })
+        ]);
+        freshRank = (rankCount || 0) + 1;
+        freshTotalUsers = totalCount || 1;
+        setRank(freshRank);
+        setTotalUsers(freshTotalUsers);
+      } catch (e) {
+        console.error("Failed to fetch rank or total users count", e);
+      }
+
+      // Fetch user lesson events for weekly graph comparisons & badges
+      const currentUserId = currentUser ? currentUser.id : localStorage.getItem("guest_session_id");
+      let freshViewedUserEvents: any[] = [];
+      let freshActiveUserEvents: any[] = [];
+      
+      try {
+        const [viewedRes, activeRes] = await Promise.all([
+          supabase
+            .from("lesson_events")
+            .select("created_at, score_delta")
+            .eq("profile_id", userId)
+            .eq("event_type", "lesson_completed"),
+          currentUserId ? supabase
+            .from("lesson_events")
+            .select("created_at, score_delta")
+            .eq("profile_id", currentUserId)
+            .eq("event_type", "lesson_completed") : Promise.resolve({ data: [], error: null })
+        ]);
+
+        if (!viewedRes.error && viewedRes.data) {
+          freshViewedUserEvents = viewedRes.data;
+          setViewedUserEvents(freshViewedUserEvents);
+        }
+        if (!activeRes.error && activeRes.data) {
+          freshActiveUserEvents = activeRes.data;
+          setActiveUserEvents(freshActiveUserEvents);
+        }
+      } catch (e) {
+        console.error("Failed to fetch lesson events for charts", e);
+      }
+
+      // Fetch following, followers, and current follow status
+      let freshFollowingCount = 0;
+      let freshFollowersCount = 0;
+      let freshIsFollowing = false;
+      try {
+        const promises: any[] = [
+          // Following count
+          supabase
+            .from("lesson_events")
+            .select("id", { count: "exact", head: true })
+            .eq("profile_id", userId)
+            .like("event_type", "claimed_achievement_follow:%"),
+          // Followers count
+          supabase
+            .from("lesson_events")
+            .select("id", { count: "exact", head: true })
+            .eq("event_type", `claimed_achievement_follow:${userId}`),
+        ];
+
+        if (currentUserId) {
+          promises.push(
+            supabase
+              .from("lesson_events")
+              .select("id")
+              .eq("profile_id", currentUserId)
+              .eq("event_type", `claimed_achievement_follow:${userId}`)
+              .maybeSingle()
+          );
+        }
+
+        const [followingRes, followersRes, isFollowingRes] = await Promise.all(promises);
+
+        freshFollowingCount = followingRes.count || 0;
+        freshFollowersCount = followersRes.count || 0;
+        setFollowingCount(freshFollowingCount);
+        setFollowersCount(freshFollowersCount);
+        
+        if (isFollowingRes && !isFollowingRes.error && isFollowingRes.data) {
+          freshIsFollowing = true;
+        }
+        setIsFollowing(freshIsFollowing);
+      } catch (e) {
+        console.error("Failed to fetch following/followers data", e);
+      }
+
+      // Self-healing avatar fetch if database record is not yet combined
+      if (freshProfile && (!freshProfile.name || !freshProfile.name.includes("|")) && !userId.startsWith("guest_")) {
+        try {
+          const avatarRes = await fetch("/api/users/avatars", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ userIds: [userId] }),
+          });
+          const avatarData = await avatarRes.json();
+          if (avatarData && avatarData.users && avatarData.users[userId]) {
+            const uInfo = avatarData.users[userId];
+            const combinedName = `${uInfo.name || freshProfile.name || "Learner"}|${uInfo.imageUrl}`;
+            
+            freshProfile.name = combinedName;
+            setProfile({ ...freshProfile });
+            
+            // Persist back to Supabase
+            await supabase.from("profiles").update({ name: combinedName }).eq("id", userId);
+          }
+        } catch (e) {
+          console.error("Failed to dynamically resolve missing profile image from Clerk:", e);
+        }
+      }
+
+      // Set cache for future visits
+      setProfileCache(userId, {
+        profile: freshProfile,
+        rank: freshRank,
+        totalUsers: freshTotalUsers,
+        followingCount: freshFollowingCount,
+        followersCount: freshFollowersCount,
+        isFollowing: freshIsFollowing,
+        viewedUserEvents: freshViewedUserEvents,
+        activeUserEvents: freshActiveUserEvents
+      });
+    } catch (err) {
+      console.error("Failed to load public profile details:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [userId, currentUser, router]);
+
   useEffect(() => {
-    if (!userId) return;
+    if (!userId || !isCurrentUserLoaded) return;
 
     // 1. Instantly check cache first (SWR pattern)
     const cache = getProfileCache(userId);
@@ -275,163 +427,34 @@ function UserProfileContent({ userId }: { userId: string }) {
       hasLoadedFromCache = true;
     }
 
-    async function loadData() {
-      try {
-        const userProfile = await fetchFullProfile(userId);
-        if (!userProfile) {
-          router.replace("/leaderboard");
-          return;
+    loadData(!hasLoadedFromCache);
+
+    const handleUpdate = () => {
+      loadData(true);
+    };
+    window.addEventListener("reviewer-db-update", handleUpdate);
+
+    // Subscribe to realtime updates on lesson_events table
+    const channel = supabase
+      .channel(`realtime:profile_events:${userId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "lesson_events",
+        },
+        () => {
+          loadData(true);
         }
+      )
+      .subscribe();
 
-        const freshProfile = userProfile as UserProfile;
-        setProfile(freshProfile);
-
-        // Fetch rank and total users count
-        let freshRank = 1;
-        let freshTotalUsers = 1;
-        try {
-          const [{ count: rankCount }, { count: totalCount }] = await Promise.all([
-            supabase
-              .from("profile_progress")
-              .select("*", { count: "exact", head: true })
-              .gt("total_score", userProfile.total_score || 0),
-            supabase
-              .from("profile_progress")
-              .select("*", { count: "exact", head: true })
-          ]);
-          freshRank = (rankCount || 0) + 1;
-          freshTotalUsers = totalCount || 1;
-          setRank(freshRank);
-          setTotalUsers(freshTotalUsers);
-        } catch (e) {
-          console.error("Failed to fetch rank or total users count", e);
-        }
-
-        // Fetch user lesson events for weekly graph comparisons & badges
-        const currentUserId = currentUser ? currentUser.id : localStorage.getItem("guest_session_id");
-        let freshViewedUserEvents: any[] = [];
-        let freshActiveUserEvents: any[] = [];
-        
-        try {
-          const [viewedRes, activeRes] = await Promise.all([
-            supabase
-              .from("lesson_events")
-              .select("created_at, score_delta")
-              .eq("profile_id", userId)
-              .eq("event_type", "lesson_completed"),
-            currentUserId ? supabase
-              .from("lesson_events")
-              .select("created_at, score_delta")
-              .eq("profile_id", currentUserId)
-              .eq("event_type", "lesson_completed") : Promise.resolve({ data: [], error: null })
-          ]);
-
-          if (!viewedRes.error && viewedRes.data) {
-            freshViewedUserEvents = viewedRes.data;
-            setViewedUserEvents(freshViewedUserEvents);
-          }
-          if (!activeRes.error && activeRes.data) {
-            freshActiveUserEvents = activeRes.data;
-            setActiveUserEvents(freshActiveUserEvents);
-          }
-        } catch (e) {
-          console.error("Failed to fetch lesson events for charts", e);
-        }
-
-        // Fetch following, followers, and current follow status
-        let freshFollowingCount = 0;
-        let freshFollowersCount = 0;
-        let freshIsFollowing = false;
-        try {
-          const promises: any[] = [
-            // Following count
-            supabase
-              .from("lesson_events")
-              .select("id", { count: "exact", head: true })
-              .eq("profile_id", userId)
-              .like("event_type", "claimed_achievement_follow:%"),
-            // Followers count
-            supabase
-              .from("lesson_events")
-              .select("id", { count: "exact", head: true })
-              .eq("event_type", `claimed_achievement_follow:${userId}`),
-          ];
-
-          if (currentUserId) {
-            promises.push(
-              supabase
-                .from("lesson_events")
-                .select("id")
-                .eq("profile_id", currentUserId)
-                .eq("event_type", `claimed_achievement_follow:${userId}`)
-                .maybeSingle()
-            );
-          }
-
-          const [followingRes, followersRes, isFollowingRes] = await Promise.all(promises);
-
-          freshFollowingCount = followingRes.count || 0;
-          freshFollowersCount = followersRes.count || 0;
-          setFollowingCount(freshFollowingCount);
-          setFollowersCount(freshFollowersCount);
-          
-          if (isFollowingRes && !isFollowingRes.error && isFollowingRes.data) {
-            freshIsFollowing = true;
-          }
-          setIsFollowing(freshIsFollowing);
-        } catch (e) {
-          console.error("Failed to fetch following/followers data", e);
-        }
-
-        // Self-healing avatar fetch if database record is not yet combined
-        if (freshProfile && (!freshProfile.name || !freshProfile.name.includes("|")) && !userId.startsWith("guest_")) {
-          try {
-            const avatarRes = await fetch("/api/users/avatars", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ userIds: [userId] }),
-            });
-            const avatarData = await avatarRes.json();
-            if (avatarData && avatarData.users && avatarData.users[userId]) {
-              const uInfo = avatarData.users[userId];
-              const combinedName = `${uInfo.name || freshProfile.name || "Learner"}|${uInfo.imageUrl}`;
-              
-              freshProfile.name = combinedName;
-              setProfile({ ...freshProfile });
-              
-              // Persist back to Supabase
-              await supabase.from("profiles").update({ name: combinedName }).eq("id", userId);
-            }
-          } catch (e) {
-            console.error("Failed to dynamically resolve missing profile image from Clerk:", e);
-          }
-        }
-
-        // Set cache for future visits
-        setProfileCache(userId, {
-          profile: freshProfile,
-          rank: freshRank,
-          totalUsers: freshTotalUsers,
-          followingCount: freshFollowingCount,
-          followersCount: freshFollowersCount,
-          isFollowing: freshIsFollowing,
-          viewedUserEvents: freshViewedUserEvents,
-          activeUserEvents: freshActiveUserEvents
-        });
-
-        setLoading(false);
-      } catch (err) {
-        console.error("Failed to load public profile details:", err);
-        if (!hasLoadedFromCache) {
-          router.replace("/leaderboard");
-        }
-      }
-    }
-
-    if (isCurrentUserLoaded) {
-      loadData();
-    }
-  }, [userId, isCurrentUserLoaded, currentUser, router]);
+    return () => {
+      window.removeEventListener("reviewer-db-update", handleUpdate);
+      supabase.removeChannel(channel);
+    };
+  }, [userId, isCurrentUserLoaded, loadData]);
 
   if (loading || !profile) {
     return (
@@ -801,16 +824,50 @@ function UserProfileContent({ userId }: { userId: string }) {
         <div className="grid grid-cols-2 gap-4">
           {/* Streak */}
           <div className="border-2 border-cloud-gray rounded-3xl p-5 flex flex-col items-center justify-center text-center gap-2 bg-gradient-to-br from-duo-green-light/5 to-transparent">
-            <div className="w-15 h-15 shrink-0 select-none">
-              <DotLottiePlayer
-                src="/img/gen_imgs/Streak/Fire.lottie"
-                autoplay
-                loop
-                className="w-full h-full object-contain"
-              />
+            <div className="w-15 h-15 shrink-0 select-none flex items-center justify-center">
+              {(() => {
+                const todayStr = new Date().toLocaleDateString("en-CA");
+                const isStreakActive = !!(streak && streak > 0 && profile?.last_lesson_date === todayStr);
+                const isStreakFrozenOrMissed = !streak || streak < 1;
+
+                if (isStreakActive) {
+                  return (
+                    <DotLottiePlayer
+                      src="/img/gen_imgs/Streak/Fire.lottie"
+                      autoplay
+                      loop
+                      className="w-full h-full object-contain"
+                    />
+                  );
+                } else if (isStreakFrozenOrMissed) {
+                  return (
+                    <Image
+                      src="/img/gen_imgs/Streak/streak_freeze.webp"
+                      alt="Streak Missed"
+                      width={60}
+                      height={60}
+                      className="object-contain"
+                    />
+                  );
+                } else {
+                  return (
+                    <Image
+                      src="/img/gen_imgs/Streak/off_streak.webp"
+                      alt="Streak Unactivated"
+                      width={60}
+                      height={60}
+                      className="object-contain"
+                    />
+                  );
+                }
+              })()}
             </div>
             <div className="flex flex-col items-center min-w-0">
-              <span className="font-black text-lg text-orange-400 leading-tight">
+              <span className={`font-black text-lg ${(() => {
+                const todayStr = new Date().toLocaleDateString("en-CA");
+                const isStreakActive = !!(streak && streak > 0 && profile?.last_lesson_date === todayStr);
+                return isStreakActive ? "text-orange-400" : "text-gray-400";
+              })()} leading-tight`}>
                 {streak} Days
               </span>
               <span className="text-[10px] font-extrabold text-silver uppercase tracking-wider mt-0.5">

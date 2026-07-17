@@ -8,7 +8,9 @@ import { useUser, UserButton } from "@clerk/nextjs";
 import { StreakAsset } from "@/components/ui/StreakAsset";
 
 export default function MobileHeader() {
-  const { streak, hearts, gems, isLoaded: isStatsLoaded } = useStats();
+  const { streak, hearts, gems, lastLessonDate, isLoaded: isStatsLoaded } = useStats();
+  const todayStr = new Date().toLocaleDateString("en-CA");
+  const isStreakActive = streak > 0 && lastLessonDate === todayStr;
   const { user, isLoaded, isSignedIn } = useUser();
 
   return (
@@ -32,7 +34,7 @@ export default function MobileHeader() {
                 height={22}
                 className="object-contain"
               />
-              <span className="text-orange-500 font-extrabold text-sm">{streak}</span>
+              <span className={`${isStreakActive ? "text-orange-500" : "text-silver"} font-extrabold text-sm`}>{streak}</span>
             </div>
 
             {/* Hearts */}
