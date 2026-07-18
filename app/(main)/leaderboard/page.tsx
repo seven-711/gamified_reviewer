@@ -726,7 +726,7 @@ export default function LeaderboardPage() {
       </main>
 
       {/* Right Sidebar */}
-      <aside className="hidden lg:block w-[368px] shrink-0 pt-4 md:pt-8 font-din-round">
+      <aside className="hidden lg:block w-[368px] shrink-0 pt-4 md:pt-8 font-din-round lg:sticky lg:top-6 lg:self-start lg:h-fit">
         <div className="border-2 border-cloud-gray rounded-2xl p-6 flex flex-col gap-5 bg-snow-white">
           <h3 className="font-extrabold text-xs md:text-sm text-silver uppercase tracking-wider">
             What are Leaderboards?

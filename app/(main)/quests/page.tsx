@@ -788,7 +788,7 @@ export default function QuestsPage() {
       </main>
 
       {/* Right Sidebar */}
-      <aside className="hidden lg:block w-[368px] shrink-0 pt-4 md:pt-8 font-din-round">
+      <aside className="hidden lg:block w-[368px] shrink-0 pt-4 md:pt-8 font-din-round lg:sticky lg:top-6 lg:self-start lg:h-fit">
         <div className="flex flex-col gap-6">
 
           {/* Top Stats Bar */}

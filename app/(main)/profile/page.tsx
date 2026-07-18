@@ -919,7 +919,7 @@ export default function ProfilePage() {
       </main>
 
       {/* Right Sidebar - Friends Widget */}
-      <aside className="hidden lg:block w-[368px] shrink-0 pt-6 md:pt-10 font-din-round">
+      <aside className="hidden lg:block w-[368px] shrink-0 pt-6 md:pt-10 font-din-round lg:sticky lg:top-6 lg:self-start lg:h-fit">
         <div className="bg-[#131f24] border-2 border-cloud-gray rounded-3xl p-6 flex flex-col gap-5 shadow-sm hover:border-duo-green transition-colors duration-300 ml-6">
           <h3 className="font-extrabold text-xs md:text-sm text-silver uppercase tracking-wider select-none">Friends</h3>
           <h2 className="font-feather text-2xl text-duo-green font-bold leading-snug">

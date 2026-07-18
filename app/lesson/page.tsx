@@ -1298,7 +1298,13 @@ function LessonContent() {
               className="flex items-center gap-1.5 bg-white dark:bg-[#202f36] border-2 border-cloud-gray dark:border-cloud-gray/10 hover:bg-cloud-gray/10 dark:hover:bg-slate-800/40 px-3.5 py-2 rounded-2xl text-xs md:text-sm font-bold text-charcoal dark:text-silver transition-all shadow-[0_3px_0_var(--color-cloud-gray)] dark:shadow-none active:translate-y-[3px] active:shadow-none disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none disabled:translate-y-0"
               title="Eliminate 2 wrong answers"
             >
-              <span className="text-base md:text-lg">🌓</span>
+              <Image
+                src="/img/gen_imgs/5050.webp"
+                alt="50/50"
+                width={20}
+                height={20}
+                className="object-contain shrink-0"
+              />
               <span>50/50</span>
               <span className="bg-sky-blue/10 text-sky-blue text-[10px] px-1.5 py-0.5 rounded-md font-extrabold">{card5050Count}</span>
             </button>
@@ -1309,7 +1315,13 @@ function LessonContent() {
               className="flex items-center gap-1.5 bg-white dark:bg-[#202f36] border-2 border-cloud-gray dark:border-cloud-gray/10 hover:bg-cloud-gray/10 dark:hover:bg-slate-800/40 px-3.5 py-2 rounded-2xl text-xs md:text-sm font-bold text-charcoal dark:text-silver transition-all shadow-[0_3px_0_var(--color-cloud-gray)] dark:shadow-none active:translate-y-[3px] active:shadow-none disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none disabled:translate-y-0"
               title="Skip this question"
             >
-              <span className="text-base md:text-lg">⏭️</span>
+              <Image
+                src="/img/gen_imgs/skip.webp"
+                alt="Skip"
+                width={20}
+                height={20}
+                className="object-contain shrink-0"
+              />
               <span>Skip</span>
               <span className="bg-duo-green/10 text-duo-green text-[10px] px-1.5 py-0.5 rounded-md font-extrabold">{skipCardCount}</span>
             </button>
@@ -1320,7 +1332,13 @@ function LessonContent() {
               className="flex items-center gap-1.5 bg-white dark:bg-[#202f36] border-2 border-cloud-gray dark:border-cloud-gray/10 hover:bg-cloud-gray/10 dark:hover:bg-slate-800/40 px-3.5 py-2 rounded-2xl text-xs md:text-sm font-bold text-charcoal dark:text-silver transition-all shadow-[0_3px_0_var(--color-cloud-gray)] dark:shadow-none active:translate-y-[3px] active:shadow-none disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none disabled:translate-y-0"
               title="Show numerical explainer"
             >
-              <span className="text-base md:text-lg">💡</span>
+              <Image
+                src="/img/gen_imgs/hint.webp"
+                alt="Hint"
+                width={20}
+                height={20}
+                className="object-contain shrink-0"
+              />
               <span>Hint</span>
               <span className="bg-amber-500/10 text-amber-500 text-[10px] px-1.5 py-0.5 rounded-md font-extrabold">{hintCardCount}</span>
             </button>

@@ -326,6 +326,8 @@ export default function AdminDashboard() {
 
   // Aggregate stats for overview
   const totalUsers = users.length;
+  const totalRegistered = users.filter((u) => !u.id.startsWith("guest_")).length;
+  const totalGuests = users.filter((u) => u.id.startsWith("guest_")).length;
   const totalGems = users.reduce((acc, u) => acc + u.gems, 0);
   const averageLevel = totalUsers > 0 ? (users.reduce((acc, u) => acc + u.current_level, 0) / totalUsers).toFixed(1) : 0;
   const maxStreak = users.length > 0 ? Math.max(...users.map(u => u.streak)) : 0;
@@ -477,9 +479,6 @@ export default function AdminDashboard() {
         <h1 className="font-feather text-heading text-almost-black tracking-tight uppercase">
           Dashboard
         </h1>
-        <p className="text-graphite text-[15px] mt-1">
-          Monitor users, refine training question datasets, and configure gamification variables.
-        </p>
       </div>
 
       {/* Tabs */}
@@ -509,11 +508,16 @@ export default function AdminDashboard() {
       {activeTab === "overview" && (
         <div className="flex flex-col gap-8 animate-fadeIn">
           {/* Stats Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-snow-white border-2 border-cloud-gray p-5 rounded-2xl hover:border-sky-blue transition-colors">
-              <p className="text-silver font-bold uppercase text-[12px] tracking-wider">Total Reviewers</p>
-              <h2 className="text-heading font-extrabold mt-1 text-almost-black">{totalUsers}</h2>
-              <div className="text-xs text-sky-blue font-bold mt-1">Registered Accounts</div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-snow-white border-2 border-cloud-gray p-5 rounded-2xl hover:border-sky-blue transition-colors flex flex-col justify-between">
+              <div>
+                <p className="text-silver font-bold uppercase text-[12px] tracking-wider">Total Reviewers</p>
+                <h2 className="text-heading font-extrabold mt-1 text-almost-black leading-none">{totalUsers}</h2>
+              </div>
+              <div className="flex flex-col gap-0.5 mt-3 text-[11px] md:text-xs font-bold text-sky-blue">
+                <span>{totalRegistered} Registered</span>
+                <span className="text-silver">{totalGuests} Guests</span>
+              </div>
             </div>
             <div className="bg-snow-white border-2 border-cloud-gray p-4 rounded-2xl hover:border-duo-green transition-colors flex flex-col gap-3">
               <div>
@@ -623,13 +627,13 @@ export default function AdminDashboard() {
                 <table className="w-full border-collapse text-left">
                   <thead>
                     <tr className="border-b-2 border-cloud-gray bg-cloud-gray/10 text-silver font-extrabold text-[13px] uppercase tracking-wider">
-                      <th className="p-4">Name / ID</th>
-                      <th className="p-4">Gems</th>
-                      <th className="p-4">Hearts</th>
-                      <th className="p-4">Streak</th>
-                      <th className="p-4">Lvl/XP</th>
-                      <th className="p-4">Diff/Style</th>
-                      <th className="p-4 text-right">Actions</th>
+                      <th className="p-4 whitespace-nowrap">Name / ID</th>
+                      <th className="p-4 whitespace-nowrap">Gems</th>
+                      <th className="p-4 whitespace-nowrap">Hearts</th>
+                      <th className="p-4 whitespace-nowrap">Streak</th>
+                      <th className="p-4 whitespace-nowrap">Lvl/XP</th>
+                      <th className="p-4 whitespace-nowrap">Diff/Style</th>
+                      <th className="p-4 text-right whitespace-nowrap">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y-2 divide-cloud-gray font-bold text-[14px]">
@@ -643,36 +647,38 @@ export default function AdminDashboard() {
                         .sort((a, b) => Number(b.streak || 0) - Number(a.streak || 0))
                         .map((u) => (
                         <tr key={u.id} className="hover:bg-cloud-gray/5 text-charcoal">
-                          <td className="p-4 flex items-center gap-3">
-                            {u.avatarUrl ? (
-                              <img
-                                src={u.avatarUrl}
-                                alt={u.name}
-                                className="w-10 h-10 rounded-full object-cover border-2 border-cloud-gray bg-cloud-gray/10 shrink-0"
-                                referrerPolicy="no-referrer"
-                              />
-                            ) : (
-                              <div className="w-10 h-10 rounded-full bg-cloud-gray flex items-center justify-center font-extrabold text-silver shrink-0 text-sm">
-                                {u.name.charAt(0).toUpperCase()}
+                          <td className="p-4 whitespace-nowrap">
+                            <div className="flex items-center gap-3">
+                              {u.avatarUrl ? (
+                                <img
+                                  src={u.avatarUrl}
+                                  alt={u.name}
+                                  className="w-10 h-10 rounded-full object-cover border-2 border-cloud-gray bg-cloud-gray/10 shrink-0"
+                                  referrerPolicy="no-referrer"
+                                />
+                              ) : (
+                                <div className="w-10 h-10 rounded-full bg-cloud-gray flex items-center justify-center font-extrabold text-silver shrink-0 text-sm">
+                                  {u.name.charAt(0).toUpperCase()}
+                                </div>
+                              )}
+                              <div className="min-w-0">
+                                <span className="text-almost-black font-extrabold block leading-normal">{u.name}</span>
+                                <span className="text-[11px] text-silver font-medium font-mono block leading-normal">{u.id}</span>
                               </div>
-                            )}
-                            <div className="min-w-0">
-                              <p className="text-almost-black font-extrabold truncate">{u.name}</p>
-                              <span className="text-[11px] text-silver font-medium font-mono block truncate max-w-[150px]">{u.id}</span>
                             </div>
                           </td>
-                          <td className="p-4 text-[#ffc700] font-extrabold">💎 {u.gems}</td>
-                          <td className="p-4 text-[#ff2e63]">❤️ {u.hearts}/5</td>
-                          <td className="p-4 text-[#ff5e00]">🔥 {u.streak}d</td>
-                          <td className="p-4">
-                            Lvl {u.current_level}
-                            <p className="text-[11px] text-silver font-medium">{u.total_score} XP</p>
+                          <td className="p-4 text-[#ffc700] font-extrabold whitespace-nowrap">💎 {u.gems}</td>
+                          <td className="p-4 text-[#ff2e63] whitespace-nowrap">❤️ {u.hearts}/5</td>
+                          <td className="p-4 text-[#ff5e00] whitespace-nowrap">🔥 {u.streak}d</td>
+                          <td className="p-4 whitespace-nowrap">
+                            <span className="block leading-normal">Lvl {u.current_level}</span>
+                            <span className="text-[11px] text-silver font-medium block leading-normal">{u.total_score} XP</span>
                           </td>
-                          <td className="p-4">
-                            <span className="text-[12px] bg-cloud-gray/40 px-2 py-0.5 rounded-full text-charcoal">{u.difficulty}</span>
-                            <p className="text-[11px] text-silver font-medium">{u.study_style}</p>
+                          <td className="p-4 whitespace-nowrap">
+                            <span className="text-[12px] bg-cloud-gray/40 px-2 py-0.5 rounded-full text-charcoal block w-fit">{u.difficulty}</span>
+                            <span className="text-[11px] text-silver font-medium block mt-0.5 leading-normal">{u.study_style}</span>
                           </td>
-                          <td className="p-4 text-right">
+                          <td className="p-4 text-right whitespace-nowrap">
                             <button
                               onClick={() => handleEditUserClick(u)}
                               className="text-sky-blue hover:bg-sky-blue/10 px-3 py-1.5 rounded-xl border-2 border-sky-blue/20 transition-all text-xs"
@@ -832,11 +838,11 @@ export default function AdminDashboard() {
                 <table className="w-full border-collapse text-left">
                   <thead>
                     <tr className="border-b-2 border-cloud-gray bg-cloud-gray/10 text-silver font-extrabold text-[13px] uppercase tracking-wider">
-                      <th className="p-4 w-12">ID</th>
-                      <th className="p-4 w-24">Type</th>
-                      <th className="p-4">Question Prompt</th>
-                      <th className="p-4 w-32">Answer Key</th>
-                      <th className="p-4 text-right w-44">Actions</th>
+                      <th className="p-4 w-12 whitespace-nowrap">ID</th>
+                      <th className="p-4 w-24 whitespace-nowrap">Type</th>
+                      <th className="p-4 whitespace-nowrap">Question Prompt</th>
+                      <th className="p-4 w-32 whitespace-nowrap">Answer Key</th>
+                      <th className="p-4 text-right w-44 whitespace-nowrap">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y-2 divide-cloud-gray font-bold text-[14px]">
@@ -847,36 +853,38 @@ export default function AdminDashboard() {
                     ) : (
                       questions.map((q, idx) => (
                         <tr key={q.id || idx} className="hover:bg-cloud-gray/5 text-charcoal">
-                          <td className="p-4 font-extrabold text-silver">#{q.id}</td>
-                          <td className="p-4">
+                          <td className="p-4 font-extrabold text-silver whitespace-nowrap">#{q.id}</td>
+                          <td className="p-4 whitespace-nowrap">
                             <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${
                               q.image ? "bg-bubblegum-pink/10 text-bubblegum-pink border border-bubblegum-pink/20" : "bg-sky-blue/10 text-sky-blue border border-sky-blue/20"
                             }`}>
                               {q.image ? "Image" : "Text"}
                             </span>
                           </td>
-                          <td className="p-4">
-                            <p className="text-almost-black line-clamp-2 max-w-[400px] leading-relaxed">{q.prompt}</p>
-                            {q.image && <span className="text-[11px] text-silver font-normal truncate max-w-[300px] block mt-0.5">{q.image}</span>}
+                          <td className="p-4 whitespace-nowrap">
+                            <span className="text-almost-black block max-w-[400px] truncate leading-normal">{q.prompt}</span>
+                            {q.image && <span className="text-[11px] text-silver font-normal truncate max-w-[300px] block mt-0.5 leading-normal">{q.image}</span>}
                           </td>
-                          <td className="p-4">
+                          <td className="p-4 whitespace-nowrap">
                             <span className="bg-duo-green-light text-duo-green px-2.5 py-1 rounded-xl text-[12px] border border-duo-green/20">
                               Option {q.correctIndex !== undefined ? String.fromCharCode(65 + q.correctIndex) : "N/A"}
                             </span>
                           </td>
-                          <td className="p-4 text-right flex justify-end gap-2">
-                            <button
-                              onClick={() => handleEditQuestionClick(q)}
-                              className="text-sky-blue hover:bg-sky-blue/10 px-3 py-1.5 rounded-xl border-2 border-sky-blue/20 transition-all text-xs"
-                            >
-                              Edit
-                            </button>
-                            <button
-                              onClick={() => handleDeleteQuestion(q.id)}
-                              className="text-charcoal hover:bg-[#ff2e63]/10 hover:text-[#ff2e63] px-3 py-1.5 rounded-xl border-2 border-transparent transition-all text-xs"
-                            >
-                              Delete
-                            </button>
+                          <td className="p-4 text-right whitespace-nowrap">
+                            <div className="flex justify-end gap-2">
+                              <button
+                                onClick={() => handleEditQuestionClick(q)}
+                                className="text-sky-blue hover:bg-sky-blue/10 px-3 py-1.5 rounded-xl border-2 border-sky-blue/20 transition-all text-xs"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => handleDeleteQuestion(q.id)}
+                                className="text-charcoal hover:bg-[#ff2e63]/10 hover:text-[#ff2e63] px-3 py-1.5 rounded-xl border-2 border-transparent transition-all text-xs"
+                              >
+                                Delete
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))

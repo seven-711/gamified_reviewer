@@ -10,6 +10,9 @@ export function parseMathText(text: string): React.ReactNode {
   // Replace '*' bullet points at the beginning of a line with '• '
   let processed = text.replace(/^(?:\s*\*\s+)/gm, "• ");
   
+  // Inject newline after "Simplify the expression:" to show equations below it
+  processed = processed.replace(/(Simplify the expression:)\s*/gi, "$1\n");
+  
   // Pre-process common LaTeX symbols to Unicode equivalents
   processed = processed
     .replace(/\\times/g, " × ")
@@ -53,9 +56,72 @@ export function parseMathText(text: string): React.ReactNode {
   if (lastIndex < processed.length) {
     parts.push(processed.substring(lastIndex));
   }
+
+  // Parse square roots (\sqrt{val})
+  const sqrtParts = parts.flatMap((part, idx) => {
+    if (typeof part !== 'string') return [part];
+    
+    const sqrtRegex = /\\sqrt\{([^{}]+)\}/g;
+    const subParts: React.ReactNode[] = [];
+    let subLastIndex = 0;
+    let sqrtMatch;
+    
+    while ((sqrtMatch = sqrtRegex.exec(part)) !== null) {
+      const sqrtMatchIndex = sqrtMatch.index;
+      if (sqrtMatchIndex > subLastIndex) {
+        subParts.push(part.substring(subLastIndex, sqrtMatchIndex));
+      }
+      
+      const val = sqrtMatch[1];
+      subParts.push(
+        <span key={`sqrt-${idx}-${sqrtMatchIndex}`} className="inline-flex items-center align-middle mx-0.5">
+          <span className="text-lg md:text-xl font-sans leading-none">√</span>
+          <span className="border-t-2 border-current px-0.5 text-sm md:text-base font-bold leading-none pt-0.5 -mt-0.5">{val}</span>
+        </span>
+      );
+      subLastIndex = sqrtRegex.lastIndex;
+    }
+    
+    if (subLastIndex < part.length) {
+      subParts.push(part.substring(subLastIndex));
+    }
+    
+    return subParts;
+  });
+
+  // Parse overlines (\overline{val})
+  const overlineParts = sqrtParts.flatMap((part, idx) => {
+    if (typeof part !== 'string') return [part];
+    
+    const overlineRegex = /\\overline\{([^{}]+)\}/g;
+    const subParts: React.ReactNode[] = [];
+    let subLastIndex = 0;
+    let overlineMatch;
+    
+    while ((overlineMatch = overlineRegex.exec(part)) !== null) {
+      const overlineMatchIndex = overlineMatch.index;
+      if (overlineMatchIndex > subLastIndex) {
+        subParts.push(part.substring(subLastIndex, overlineMatchIndex));
+      }
+      
+      const val = overlineMatch[1];
+      subParts.push(
+        <span key={`overline-${idx}-${overlineMatchIndex}`} style={{ textDecoration: "overline" }}>
+          {val}
+        </span>
+      );
+      subLastIndex = overlineRegex.lastIndex;
+    }
+    
+    if (subLastIndex < part.length) {
+      subParts.push(part.substring(subLastIndex));
+    }
+    
+    return subParts;
+  });
   
   // Parse bold markdown (**)
-  const boldParts = parts.flatMap((part, idx) => {
+  const boldParts = overlineParts.flatMap((part, idx) => {
     if (typeof part !== 'string') return [part];
     
     const boldRegex = /\*\*([^*]+)\*\*/g;
@@ -83,6 +149,23 @@ export function parseMathText(text: string): React.ReactNode {
     
     return subParts;
   });
+
+  // Parse newlines (\n) to <br /> elements
+  const finalParts = boldParts.flatMap((part, idx) => {
+    if (typeof part !== 'string') return [part];
+    
+    const lines = part.split("\n");
+    const result: React.ReactNode[] = [];
+    
+    lines.forEach((line, lineIdx) => {
+      if (lineIdx > 0) {
+        result.push(<br key={`br-${idx}-${lineIdx}`} />);
+      }
+      result.push(line);
+    });
+    
+    return result;
+  });
   
-  return <>{boldParts}</>;
+  return <>{finalParts}</>;
 }

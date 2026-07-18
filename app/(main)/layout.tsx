@@ -10,7 +10,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="dark-mode flex min-h-screen bg-snow-white text-almost-black font-din-round pt-14 md:pt-0 pb-[68px] md:pb-0 overflow-x-hidden">
+    <div className="dark-mode flex min-h-screen bg-snow-white text-almost-black font-din-round pt-14 md:pt-0 pb-[68px] md:pb-0 overflow-x-clip">
       {/* Mobile Top Header Navigation */}
       <MobileHeader />
 

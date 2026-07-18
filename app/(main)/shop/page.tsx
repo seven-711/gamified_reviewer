@@ -781,38 +781,12 @@ export default function ShopPage() {
                     </span>
                   </div>
                 </div>
-                {mockExamsUnlocked ? (
-                  <button
-                    disabled
-                    className="w-full md:w-auto border-2 border-duo-green/20 bg-duo-green/10 text-duo-green font-extrabold px-3 md:px-4 py-2.5 rounded-xl text-[10px] md:text-xs uppercase tracking-wider shrink-0 cursor-not-allowed"
-                  >
-                    UNLOCKED
-                  </button>
-                ) : (
-                  <button
-                    disabled={purchasingItemId !== null}
-                    onClick={() =>
-                      handleBuyItem(
-                        "mock_exams",
-                        500,
-                        () => {
-                          setMockExamsUnlocked(true);
-                          localStorage.setItem("resource_premium_mock_exams_unlocked", "true");
-                        },
-                        "Premium Mock Exam Packs unlocked!"
-                      )
-                    }
-                    className="w-full md:w-auto bg-duo-green hover:bg-duo-green/95 text-white font-extrabold px-3 md:px-4 py-2.5 rounded-xl text-[10px] md:text-xs uppercase tracking-wider shrink-0 cursor-pointer shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-cloud-gray disabled:text-silver disabled:shadow-none"
-                  >
-                    {purchasingItemId === "mock_exams" ? (
-                      "BUYING..."
-                    ) : (
-                      <span className="flex items-center justify-center gap-1">
-                        GET FOR <Image src="/img/gen_imgs/diamond.webp" alt="Gems" width={16} height={16} className="inline object-contain" /> 500
-                      </span>
-                    )}
-                  </button>
-                )}
+                <button
+                  disabled
+                  className="w-full md:w-auto bg-cloud-gray text-silver font-extrabold px-4 py-2.5 rounded-xl text-[10px] md:text-xs uppercase tracking-wider shrink-0 cursor-not-allowed border-none shadow-none"
+                >
+                  COMING SOON
+                </button>
               </div>
 
               {/* Focus Study Packs */}
@@ -835,38 +809,12 @@ export default function ShopPage() {
                     </span>
                   </div>
                 </div>
-                {focusPacksUnlocked ? (
-                  <button
-                    disabled
-                    className="w-full md:w-auto border-2 border-duo-green/20 bg-duo-green/10 text-duo-green font-extrabold px-3 md:px-4 py-2.5 rounded-xl text-[10px] md:text-xs uppercase tracking-wider shrink-0 cursor-not-allowed"
-                  >
-                    UNLOCKED
-                  </button>
-                ) : (
-                  <button
-                    disabled={purchasingItemId !== null}
-                    onClick={() =>
-                      handleBuyItem(
-                        "focus_packs",
-                        300,
-                        () => {
-                          setFocusPacksUnlocked(true);
-                          localStorage.setItem("resource_focus_study_packs_unlocked", "true");
-                        },
-                        "Focus Study Packs unlocked!"
-                      )
-                    }
-                    className="w-full md:w-auto bg-duo-green hover:bg-duo-green/95 text-white font-extrabold px-3 md:px-4 py-2.5 rounded-xl text-[10px] md:text-xs uppercase tracking-wider shrink-0 cursor-pointer shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-cloud-gray disabled:text-silver disabled:shadow-none"
-                  >
-                    {purchasingItemId === "focus_packs" ? (
-                      "BUYING..."
-                    ) : (
-                      <span className="flex items-center justify-center gap-1">
-                        GET FOR <Image src="/img/gen_imgs/diamond.webp" alt="Gems" width={16} height={16} className="inline object-contain" /> 300
-                      </span>
-                    )}
-                  </button>
-                )}
+                <button
+                  disabled
+                  className="w-full md:w-auto bg-cloud-gray text-silver font-extrabold px-4 py-2.5 rounded-xl text-[10px] md:text-xs uppercase tracking-wider shrink-0 cursor-not-allowed border-none shadow-none"
+                >
+                  COMING SOON
+                </button>
               </div>
 
               {/* Downloadable PDF Cheat Sheets */}
@@ -889,38 +837,12 @@ export default function ShopPage() {
                     </span>
                   </div>
                 </div>
-                {pdfCheatSheetsUnlocked ? (
-                  <button
-                    disabled
-                    className="w-full md:w-auto border-2 border-duo-green/20 bg-duo-green/10 text-duo-green font-extrabold px-3 md:px-4 py-2.5 rounded-xl text-[10px] md:text-xs uppercase tracking-wider shrink-0 cursor-not-allowed"
-                  >
-                    UNLOCKED
-                  </button>
-                ) : (
-                  <button
-                    disabled={purchasingItemId !== null}
-                    onClick={() =>
-                      handleBuyItem(
-                        "pdf_sheets",
-                        400,
-                        () => {
-                          setPdfCheatSheetsUnlocked(true);
-                          localStorage.setItem("resource_pdf_cheat_sheets_unlocked", "true");
-                        },
-                        "Downloadable PDF Cheat Sheets unlocked!"
-                      )
-                    }
-                    className="w-full md:w-auto bg-duo-green hover:bg-duo-green/95 text-white font-extrabold px-3 md:px-4 py-2.5 rounded-xl text-[10px] md:text-xs uppercase tracking-wider shrink-0 cursor-pointer shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-cloud-gray disabled:text-silver disabled:shadow-none"
-                  >
-                    {purchasingItemId === "pdf_sheets" ? (
-                      "BUYING..."
-                    ) : (
-                      <span className="flex items-center justify-center gap-1">
-                        GET FOR <Image src="/img/gen_imgs/diamond.webp" alt="Gems" width={16} height={16} className="inline object-contain" /> 400
-                      </span>
-                    )}
-                  </button>
-                )}
+                <button
+                  disabled
+                  className="w-full md:w-auto bg-cloud-gray text-silver font-extrabold px-4 py-2.5 rounded-xl text-[10px] md:text-xs uppercase tracking-wider shrink-0 cursor-not-allowed border-none shadow-none"
+                >
+                  COMING SOON
+                </button>
               </div>
             </div>
           </div>
@@ -952,47 +874,12 @@ export default function ShopPage() {
                     </span>
                   </div>
                 </div>
-                {neonThemeUnlocked ? (
-                  equippedTheme === "neon" ? (
-                    <button
-                      disabled
-                      className="w-full md:w-auto border-2 border-duo-green/20 bg-duo-green/10 text-duo-green font-extrabold px-3 md:px-4 py-2.5 rounded-xl text-[10px] md:text-xs uppercase tracking-wider shrink-0 cursor-not-allowed"
-                    >
-                      EQUIPPED
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => handleEquipCosmetic("theme", "neon")}
-                      className="w-full md:w-auto bg-duo-green hover:bg-duo-green/95 text-white font-extrabold px-3 md:px-4 py-2.5 rounded-xl text-[10px] md:text-xs uppercase tracking-wider shrink-0 cursor-pointer shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none transition-all"
-                    >
-                      EQUIP
-                    </button>
-                  )
-                ) : (
-                  <button
-                    disabled={purchasingItemId !== null}
-                    onClick={() =>
-                      handleBuyItem(
-                        "theme_neon",
-                        250,
-                        () => {
-                          setNeonThemeUnlocked(true);
-                          localStorage.setItem("cosmetic_theme_neon_unlocked", "true");
-                        },
-                        "Neon Glow Theme unlocked!"
-                      )
-                    }
-                    className="w-full md:w-auto bg-duo-green hover:bg-duo-green/95 text-white font-extrabold px-3 md:px-4 py-2.5 rounded-xl text-[10px] md:text-xs uppercase tracking-wider shrink-0 cursor-pointer shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-cloud-gray disabled:text-silver disabled:shadow-none"
-                  >
-                    {purchasingItemId === "theme_neon" ? (
-                      "BUYING..."
-                    ) : (
-                      <span className="flex items-center justify-center gap-1">
-                        GET FOR <Image src="/img/gen_imgs/diamond.webp" alt="Gems" width={16} height={16} className="inline object-contain" /> 250
-                      </span>
-                    )}
-                  </button>
-                )}
+                <button
+                  disabled
+                  className="w-full md:w-auto bg-cloud-gray text-silver font-extrabold px-4 py-2.5 rounded-xl text-[10px] md:text-xs uppercase tracking-wider shrink-0 cursor-not-allowed border-none shadow-none"
+                >
+                  COMING SOON
+                </button>
               </div>
 
               {/* Sakura Theme */}
@@ -1015,47 +902,12 @@ export default function ShopPage() {
                     </span>
                   </div>
                 </div>
-                {sakuraThemeUnlocked ? (
-                  equippedTheme === "sakura" ? (
-                    <button
-                      disabled
-                      className="w-full md:w-auto border-2 border-duo-green/20 bg-duo-green/10 text-duo-green font-extrabold px-3 md:px-4 py-2.5 rounded-xl text-[10px] md:text-xs uppercase tracking-wider shrink-0 cursor-not-allowed"
-                    >
-                      EQUIPPED
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => handleEquipCosmetic("theme", "sakura")}
-                      className="w-full md:w-auto bg-duo-green hover:bg-duo-green/95 text-white font-extrabold px-3 md:px-4 py-2.5 rounded-xl text-[10px] md:text-xs uppercase tracking-wider shrink-0 cursor-pointer shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none transition-all"
-                    >
-                      EQUIP
-                    </button>
-                  )
-                ) : (
-                  <button
-                    disabled={purchasingItemId !== null}
-                    onClick={() =>
-                      handleBuyItem(
-                        "theme_sakura",
-                        250,
-                        () => {
-                          setSakuraThemeUnlocked(true);
-                          localStorage.setItem("cosmetic_theme_sakura_unlocked", "true");
-                        },
-                        "Sakura Theme unlocked!"
-                      )
-                    }
-                    className="w-full md:w-auto bg-duo-green hover:bg-duo-green/95 text-white font-extrabold px-3 md:px-4 py-2.5 rounded-xl text-[10px] md:text-xs uppercase tracking-wider shrink-0 cursor-pointer shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-cloud-gray disabled:text-silver disabled:shadow-none"
-                  >
-                    {purchasingItemId === "theme_sakura" ? (
-                      "BUYING..."
-                    ) : (
-                      <span className="flex items-center justify-center gap-1">
-                        GET FOR <Image src="/img/gen_imgs/diamond.webp" alt="Gems" width={16} height={16} className="inline object-contain" /> 250
-                      </span>
-                    )}
-                  </button>
-                )}
+                <button
+                  disabled
+                  className="w-full md:w-auto bg-cloud-gray text-silver font-extrabold px-4 py-2.5 rounded-xl text-[10px] md:text-xs uppercase tracking-wider shrink-0 cursor-not-allowed border-none shadow-none"
+                >
+                  COMING SOON
+                </button>
               </div>
 
               {/* Golden Avatar Frame */}
@@ -1078,47 +930,12 @@ export default function ShopPage() {
                     </span>
                   </div>
                 </div>
-                {goldenFrameUnlocked ? (
-                  equippedFrame === "golden" ? (
-                    <button
-                      disabled
-                      className="w-full md:w-auto border-2 border-duo-green/20 bg-duo-green/10 text-duo-green font-extrabold px-3 md:px-4 py-2.5 rounded-xl text-[10px] md:text-xs uppercase tracking-wider shrink-0 cursor-not-allowed"
-                    >
-                      EQUIPPED
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => handleEquipCosmetic("frame", "golden")}
-                      className="w-full md:w-auto bg-duo-green hover:bg-duo-green/95 text-white font-extrabold px-3 md:px-4 py-2.5 rounded-xl text-[10px] md:text-xs uppercase tracking-wider shrink-0 cursor-pointer shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none transition-all"
-                    >
-                      EQUIP
-                    </button>
-                  )
-                ) : (
-                  <button
-                    disabled={purchasingItemId !== null}
-                    onClick={() =>
-                      handleBuyItem(
-                        "frame_golden",
-                        300,
-                        () => {
-                          setGoldenFrameUnlocked(true);
-                          localStorage.setItem("cosmetic_frame_golden_unlocked", "true");
-                        },
-                        "Golden Avatar Frame unlocked!"
-                      )
-                    }
-                    className="w-full md:w-auto bg-duo-green hover:bg-duo-green/95 text-white font-extrabold px-3 md:px-4 py-2.5 rounded-xl text-[10px] md:text-xs uppercase tracking-wider shrink-0 cursor-pointer shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-cloud-gray disabled:text-silver disabled:shadow-none"
-                  >
-                    {purchasingItemId === "frame_golden" ? (
-                      "BUYING..."
-                    ) : (
-                      <span className="flex items-center justify-center gap-1">
-                        GET FOR <Image src="/img/gen_imgs/diamond.webp" alt="Gems" width={16} height={16} className="inline object-contain" /> 300
-                      </span>
-                    )}
-                  </button>
-                )}
+                <button
+                  disabled
+                  className="w-full md:w-auto bg-cloud-gray text-silver font-extrabold px-4 py-2.5 rounded-xl text-[10px] md:text-xs uppercase tracking-wider shrink-0 cursor-not-allowed border-none shadow-none"
+                >
+                  COMING SOON
+                </button>
               </div>
 
               {/* "Civil Servant" Profile Badge */}
@@ -1141,47 +958,12 @@ export default function ShopPage() {
                     </span>
                   </div>
                 </div>
-                {civilServantBadgeUnlocked ? (
-                  equippedBadge === "civil_servant" ? (
-                    <button
-                      disabled
-                      className="w-full md:w-auto border-2 border-duo-green/20 bg-duo-green/10 text-duo-green font-extrabold px-3 md:px-4 py-2.5 rounded-xl text-[10px] md:text-xs uppercase tracking-wider shrink-0 cursor-not-allowed"
-                    >
-                      EQUIPPED
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => handleEquipCosmetic("badge", "civil_servant")}
-                      className="w-full md:w-auto bg-duo-green hover:bg-duo-green/95 text-white font-extrabold px-3 md:px-4 py-2.5 rounded-xl text-[10px] md:text-xs uppercase tracking-wider shrink-0 cursor-pointer shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none transition-all"
-                    >
-                      EQUIP
-                    </button>
-                  )
-                ) : (
-                  <button
-                    disabled={purchasingItemId !== null}
-                    onClick={() =>
-                      handleBuyItem(
-                        "badge_civil_servant",
-                        150,
-                        () => {
-                          setCivilServantBadgeUnlocked(true);
-                          localStorage.setItem("cosmetic_badge_civil_servant_unlocked", "true");
-                        },
-                        "Civil Servant Badge unlocked!"
-                      )
-                    }
-                    className="w-full md:w-auto bg-duo-green hover:bg-duo-green/95 text-white font-extrabold px-3 md:px-4 py-2.5 rounded-xl text-[10px] md:text-xs uppercase tracking-wider shrink-0 cursor-pointer shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-cloud-gray disabled:text-silver disabled:shadow-none"
-                  >
-                    {purchasingItemId === "badge_civil_servant" ? (
-                      "BUYING..."
-                    ) : (
-                      <span className="flex items-center justify-center gap-1">
-                        GET FOR <Image src="/img/gen_imgs/diamond.webp" alt="Gems" width={16} height={16} className="inline object-contain" /> 150
-                      </span>
-                    )}
-                  </button>
-                )}
+                <button
+                  disabled
+                  className="w-full md:w-auto bg-cloud-gray text-silver font-extrabold px-4 py-2.5 rounded-xl text-[10px] md:text-xs uppercase tracking-wider shrink-0 cursor-not-allowed border-none shadow-none"
+                >
+                  COMING SOON
+                </button>
               </div>
 
               {/* Clear Selection Option */}
@@ -1245,7 +1027,7 @@ export default function ShopPage() {
       </main>
 
       {/* Right Sidebar */}
-      <aside className="hidden lg:block w-[368px] shrink-0 pt-4 md:pt-8 font-din-round">
+      <aside className="hidden lg:block w-[368px] shrink-0 pt-4 md:pt-8 font-din-round lg:sticky lg:top-6 lg:self-start lg:h-fit">
         <div className="flex flex-col gap-6">
 
           {/* Top Stats Bar */}

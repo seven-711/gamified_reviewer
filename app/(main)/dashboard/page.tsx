@@ -646,10 +646,6 @@ export default function DashboardPage() {
                   )}
                 </h2>
               </div>
-              <button className="flex items-center justify-center gap-2 bg-white/20 hover:bg-white/30 text-white font-bold p-2.5 sm:px-4 sm:py-2.5 rounded-2xl transition-colors shadow-[0_2px_0_rgba(255,255,255,0.2)] shrink-0">
-                <Image src="/emoji/guidebook.webp" alt="Guidebook" width={24} height={24} className="brightness-0 invert w-auto h-auto" />
-                <span className="hidden sm:inline text-sm">GUIDEBOOK</span>
-              </button>
             </div>
           </div>
 
@@ -718,7 +714,7 @@ export default function DashboardPage() {
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-2xl">📈</span>
                       <span className="bg-duo-green/10 text-duo-green text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
-                        Ready (8 Chapters)
+                        Ready (13 Chapters)
                       </span>
                     </div>
                     <h4 className="font-feather text-base md:text-lg font-bold text-charcoal">
@@ -925,6 +921,11 @@ export default function DashboardPage() {
                       else if (testNum === 6) testTitle = "Chapter 6: Average";
                       else if (testNum === 7) testTitle = "Chapter 7: Problems on Ages";
                       else if (testNum === 8) testTitle = "Chapter 8: Profit and Loss";
+                      else if (testNum === 9) testTitle = "Chapter 9: Squares and Square Roots";
+                      else if (testNum === 10) testTitle = "Chapter 10: Cubes and Cube Roots";
+                      else if (testNum === 11) testTitle = "Chapter 11: Series";
+                      else if (testNum === 12) testTitle = "Chapter 12: Progression and Sequence";
+                      else if (testNum === 13) testTitle = "Chapter 13: Fractions";
                       else testTitle = `Chapter ${testNum}`;
                     }
                     const testId = `${formattedTopic}_test${testNum}`;
@@ -1044,7 +1045,7 @@ export default function DashboardPage() {
         </div>
       </main>
 
-      <aside className="w-full lg:w-[368px] shrink-0">
+      <aside className="w-full lg:w-[368px] shrink-0 lg:sticky lg:top-6 lg:self-start lg:h-fit">
         <RightSidebar />
       </aside>
 
