@@ -1005,7 +1005,7 @@ function LessonContent() {
                     localStorage.removeItem(`quiz_state_${testId}`);
                     router.push("/dashboard");
                   }}
-                  className="w-full sm:flex-1 bg-white text-[#ff4b4b] border-2 border-cloud-gray font-bold py-3 px-6 rounded-2xl shadow-[0_4px_0_var(--color-cloud-gray)] active:translate-y-[4px] active:shadow-none hover:bg-gray-50 transition-all text-body text-center cursor-pointer font-din-round"
+                  className="w-full sm:flex-1 bg-white dark:bg-transparent text-[#ff4b4b] border-2 border-cloud-gray dark:border-cloud-gray/15 font-bold py-3 px-6 rounded-2xl shadow-[0_4px_0_var(--color-cloud-gray)] dark:shadow-none active:translate-y-[4px] active:shadow-none hover:bg-gray-50 dark:hover:bg-slate-800/40 transition-all text-body text-center cursor-pointer font-din-round"
                 >
                   QUIT TEST
                 </button>
@@ -1660,6 +1660,9 @@ function StreakPage({ streak, weekProgress, onContinue }: StreakPageProps) {
             {daysOfWeek.map((day, index) => {
               const isToday = isHydrated && index === todayIndex;
               const isCompleted = weekProgress[index];
+              const isPast = isHydrated && index < todayIndex;
+              const isSavedByFreeze = isPast && !isCompleted && streak > 0;
+
               return (
                 <div key={day} className="flex flex-col items-center gap-3 flex-1">
                   {/* Day Name Label */}
@@ -1690,6 +1693,15 @@ function StreakPage({ streak, weekProgress, onContinue }: StreakPageProps) {
                         >
                           <polyline points="20 6 9 17 4 12" />
                         </svg>
+                      </div>
+                    ) : isSavedByFreeze ? (
+                      /* Saved by Freeze: Blue freeze icon */
+                      <div className="w-9 h-9 md:w-10 md:h-10 flex items-center justify-center shrink-0">
+                        <img
+                          src="/img/gen_imgs/Streak/streak_freeze.webp"
+                          alt="Streak Freeze Used"
+                          className="w-full h-full object-contain filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]"
+                        />
                       </div>
                     ) : (
                       /* Not Completed: Dark empty circle */

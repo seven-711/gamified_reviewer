@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { UserButton, useUser } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
 import { useStats } from "@/components/ui/StatsContext";
 import { StreakAsset } from "@/components/ui/StreakAsset";
 import { supabase } from "@/lib/supabase";
@@ -71,6 +72,7 @@ function getLeagueInfo(xp: number, lessonsCompleted: number, rank: number): Leag
 }
 
 export default function RightSidebar() {
+  const router = useRouter();
   const { user, isLoaded, isSignedIn } = useUser();
   const { streak, xp, hearts, gems, lastLessonDate, refreshStats, updateStatsLocally } = useStats();
   const { showAlert } = useAlert();
@@ -257,7 +259,17 @@ export default function RightSidebar() {
           <span className="text-xl">🇵🇭</span>
         </div>
         {/* Streak */}
-        <div className={`flex items-center gap-2 ${isStreakActive ? "text-orange-500" : "text-silver"} cursor-pointer hover:bg-duo-green-light p-2 rounded-xl transition-colors`}>
+        <div 
+          onClick={() => {
+            if (streak > 0) {
+              router.push('/streak');
+            } else {
+              showAlert("Complete a lesson today to start your streak!");
+            }
+          }}
+          className={`flex items-center gap-2 ${isStreakActive ? "text-orange-500" : "text-silver opacity-80"} cursor-pointer hover:bg-duo-green-light p-2 rounded-xl transition-colors`}
+          title="View Streak Calendar"
+        >
           <StreakAsset
             streak={streak}
             width={28}
