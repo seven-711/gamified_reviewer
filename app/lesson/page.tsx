@@ -947,6 +947,17 @@ function LessonContent() {
           <h2 className="font-feather text-[22px] md:text-[28px] text-charcoal dark:text-white mb-4 leading-snug">
             {parseMathText(example.prompt)}
           </h2>
+
+          {example.image && (
+            <div className="w-full flex flex-col items-center justify-center mb-4 relative min-h-[150px]">
+              <img
+                src={example.image}
+                alt="Example Context"
+                className="max-w-full w-full h-auto max-h-[60vh] md:max-h-[500px] object-contain border-2 border-cloud-gray rounded-xl"
+              />
+            </div>
+          )}
+
           <div className="bg-sky-blue/10 dark:bg-sky-blue/5 rounded-2xl p-6 border-2 border-sky-blue/20 dark:border-sky-blue/10">
             <p className="text-sky-blue font-bold mb-2 uppercase text-sm tracking-wider">Solution / Explanation</p>
             <div className="text-[14px] md:text-[17px] text-almost-black dark:text-[#f1f5f9] whitespace-pre-wrap leading-relaxed">
@@ -1240,12 +1251,12 @@ function LessonContent() {
 
       {/* Main Quiz Area */}
       <main className="grow flex flex-col max-w-[800px] w-full mx-auto px-4 md:px-6 py-4 md:py-6">
-        <h2 className="font-feather text-[22px] md:text-[28px] text-charcoal dark:text-white mb-4 leading-snug">
+        <h2 className="font-din-round font-bold text-[22px] md:text-[28px] text-charcoal dark:text-white mb-4 leading-snug">
           {parseMathText(question.prompt)}
         </h2>
 
         {/* Question Image */}
-        {question.type === "image" && question.image && (
+        {question.image && (
           <div className="w-full flex flex-col items-center justify-center mb-4 relative min-h-[150px]">
             <img
               src={question.image}

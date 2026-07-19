@@ -511,8 +511,9 @@ export default function DashboardPage() {
       const formattedTopic = topicName.toLowerCase().replace(/[^a-z0-9]+/g, '_');
 
       const loadedScores: Record<string, { score: number, total: number, previousBest?: number, lastScore?: number, attempts?: number }> = {};
-      for (let i = 1; i <= testCount; i++) {
-        const testId = `${formattedTopic}_test${i}`;
+      const currentTestCount = quantSection === "part2_secA" ? 7 : testCount;
+      for (let i = 1; i <= currentTestCount; i++) {
+        const testId = quantSection === "part2_secA" ? `part2_secA_test${i}` : `${formattedTopic}_test${i}`;
         const scoreData = localStorage.getItem(`quiz_score_${testId}`);
         if (scoreData) {
           try {
@@ -528,7 +529,7 @@ export default function DashboardPage() {
         setScores(loadedScores);
       }, 0);
     }
-  }, [profile, testCount]);
+  }, [profile, testCount, quantSection]);
 
   const handleTopicClick = (topicName: string, testId?: string) => {
     if (testId) {
@@ -610,8 +611,9 @@ export default function DashboardPage() {
   const formattedTopic = topicName.toLowerCase().replace(/[^a-z0-9]+/g, '_');
 
   let activeIndex = 0;
-  for (let i = 1; i <= testCount; i++) {
-    const tId = `${formattedTopic}_test${i}`;
+  const renderCount = quantSection === "part2_secA" ? 7 : testCount;
+  for (let i = 1; i <= renderCount; i++) {
+    const tId = quantSection === "part2_secA" ? `part2_secA_test${i}` : `${formattedTopic}_test${i}`;
     // Unlock next test if previous test exists and score is >= 80% of total
     if (scores[tId] && scores[tId].total > 0 && (scores[tId].score / scores[tId].total) >= 0.8) {
       activeIndex = i; // Move active to the next test
@@ -619,10 +621,10 @@ export default function DashboardPage() {
       break; // Found an uncompleted or failed (<80%) test
     }
   }
-  if (activeIndex >= testCount) activeIndex = testCount - 1; // Cap at the last test if all are completed
+  if (activeIndex >= renderCount) activeIndex = renderCount - 1; // Cap at the last test if all are completed
   const isQuantTopic = formattedTopic === "quantitative_reasoning";
   const showSubOnboarding = isQuantTopic && !quantSection;
-  const showComingSoon = isQuantTopic && quantSection && quantSection !== "part1";
+  const showComingSoon = isQuantTopic && quantSection && quantSection !== "part1" && quantSection !== "part2_secA";
 
   return (
     <>
@@ -714,7 +716,7 @@ export default function DashboardPage() {
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-2xl">📈</span>
                       <span className="bg-duo-green/10 text-duo-green text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
-                        Ready (19 Chapters)
+                        Ready (42 Chapters)
                       </span>
                     </div>
                     <h4 className="font-feather text-base md:text-lg font-bold text-charcoal">
@@ -735,13 +737,13 @@ export default function DashboardPage() {
                     setQuantSection("part2_secA");
                     localStorage.setItem("quant_reasoning_section", "part2_secA");
                   }}
-                  className="flex flex-col justify-between p-5 rounded-2xl border-2 border-cloud-gray hover:border-sky-blue bg-snow-white hover:bg-sky-blue/5 shadow-[0_4px_0_var(--color-cloud-gray)] hover:shadow-[0_4px_0_#189edc] cursor-pointer transition-all duration-150 active:translate-y-0.5 select-none text-left opacity-75"
+                  className="flex flex-col justify-between p-5 rounded-2xl border-2 border-cloud-gray hover:border-sky-blue bg-snow-white hover:bg-sky-blue/5 shadow-[0_4px_0_var(--color-cloud-gray)] hover:shadow-[0_4px_0_#189edc] cursor-pointer transition-all duration-150 active:translate-y-0.5 select-none text-left"
                 >
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-2xl">🧠</span>
-                      <span className="bg-silver/10 text-silver text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
-                        Coming Soon
+                      <span className="bg-duo-green/10 text-duo-green text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                        Ready (7 Exercises)
                       </span>
                     </div>
                     <h4 className="font-feather text-base md:text-lg font-bold text-charcoal">
@@ -751,8 +753,8 @@ export default function DashboardPage() {
                       Logical deductions, analytical scenarios, and verbal-logical relations.
                     </p>
                   </div>
-                  <div className="mt-4 text-silver font-bold text-xs">
-                    Explore Preview →
+                  <div className="mt-4 text-sky-blue font-bold text-xs flex items-center gap-1">
+                    Start Learning →
                   </div>
                 </div>
 
@@ -907,34 +909,68 @@ export default function DashboardPage() {
                     </div>
                   ))
                 ) : (
-                  Array.from({ length: testCount }, (_, i) => i + 1).map((testNum, index) => {
+                  Array.from({ length: quantSection === "part2_secA" ? 7 : testCount }, (_, i) => i + 1).map((testNum, index) => {
                     const isActive = index === activeIndex;
                     const isLocked = !unlockAll && index > activeIndex;
 
                     let testTitle = `${topicName} - Test ${testNum}`;
                     if (formattedTopic === "quantitative_reasoning") {
-                      if (testNum === 1) testTitle = "Chapter 1: HCF and LCM";
-                      else if (testNum === 2) testTitle = "Chapter 2: Permutation and Combination";
-                      else if (testNum === 3) testTitle = "Chapter 3: Probability";
-                      else if (testNum === 4) testTitle = "Chapter 4: Ratio and Proportion";
-                      else if (testNum === 5) testTitle = "Chapter 5: Percentage";
-                      else if (testNum === 6) testTitle = "Chapter 6: Average";
-                      else if (testNum === 7) testTitle = "Chapter 7: Problems on Ages";
-                      else if (testNum === 8) testTitle = "Chapter 8: Profit and Loss";
-                      else if (testNum === 9) testTitle = "Chapter 9: Squares and Square Roots";
-                      else if (testNum === 10) testTitle = "Chapter 10: Cubes and Cube Roots";
-                      else if (testNum === 11) testTitle = "Chapter 11: Series";
-                      else if (testNum === 12) testTitle = "Chapter 12: Progression and Sequence";
-                      else if (testNum === 13) testTitle = "Chapter 13: Fractions";
-                      else if (testNum === 14) testTitle = "Chapter 14: Elementary Algebra I";
-                      else if (testNum === 15) testTitle = "Chapter 15: Elementary Algebra II";
-                      else if (testNum === 16) testTitle = "Chapter 16: Partnership";
-                      else if (testNum === 17) testTitle = "Chapter 17: Simple Interest";
-                      else if (testNum === 18) testTitle = "Chapter 18: Compound Interest";
-                      else if (testNum === 19) testTitle = "Chapter 19: Time and Work";
-                      else testTitle = `Chapter ${testNum}`;
+                      if (quantSection === "part2_secA") {
+                        if (testNum === 1) testTitle = "Chapter 1: Analogy (Exercise 1)";
+                        else if (testNum === 2) testTitle = "Chapter 1: Analogy (Exercise 2)";
+                        else if (testNum === 3) testTitle = "Chapter 1: Analogy (Exercise 3)";
+                        else if (testNum === 4) testTitle = "Chapter 1: Analogy (Exercise 4)";
+                        else if (testNum === 5) testTitle = "Chapter 1: Analogy (Exercise 5)";
+                        else if (testNum === 6) testTitle = "Chapter 1: Analogy (Exercise 6)";
+                        else if (testNum === 7) testTitle = "Chapter 1: Analogy (Exercise 7)";
+                        else testTitle = `Chapter ${testNum}`;
+                      } else {
+                        if (testNum === 1) testTitle = "Chapter 1: HCF and LCM";
+                        else if (testNum === 2) testTitle = "Chapter 2: Permutation and Combination";
+                        else if (testNum === 3) testTitle = "Chapter 3: Probability";
+                        else if (testNum === 4) testTitle = "Chapter 4: Ratio and Proportion";
+                        else if (testNum === 5) testTitle = "Chapter 5: Percentage";
+                        else if (testNum === 6) testTitle = "Chapter 6: Average";
+                        else if (testNum === 7) testTitle = "Chapter 7: Problems on Ages";
+                        else if (testNum === 8) testTitle = "Chapter 8: Profit and Loss";
+                        else if (testNum === 9) testTitle = "Chapter 9: Squares and Square Roots";
+                        else if (testNum === 10) testTitle = "Chapter 10: Cubes and Cube Roots";
+                        else if (testNum === 11) testTitle = "Chapter 11: Series";
+                        else if (testNum === 12) testTitle = "Chapter 12: Progression and Sequence";
+                        else if (testNum === 13) testTitle = "Chapter 13: Fractions";
+                        else if (testNum === 14) testTitle = "Chapter 14: Elementary Algebra I";
+                        else if (testNum === 15) testTitle = "Chapter 15: Elementary Algebra II";
+                        else if (testNum === 16) testTitle = "Chapter 16: Partnership";
+                        else if (testNum === 17) testTitle = "Chapter 17: Simple Interest";
+                        else if (testNum === 18) testTitle = "Chapter 18: Compound Interest";
+                        else if (testNum === 19) testTitle = "Chapter 19: Time and Work";
+                        else if (testNum === 20) testTitle = "Chapter 20: Work and Wages";
+                        else if (testNum === 21) testTitle = "Chapter 21: Pipes and Cistern";
+                        else if (testNum === 22) testTitle = "Chapter 22: Alligation";
+                        else if (testNum === 23) testTitle = "Chapter 23: Problems on Trains";
+                        else if (testNum === 24) testTitle = "Chapter 24: Boats and Streams";
+                        else if (testNum === 25) testTitle = "Chapter 25: Elementary Mensuration I (Measurement of Area)";
+                        else if (testNum === 26) testTitle = "Chapter 26: Elementary Mensuration II (Measurement of Volume and Surface Area)";
+                        else if (testNum === 27) testTitle = "Chapter 27: Problems on Clock";
+                        else if (testNum === 28) testTitle = "Chapter 28: Problems on Calendar";
+                        else if (testNum === 29) testTitle = "Chapter 29: Time and Distance";
+                        else if (testNum === 30) testTitle = "Chapter 30: Heights and Distances";
+                        else if (testNum === 31) testTitle = "Chapter 31: Trigonometry";
+                        else if (testNum === 32) testTitle = "Chapter 32: Odd man out and series";
+                        else if (testNum === 33) testTitle = "Chapter 33: Data Sufficiency";
+                        else if (testNum === 34) testTitle = "Chapter 34: Data Analysis";
+                        else if (testNum === 35) testTitle = "Chapter 35: Mathematical Operations";
+                        else if (testNum === 36) testTitle = "Chapter 36: Number System";
+                        else if (testNum === 37) testTitle = "Chapter 37: Arithmetic Reasoning";
+                        else if (testNum === 38) testTitle = "Chapter 38: Simplification";
+                        else if (testNum === 39) testTitle = "Chapter 39: Races and Games";
+                        else if (testNum === 40) testTitle = "Chapter 40: Stocks and Shares";
+                        else if (testNum === 41) testTitle = "Chapter 41: Discount";
+                        else if (testNum === 42) testTitle = "Chapter 42: Logarithm";
+                        else testTitle = `Chapter ${testNum}`;
+                      }
                     }
-                    const testId = `${formattedTopic}_test${testNum}`;
+                    const testId = quantSection === "part2_secA" ? `part2_secA_test${testNum}` : `${formattedTopic}_test${testNum}`;
                     const scoreData = scores[testId];
 
                     let cardClass = "";
