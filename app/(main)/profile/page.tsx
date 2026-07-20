@@ -381,11 +381,11 @@ export default function ProfilePage() {
   if (isLoaded && (!isSignedIn || !user)) {
     return (
       <main className="flex-1 w-full max-w-[600px] mx-auto pb-24 pt-12 flex flex-col items-center text-center px-6">
-        <div className="w-32 h-32 relative mb-6 opacity-80">
+        <div className="w-52 h-52 relative mb-6 opacity-80">
           <Image src="/emoji/profile.webp" alt="Profile" fill className="object-contain" unoptimized />
         </div>
         <h2 className="font-feather text-3xl font-bold text-duo-green mb-4">Create a Profile!</h2>
-        <p className="text-silver font-din-round text-[17px] mb-8 max-w-[400px]">Sign up to track your streak, earn XP, and compete on the leaderboards.</p>
+        <p className="text-silver font-din-rou1nd text-[17px] mb-8 max-w-[400px]">Sign up to track your streak, earn XP, and compete on the leaderboards.</p>
         <button onClick={() => router.push("/signup")} className="bg-duo-green text-white font-bold px-8 py-4 rounded-2xl hover:brightness-110 transition-colors shadow-[0_4px_0_#3f8f01] active:shadow-[0_0px_0_#3f8f01] active:translate-y-1 uppercase tracking-widest text-body w-full max-w-[300px]">
           Sign Up Now
         </button>

@@ -997,7 +997,7 @@ export default function ShopPage() {
 
         {(!isSignedIn || !user) && (
           /* Create Profile Overlay Modal */
-          <div className="absolute inset-0 flex items-center justify-center z-20 px-4 mt-8 md:mt-16">
+          <div className="fixed inset-0 flex items-center justify-center z-20 px-4">
             <div className="bg-snow-white border-2 border-cloud-gray border-b-8 rounded-[24px] w-full max-w-[420px] p-6 md:p-8 flex flex-col gap-6 text-center shadow-lg">
               {/* Animated coins/chest display */}
               <div className="w-full flex justify-center gap-2">

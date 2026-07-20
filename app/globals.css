@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *, .dark-mode, .dark-mode *));
+
 @theme {
   /* Colors */
   --color-duo-green: #58cc02;

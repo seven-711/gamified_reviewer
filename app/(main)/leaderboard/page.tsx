@@ -397,7 +397,7 @@ export default function LeaderboardPage() {
           /* Locked Leaderboard State */
           <div className="w-full flex flex-col items-center">
             <div className="w-full flex justify-center mb-6 relative">
-              <div className="w-48 h-48 relative">
+              <div className="w-68 h-68 relative">
                 <Image src="/emoji/unlockleaderboard.webp" alt="Unlock Leaderboard" fill className="object-contain" unoptimized />
               </div>
             </div>

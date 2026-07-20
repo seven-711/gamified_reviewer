@@ -919,7 +919,11 @@ function LessonContent() {
     }
     return (
       <div className="dark-mode min-h-dvh flex flex-col bg-snow-white font-din-round text-almost-black pb-[120px] transition-colors duration-300">
-        <header className="sticky top-0 bg-snow-white border-b border-transparent dark:border-cloud-gray/15 py-4 px-4 md:px-6 z-30 transition-colors duration-300">
+        <header className={`sticky top-0 bg-snow-white py-4 px-4 md:px-6 z-30 transition-all duration-300 ${
+          isDoubleXpActive 
+            ? "border-b border-amber-500/25 dark:border-amber-500/35 shadow-[inset_0_-24px_48px_-24px_rgba(249,115,22,0.18)] dark:shadow-[inset_0_-24px_48px_-24px_rgba(249,115,22,0.3)]" 
+            : "border-b border-transparent dark:border-cloud-gray/15"
+        }`}>
           <div className="max-w-[1024px] mx-auto flex items-center gap-4">
             <button
               onClick={() => setShowExitModal(true)}
@@ -1198,7 +1202,11 @@ function LessonContent() {
     <div className={`dark-mode min-h-dvh flex flex-col bg-snow-white font-din-round text-almost-black transition-colors duration-300 ${status === "correct" || status === "wrong" ? "pb-[250px] md:pb-[200px]" : "pb-[120px] md:pb-80px"
       }`}>
       {/* Header */}
-      <header className="sticky top-0 bg-snow-white border-b border-transparent dark:border-cloud-gray/15 py-4 px-4 md:px-6 z-30 transition-colors duration-300">
+      <header className={`sticky top-0 bg-snow-white py-4 px-4 md:px-6 z-30 transition-all duration-300 ${
+        isDoubleXpActive 
+          ? "border-b border-amber-500/25 dark:border-amber-500/35 shadow-[inset_0_-24px_48px_-24px_rgba(249,115,22,0.18)] dark:shadow-[inset_0_-24px_48px_-24px_rgba(249,115,22,0.3)]" 
+          : "border-b border-transparent dark:border-cloud-gray/15"
+      }`}>
         <div className="max-w-[1024px] mx-auto flex items-center gap-4">
           <button
             onClick={() => setShowExitModal(true)}
@@ -1218,30 +1226,23 @@ function LessonContent() {
             <ProgressBar progress={progress} />
           </div>
 
-          <div className="flex items-center gap-2 select-none">
-            {/* Double XP Indicator */}
-            {isDoubleXpActive && (
-              <div className="flex items-center gap-1 font-bold bg-amber-500/10 text-amber-500 text-[11px] px-2.5 py-1.5 rounded-xl border border-amber-500/20 animate-pulse shrink-0">
-                <span>⚡</span>
-                <span className="hidden sm:inline font-extrabold uppercase">XP Boost</span>
-              </div>
-            )}
+          <div className="flex items-center gap-1 md:gap-2 select-none">
 
             {/* Hearts Indicator */}
-            <div className="flex items-center gap-1.5 font-bold shrink-0 px-3 py-1.5 rounded-xl text-red-500">
+            <div className="flex items-center gap-1 md:gap-1.5 font-bold shrink-0 px-2 py-1 md:px-3 md:py-1.5 rounded-lg md:rounded-xl text-red-500">
               <Image
                 src="/img/gen_imgs/user_life.webp"
                 alt="Hearts"
-                width={20}
-                height={20}
-                className="object-contain"
+                width={16}
+                height={16}
+                className="object-contain w-4 h-4 md:w-5 md:h-5"
               />
-              <span className="text-[17px]">{hearts}</span>
+              <span className="text-sm md:text-[17px]">{hearts}</span>
             </div>
 
             {/* Timer */}
-            <div className={`flex items-center gap-1.5 font-bold shrink-0 px-3 py-1.5 rounded-xl transition-colors ${timeLeft < 60 ? 'text-[#ea2b2b] animate-pulse border-[#ea2b2b]/40 bg-[#ea2b2b]/10' : 'text-graphite dark:text-silver'}`}>
-              <span className="text-[17px] font-mono">
+            <div className={`flex items-center gap-1 md:gap-1.5 font-bold shrink-0 px-2 py-1 md:px-3 md:py-1.5 rounded-lg md:rounded-xl transition-colors ${timeLeft < 60 ? 'text-[#ea2b2b] animate-pulse border-[#ea2b2b]/40 bg-[#ea2b2b]/10' : 'text-graphite dark:text-silver'}`}>
+              <span className="text-sm md:text-[17px] font-mono">
                 {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
               </span>
             </div>
