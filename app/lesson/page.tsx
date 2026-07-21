@@ -1642,7 +1642,7 @@ function StreakPage({ streak, weekProgress, onContinue }: StreakPageProps) {
         {/* Flame Animation & Streak Number */}
         <div className="relative w-84 h-84 md:w-72 md:h-72 flex items-center justify-center">
           <DotLottiePlayer
-            src="/img/gen_imgs/Streak/Flame - Streak.lottie"
+            src={streak >= 10 ? "/img/gen_imgs/Streak/Fire.lottie" : "/img/gen_imgs/Streak/Flame - Streak.lottie"}
             autoplay
             loop
             className="w-full h-full object-contain"

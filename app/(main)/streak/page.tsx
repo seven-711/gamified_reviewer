@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useStats } from "@/components/ui/StatsContext";
 import { useUser } from "@clerk/nextjs";
 import { supabase } from "@/lib/supabase";
+import { StreakAsset } from "@/components/ui/StreakAsset";
 
 export default function StreakPage() {
   const router = useRouter();
@@ -112,15 +113,11 @@ export default function StreakPage() {
             </span>
           </div>
           <div className="w-24 h-24 relative drop-shadow-xl animate-[pulse_3s_infinite]">
-            <Image
-              src="/img/gen_imgs/Streak/streak_freeze.webp" // fallback if flame isn't perfect
-              alt="Streak Flame"
+            <StreakAsset
+              streak={streak}
+              lastLessonDate={lastLessonDate}
               fill
-              className="object-contain filter sepia hue-rotate-[-30deg] saturate-[3] contrast-[1.2]" 
-              unoptimized
-              onError={(e) => {
-                e.currentTarget.style.display = 'none';
-              }}
+              className="object-contain"
             />
             {/* Visual fallback flame icon if image not found */}
             <div className="absolute inset-0 bg-orange-400 rounded-full blur-xl opacity-50 z-[-1]" />

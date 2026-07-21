@@ -2,8 +2,14 @@
 
 import React from "react";
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import { getStreakImage } from "@/lib/streak";
 import { StatsContext } from "@/components/ui/StatsContext";
+
+const DotLottiePlayer = dynamic(
+  () => import("@dotlottie/react-player").then((mod) => mod.DotLottiePlayer),
+  { ssr: false }
+);
 
 interface StreakAssetProps {
   streak: number;
@@ -34,6 +40,9 @@ export function StreakAsset({
   const src = getStreakImage(streak, effectiveLastLessonDate);
   const isVideo = src.endsWith(".webm");
 
+  const todayStr = React.useMemo(() => new Date().toLocaleDateString("en-CA"), []);
+  const isStreakActive = streak > 0 && (effectiveLastLessonDate === undefined || effectiveLastLessonDate === null || effectiveLastLessonDate === todayStr);
+
   const [isSafari, setIsSafari] = React.useState(false);
 
   React.useEffect(() => {
@@ -46,6 +55,22 @@ export function StreakAsset({
       }
     }
   }, []);
+
+  if (isStreakActive && streak >= 10) {
+    return (
+      <DotLottiePlayer
+        src="/img/gen_imgs/Streak/Fire.lottie"
+        autoplay
+        loop
+        className={fill ? `absolute inset-0 w-full h-full ${className}` : className}
+        style={{
+          width: width ? `${width}px` : undefined,
+          height: height ? `${height}px` : undefined,
+          ...style,
+        }}
+      />
+    );
+  }
 
   if (isVideo) {
     if (fill) {
