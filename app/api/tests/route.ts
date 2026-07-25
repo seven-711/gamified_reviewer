@@ -1,28 +1,16 @@
 import { NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
+import abstractReasoningTests from '@/public/data/abstractReasoning.json';
+import logicalReasoningTests from '@/public/data/logicalReasoning.json';
+import numericalReasoningTests from '@/public/data/numericalReasoning.json';
+import quantitativeReasoningFile from '@/public/img/afp_reviewer_imgs/quantitative_reasoning/quantitativeReasoning.json';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const action = searchParams.get('action');
   
   try {
-    const dataDir = path.join(process.cwd(), 'public', 'data');
-    const quantDir = path.join(process.cwd(), 'public', 'img', 'afp_reviewer_imgs', 'quantitative_reasoning');
-    
-    // Read files directly from disk to bypass Next.js compilation
-    const abstractReasoningStr = await fs.promises.readFile(path.join(dataDir, 'abstractReasoning.json'), 'utf8');
-    const logicalReasoningStr = await fs.promises.readFile(path.join(dataDir, 'logicalReasoning.json'), 'utf8');
-    const numericalReasoningStr = await fs.promises.readFile(path.join(dataDir, 'numericalReasoning.json'), 'utf8');
-    const quantitativeReasoningStr = await fs.promises.readFile(path.join(quantDir, 'quantitativeReasoning.json'), 'utf8');
-    
-    const abstractReasoningTests = JSON.parse(abstractReasoningStr);
-    const logicalReasoningTests = JSON.parse(logicalReasoningStr);
-    const numericalReasoningTests = JSON.parse(numericalReasoningStr);
-    const quantitativeReasoningFile = JSON.parse(quantitativeReasoningStr);
-    
-    const quantitativeReasoningTests = quantitativeReasoningFile.quantitativeReasoningTests || {};
-    const quantitativeReasoningExamples = quantitativeReasoningFile.quantitativeReasoningExamples || {};
+    const quantitativeReasoningTests = (quantitativeReasoningFile as any).quantitativeReasoningTests || {};
+    const quantitativeReasoningExamples = (quantitativeReasoningFile as any).quantitativeReasoningExamples || {};
 
     const allTests: Record<string, any[]> = { 
       ...abstractReasoningTests, 
