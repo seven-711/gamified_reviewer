@@ -509,11 +509,13 @@ export default function DashboardPage() {
       const fullTopic = profile?.sub_topic || "General Review";
       const topicName = fullTopic.split(" > ").pop() || fullTopic;
       const formattedTopic = topicName.toLowerCase().replace(/[^a-z0-9]+/g, '_');
+      const isQuantTopic = formattedTopic === "quantitative_reasoning";
+      const isPart2SecA = isQuantTopic && quantSection === "part2_secA";
 
       const loadedScores: Record<string, { score: number, total: number, previousBest?: number, lastScore?: number, attempts?: number }> = {};
-      const currentTestCount = quantSection === "part2_secA" ? 7 : testCount;
+      const currentTestCount = isPart2SecA ? 7 : testCount;
       for (let i = 1; i <= currentTestCount; i++) {
-        const testId = quantSection === "part2_secA" ? `part2_secA_test${i}` : `${formattedTopic}_test${i}`;
+        const testId = isPart2SecA ? `part2_secA_test${i}` : `${formattedTopic}_test${i}`;
         const scoreData = localStorage.getItem(`quiz_score_${testId}`);
         if (scoreData) {
           try {
@@ -609,11 +611,13 @@ export default function DashboardPage() {
   const fullTopic = rawSubTopic;
   const topicName = fullTopic.split(" > ").pop() || fullTopic;
   const formattedTopic = topicName.toLowerCase().replace(/[^a-z0-9]+/g, '_');
+  const isQuantTopic = formattedTopic === "quantitative_reasoning";
+  const isPart2SecA = isQuantTopic && quantSection === "part2_secA";
 
   let activeIndex = 0;
-  const renderCount = quantSection === "part2_secA" ? 7 : testCount;
+  const renderCount = isPart2SecA ? 7 : testCount;
   for (let i = 1; i <= renderCount; i++) {
-    const tId = quantSection === "part2_secA" ? `part2_secA_test${i}` : `${formattedTopic}_test${i}`;
+    const tId = isPart2SecA ? `part2_secA_test${i}` : `${formattedTopic}_test${i}`;
     // Unlock next test if previous test exists and score is >= 80% of total
     if (scores[tId] && scores[tId].total > 0 && (scores[tId].score / scores[tId].total) >= 0.8) {
       activeIndex = i; // Move active to the next test
@@ -622,7 +626,6 @@ export default function DashboardPage() {
     }
   }
   if (activeIndex >= renderCount) activeIndex = renderCount - 1; // Cap at the last test if all are completed
-  const isQuantTopic = formattedTopic === "quantitative_reasoning";
   const showSubOnboarding = isQuantTopic && !quantSection;
   const showComingSoon = isQuantTopic && quantSection && quantSection !== "part1" && quantSection !== "part2_secA";
 
@@ -909,7 +912,7 @@ export default function DashboardPage() {
                     </div>
                   ))
                 ) : (
-                  Array.from({ length: quantSection === "part2_secA" ? 7 : testCount }, (_, i) => i + 1).map((testNum, index) => {
+                  Array.from({ length: isPart2SecA ? 7 : testCount }, (_, i) => i + 1).map((testNum, index) => {
                     const isActive = index === activeIndex;
                     const isLocked = !unlockAll && index > activeIndex;
 
@@ -970,7 +973,7 @@ export default function DashboardPage() {
                         else testTitle = `Chapter ${testNum}`;
                       }
                     }
-                    const testId = quantSection === "part2_secA" ? `part2_secA_test${testNum}` : `${formattedTopic}_test${testNum}`;
+                    const testId = isPart2SecA ? `part2_secA_test${testNum}` : `${formattedTopic}_test${testNum}`;
                     const scoreData = scores[testId];
 
                     let cardClass = "";
