@@ -43,11 +43,21 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Missing testId' }, { status: 400 });
     }
 
-    const questions = allTests[testId];
+    const rawQuestions = allTests[testId];
     const examples = quantitativeReasoningExamples[testId] || [];
 
-    if (!questions) {
+    if (!rawQuestions) {
       return NextResponse.json({ error: 'Test not found' }, { status: 404 });
+    }
+
+    // Exclude questions that are already presented as examples to avoid repetition in the quiz
+    let questions = rawQuestions;
+    if (examples.length > 0) {
+      const examplePrompts = new Set(examples.map((e: any) => e.prompt?.trim()));
+      const filtered = rawQuestions.filter((q: any) => !examplePrompts.has(q.prompt?.trim()));
+      if (filtered.length > 0) {
+        questions = filtered;
+      }
     }
 
     return NextResponse.json({
