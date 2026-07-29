@@ -948,7 +948,7 @@ function LessonContent() {
         </header>
 
         <main className="grow flex flex-col max-w-[800px] w-full mx-auto px-4 md:px-6 py-4 md:py-6">
-          <h2 className="font-feather text-[22px] md:text-[28px] text-charcoal dark:text-white mb-4 leading-snug">
+          <h2 className="font-din-round font-normal text-[16px] md:text-[19px] text-charcoal dark:text-white mb-4 leading-relaxed whitespace-pre-wrap">
             {parseMathText(example.prompt)}
           </h2>
 
@@ -962,9 +962,20 @@ function LessonContent() {
             </div>
           )}
 
+          {example.options && example.options.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
+              {example.options.map((opt: string, oIdx: number) => (
+                <div key={oIdx} className="p-3 rounded-xl border border-cloud-gray/60 dark:border-cloud-gray/20 bg-cloud-gray/10 dark:bg-slate-800/40 text-xs md:text-sm font-normal text-charcoal dark:text-slate-200">
+                  <span className="font-semibold mr-1.5 text-sky-blue">({String.fromCharCode(97 + oIdx)})</span>
+                  {parseMathText(opt)}
+                </div>
+              ))}
+            </div>
+          )}
+
           <div className="bg-sky-blue/10 dark:bg-sky-blue/5 rounded-2xl p-6 border-2 border-sky-blue/20 dark:border-sky-blue/10">
             <p className="text-sky-blue font-bold mb-2 uppercase text-sm tracking-wider">Solution / Explanation</p>
-            <div className="text-[14px] md:text-[17px] text-almost-black dark:text-[#f1f5f9] whitespace-pre-wrap leading-relaxed">
+            <div className="text-[14px] md:text-[16px] font-normal text-almost-black dark:text-[#f1f5f9] whitespace-pre-wrap leading-relaxed">
               {parseMathText(example.explanation)}
             </div>
           </div>

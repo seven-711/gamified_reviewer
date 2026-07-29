@@ -511,11 +511,12 @@ export default function DashboardPage() {
       const formattedTopic = topicName.toLowerCase().replace(/[^a-z0-9]+/g, '_');
       const isQuantTopic = formattedTopic === "quantitative_reasoning";
       const isPart2SecA = isQuantTopic && quantSection === "part2_secA";
+      const isPart2SecB = isQuantTopic && quantSection === "part2_secB";
 
       const loadedScores: Record<string, { score: number, total: number, previousBest?: number, lastScore?: number, attempts?: number }> = {};
-      const currentTestCount = isPart2SecA ? 7 : testCount;
+      const currentTestCount = isPart2SecA ? 33 : isPart2SecB ? 1 : testCount;
       for (let i = 1; i <= currentTestCount; i++) {
-        const testId = isPart2SecA ? `part2_secA_test${i}` : `${formattedTopic}_test${i}`;
+        const testId = isPart2SecA ? `part2_secA_test${i}` : isPart2SecB ? `part2_secB_test${i}` : `${formattedTopic}_test${i}`;
         const scoreData = localStorage.getItem(`quiz_score_${testId}`);
         if (scoreData) {
           try {
@@ -613,11 +614,12 @@ export default function DashboardPage() {
   const formattedTopic = topicName.toLowerCase().replace(/[^a-z0-9]+/g, '_');
   const isQuantTopic = formattedTopic === "quantitative_reasoning";
   const isPart2SecA = isQuantTopic && quantSection === "part2_secA";
+  const isPart2SecB = isQuantTopic && quantSection === "part2_secB";
 
   let activeIndex = 0;
-  const renderCount = isPart2SecA ? 7 : testCount;
+  const renderCount = isPart2SecA ? 33 : isPart2SecB ? 1 : testCount;
   for (let i = 1; i <= renderCount; i++) {
-    const tId = isPart2SecA ? `part2_secA_test${i}` : `${formattedTopic}_test${i}`;
+    const tId = isPart2SecA ? `part2_secA_test${i}` : isPart2SecB ? `part2_secB_test${i}` : `${formattedTopic}_test${i}`;
     // Unlock next test if previous test exists and score is >= 80% of total
     if (scores[tId] && scores[tId].total > 0 && (scores[tId].score / scores[tId].total) >= 0.8) {
       activeIndex = i; // Move active to the next test
@@ -627,7 +629,7 @@ export default function DashboardPage() {
   }
   if (activeIndex >= renderCount) activeIndex = renderCount - 1; // Cap at the last test if all are completed
   const showSubOnboarding = isQuantTopic && !quantSection;
-  const showComingSoon = isQuantTopic && quantSection && quantSection !== "part1" && quantSection !== "part2_secA";
+  const showComingSoon = isQuantTopic && quantSection && quantSection !== "part1" && quantSection !== "part2_secA" && quantSection !== "part2_secB";
 
   return (
     <>
@@ -663,9 +665,9 @@ export default function DashboardPage() {
                   {quantSection === "part1"
                     ? "Part 1: Quantitative Aptitude"
                     : quantSection === "part2_secA"
-                      ? "Part 2: Reasoning - Section A"
+                      ? "Part 2: Reasoning - Sec A (General Mental Ability)"
                       : quantSection === "part2_secB"
-                        ? "Part 2: Reasoning - Section B"
+                        ? "Part 2: Reasoning - Sec B (Logical Deduction)"
                         : "Part 2: Reasoning - Section C"}
                 </span>
               </div>
@@ -746,14 +748,14 @@ export default function DashboardPage() {
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-2xl">🧠</span>
                       <span className="bg-duo-green/10 text-duo-green text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
-                        Ready (7 Exercises)
+                        Ready (33 Exercises)
                       </span>
                     </div>
                     <h4 className="font-feather text-base md:text-lg font-bold text-charcoal">
-                      Part 2: Reasoning (Sec A)
+                      Part 2: Reasoning (Sec A: General Mental Ability)
                     </h4>
                     <p className="text-xs text-graphite font-medium mt-1 leading-normal">
-                      Logical deductions, analytical scenarios, and verbal-logical relations.
+                      <span className="font-bold text-sky-blue">General Mental Ability:</span> Analogy, Classification, logical deductions, and verbal-logical relations.
                     </p>
                   </div>
                   <div className="mt-4 text-sky-blue font-bold text-xs flex items-center gap-1">
@@ -767,24 +769,24 @@ export default function DashboardPage() {
                     setQuantSection("part2_secB");
                     localStorage.setItem("quant_reasoning_section", "part2_secB");
                   }}
-                  className="flex flex-col justify-between p-5 rounded-2xl border-2 border-cloud-gray hover:border-sky-blue bg-snow-white hover:bg-sky-blue/5 shadow-[0_4px_0_var(--color-cloud-gray)] hover:shadow-[0_4px_0_#189edc] cursor-pointer transition-all duration-150 active:translate-y-0.5 select-none text-left opacity-75"
+                  className="flex flex-col justify-between p-5 rounded-2xl border-2 border-cloud-gray hover:border-sky-blue bg-snow-white hover:bg-sky-blue/5 shadow-[0_4px_0_var(--color-cloud-gray)] hover:shadow-[0_4px_0_#189edc] cursor-pointer transition-all duration-150 active:translate-y-0.5 select-none text-left"
                 >
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-2xl">🔍</span>
-                      <span className="bg-silver/10 text-silver text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
-                        Coming Soon
+                      <span className="bg-duo-green/10 text-duo-green text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                        Ready (1 Exercise)
                       </span>
                     </div>
                     <h4 className="font-feather text-base md:text-lg font-bold text-charcoal">
-                      Part 2: Reasoning (Sec B)
+                      Part 2: Reasoning (Sec B: Logical Deduction)
                     </h4>
                     <p className="text-xs text-graphite font-medium mt-1 leading-normal">
-                      Number series, coding-decoding, and puzzle-based analytical tasks.
+                      <span className="font-bold text-sky-blue">Logical Deduction:</span> Logic, statement-conclusions, syllogism, and deductive reasoning.
                     </p>
                   </div>
-                  <div className="mt-4 text-silver font-bold text-xs">
-                    Explore Preview →
+                  <div className="mt-4 text-sky-blue font-bold text-xs flex items-center gap-1">
+                    Start Learning →
                   </div>
                 </div>
 
@@ -912,7 +914,7 @@ export default function DashboardPage() {
                     </div>
                   ))
                 ) : (
-                  Array.from({ length: isPart2SecA ? 7 : testCount }, (_, i) => i + 1).map((testNum, index) => {
+                  Array.from({ length: isPart2SecA ? 33 : isPart2SecB ? 1 : testCount }, (_, i) => i + 1).map((testNum, index) => {
                     const isActive = index === activeIndex;
                     const isLocked = !unlockAll && index > activeIndex;
 
@@ -926,6 +928,35 @@ export default function DashboardPage() {
                         else if (testNum === 5) testTitle = "Chapter 1: Analogy (Exercise 5)";
                         else if (testNum === 6) testTitle = "Chapter 1: Analogy (Exercise 6)";
                         else if (testNum === 7) testTitle = "Chapter 1: Analogy (Exercise 7)";
+                        else if (testNum === 8) testTitle = "Chapter 1: Analogy (Exercise 8)";
+                        else if (testNum === 9) testTitle = "Chapter 1: Analogy (Exercise 9)";
+                        else if (testNum === 10) testTitle = "Chapter 2: Classification Reasoning";
+                        else if (testNum === 11) testTitle = "Chapter 3: Series Completion (Exercise 1)";
+                        else if (testNum === 12) testTitle = "Chapter 3: Series Completion (Exercise 2)";
+                        else if (testNum === 13) testTitle = "Chapter 3: Series Completion (Exercise 3)";
+                        else if (testNum === 14) testTitle = "Chapter 3: Series Completion (Exercise 4)";
+                        else if (testNum === 15) testTitle = "Chapter 4: Coding and Decoding (Exercise 1)";
+                        else if (testNum === 16) testTitle = "Chapter 4: Coding and Decoding (Exercise 2)";
+                        else if (testNum === 17) testTitle = "Chapter 4: Coding and Decoding (Exercise 3)";
+                        else if (testNum === 18) testTitle = "Chapter 5: Blood Relations (Exercise 1)";
+                        else if (testNum === 19) testTitle = "Chapter 5: Blood Relations (Exercise 2)";
+                        else if (testNum === 20) testTitle = "Chapter 5: Blood Relations (Exercise 3)";
+                        else if (testNum === 21) testTitle = "Chapter 6: Puzzle Test (Exercise 1)";
+                        else if (testNum === 22) testTitle = "Chapter 6: Puzzle Test (Exercise 2)";
+                        else if (testNum === 23) testTitle = "Chapter 7: Direction Sense Test (Exercise 1)";
+                        else if (testNum === 24) testTitle = "Chapter 7: Direction Sense Test (Exercise 2)";
+                        else if (testNum === 25) testTitle = "Chapter 8: Logical Venn Diagrams (Exercise 1)";
+                        else if (testNum === 26) testTitle = "Chapter 9: Number Ranking and Time Sequence Test (Exercise 1)";
+                        else if (testNum === 27) testTitle = "Chapter 10: Decision Making (Exercise 1)";
+                        else if (testNum === 28) testTitle = "Chapter 10: Decision Making (Exercise 2)";
+                        else if (testNum === 29) testTitle = "Chapter 11: Assertion and Reason (Exercise 1)";
+                        else if (testNum === 30) testTitle = "Chapter 12: Situation Reaction Test (Exercise 1)";
+                        else if (testNum === 31) testTitle = "Chapter 13: Mathematical Operations (Exercise 1)";
+                        else if (testNum === 32) testTitle = "Chapter 14: Inserting the Missing One (Exercise 1)";
+                        else if (testNum === 33) testTitle = "Chapter 15: Logical Sequence of Words (Exercise 1)";
+                        else testTitle = `Chapter ${testNum}`;
+                      } else if (quantSection === "part2_secB") {
+                        if (testNum === 1) testTitle = "Chapter 16: Logic (Exercise 1)";
                         else testTitle = `Chapter ${testNum}`;
                       } else {
                         if (testNum === 1) testTitle = "Chapter 1: HCF and LCM";
@@ -973,7 +1004,7 @@ export default function DashboardPage() {
                         else testTitle = `Chapter ${testNum}`;
                       }
                     }
-                    const testId = isPart2SecA ? `part2_secA_test${testNum}` : `${formattedTopic}_test${testNum}`;
+                    const testId = isPart2SecA ? `part2_secA_test${testNum}` : isPart2SecB ? `part2_secB_test${testNum}` : `${formattedTopic}_test${testNum}`;
                     const scoreData = scores[testId];
 
                     let cardClass = "";
