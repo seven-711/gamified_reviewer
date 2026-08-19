@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  serverExternalPackages: ['alasql'],
   turbopack: {},
   webpack: (config, { dev }) => {
     if (dev) {

@@ -4,7 +4,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useUser } from "@clerk/nextjs";
+import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 import { StreakAsset } from "@/components/ui/StreakAsset";
 
@@ -209,7 +209,7 @@ function getLeaderboardUserData(
 
 export default function LeaderboardPage() {
   const router = useRouter();
-  const { user, isLoaded } = useUser();
+  const { user, isLoaded } = useAuth();
   const [profiles, setProfiles] = useState<LeaderboardUser[]>([]);
   const [currentUserProfile, setCurrentUserProfile] = useState<LeaderboardUser | null>(null);
   const [currentUserRank, setCurrentUserRank] = useState<number>(1);
@@ -224,80 +224,99 @@ export default function LeaderboardPage() {
   const fetchLeaderboard = useCallback(async () => {
     if (!isLoaded) return;
     try {
-      const [profilesRes, progressRes, gameStateRes] = await Promise.all([
-        supabase.from("profiles").select("id, name"),
-        supabase.from("profile_progress").select("profile_id, total_score, lessons_completed, last_lesson_date"),
-        supabase.from("profile_game_state").select("profile_id, streak"),
-      ]);
+      let registeredProfiles: LeaderboardUser[] = [];
 
-      if (profilesRes.error) {
-        console.error("Error fetching profiles:", profilesRes.error);
-      } else if (profilesRes.data) {
-        const progressMap = new Map(
-          progressRes.data?.map(p => [p.profile_id, { 
-            total_score: p.total_score, 
-            lessons_completed: p.lessons_completed, 
-            last_lesson_date: p.last_lesson_date 
-          }]) || []
-        );
-        const streakMap = new Map(gameStateRes.data?.map(s => [s.profile_id, s.streak]) || []);
+      // Execute a single PostgREST relational subquery with subquery filtering at the database layer
+      const { data: subqueryData, error: subqueryError } = await supabase
+        .from("profiles")
+        .select("id, name, profile_progress(total_score, lessons_completed, last_lesson_date), profile_game_state(streak)")
+        .not("id", "like", "guest_%");
 
-        const mapped = profilesRes.data.map((p: any) => {
-          const prog = progressMap.get(p.id) || { total_score: 0, lessons_completed: 0, last_lesson_date: null };
+      if (!subqueryError && subqueryData) {
+        registeredProfiles = subqueryData.map((p: any) => {
+          const prog = Array.isArray(p.profile_progress) ? p.profile_progress[0] : p.profile_progress;
+          const game = Array.isArray(p.profile_game_state) ? p.profile_game_state[0] : p.profile_game_state;
           return {
             id: p.id,
             name: p.name,
-            total_score: prog.total_score,
-            lessons_completed: prog.lessons_completed,
-            streak: streakMap.get(p.id) || 0,
-            last_lesson_date: prog.last_lesson_date || null,
+            total_score: prog?.total_score || 0,
+            lessons_completed: prog?.lessons_completed || 0,
+            streak: game?.streak || 0,
+            last_lesson_date: prog?.last_lesson_date || null,
           };
-        }).sort((a, b) => b.total_score - a.total_score);
+        }).sort((a: any, b: any) => b.total_score - a.total_score);
+      } else {
+        // Fallback query with subquery filtering if relational schema is unlinked
+        const [profilesRes, progressRes, gameStateRes] = await Promise.all([
+          supabase.from("profiles").select("id, name").not("id", "like", "guest_%"),
+          supabase.from("profile_progress").select("profile_id, total_score, lessons_completed, last_lesson_date"),
+          supabase.from("profile_game_state").select("profile_id, streak"),
+        ]);
 
-        // Filter out guest accounts from public leaderboard rankings
-        const registeredProfiles = mapped.filter((p) => !p.id.startsWith("guest_"));
-        setProfiles(registeredProfiles);
+        if (profilesRes.data) {
+          const progressMap = new Map(
+            progressRes.data?.map(p => [p.profile_id, { 
+              total_score: p.total_score, 
+              lessons_completed: p.lessons_completed, 
+              last_lesson_date: p.last_lesson_date 
+            }]) || []
+          );
+          const streakMap = new Map(gameStateRes.data?.map(s => [s.profile_id, s.streak]) || []);
 
-        // In the background, fetch other users' images from Clerk API
-        const registeredIds = registeredProfiles.map((p) => p.id);
-        if (registeredIds.length > 0) {
-          fetch("/api/users/avatars", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ userIds: registeredIds }),
-          })
-            .then((res) => res.json())
-            .then((avatarData) => {
-              if (avatarData && avatarData.users) {
-                // Merge avatar info into local profile state
-                setProfiles((prev) =>
-                  prev.map((p) => {
-                    const uInfo = avatarData.users[p.id];
-                    if (uInfo) {
-                      const combinedName = `${uInfo.name || p.name || "Learner"}|${uInfo.imageUrl}`;
-                      return {
-                        ...p,
-                        name: combinedName,
-                      };
-                    }
-                    return p;
-                  })
-                );
-              }
-            })
-            .catch((err) => console.error("Error fetching avatars:", err));
+          registeredProfiles = profilesRes.data.map((p: any) => {
+            const prog = progressMap.get(p.id) || { total_score: 0, lessons_completed: 0, last_lesson_date: null };
+            return {
+              id: p.id,
+              name: p.name,
+              total_score: prog.total_score,
+              lessons_completed: prog.lessons_completed,
+              streak: streakMap.get(p.id) || 0,
+              last_lesson_date: prog.last_lesson_date || null,
+            };
+          }).sort((a, b) => b.total_score - a.total_score);
         }
+      }
 
-        const profileId = user ? user.id : (typeof window !== "undefined" ? localStorage.getItem("guest_session_id") : null);
-        if (profileId) {
-          const current = mapped.find((p) => p.id === profileId);
-          if (current) {
-            setCurrentUserProfile(current);
-          }
-          const rankIdx = registeredProfiles.findIndex((p) => p.id === profileId);
-          if (rankIdx !== -1) {
-            setCurrentUserRank(rankIdx + 1);
-          }
+      setProfiles(registeredProfiles);
+
+      // In the background, fetch other users' images from Clerk API
+      const registeredIds = registeredProfiles.map((p) => p.id);
+      if (registeredIds.length > 0) {
+        fetch("/api/users/avatars", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userIds: registeredIds }),
+        })
+          .then((res) => res.json())
+          .then((avatarData) => {
+            if (avatarData && avatarData.users) {
+              setProfiles((prev) =>
+                prev.map((p) => {
+                  const uInfo = avatarData.users[p.id];
+                  if (uInfo) {
+                    const combinedName = `${uInfo.name || p.name || "Learner"}|${uInfo.imageUrl}`;
+                    return {
+                      ...p,
+                      name: combinedName,
+                    };
+                  }
+                  return p;
+                })
+              );
+            }
+          })
+          .catch((err) => console.error("Error fetching avatars:", err));
+      }
+
+      const profileId = user ? user.id : (typeof window !== "undefined" ? localStorage.getItem("guest_session_id") : null);
+      if (profileId) {
+        const current = registeredProfiles.find((p) => p.id === profileId);
+        if (current) {
+          setCurrentUserProfile(current);
+        }
+        const rankIdx = registeredProfiles.findIndex((p) => p.id === profileId);
+        if (rankIdx !== -1) {
+          setCurrentUserRank(rankIdx + 1);
         }
       }
     } catch (err) {
@@ -535,7 +554,8 @@ export default function LeaderboardPage() {
               <div className="flex-1 flex flex-col items-center min-w-0">
                 {profiles[2] ? (
                   (() => {
-                    const { displayName, avatarUrl } = getLeaderboardUserData(profiles[2], currentUserId, user?.imageUrl);
+                    const currentUserAvatar = user?.user_metadata?.avatar_url || "/emoji/profile.webp";
+                    const { displayName, avatarUrl } = getLeaderboardUserData(profiles[2], currentUserId, currentUserAvatar);
                     return (
                       <>
                         <span className="font-din-round font-bold text-[10px] text-charcoal dark:text-silver truncate max-w-full mb-1">
@@ -575,7 +595,8 @@ export default function LeaderboardPage() {
               <div className="flex-1 flex flex-col items-center min-w-0 z-10 scale-105">
                 {profiles[0] ? (
                   (() => {
-                    const { displayName, avatarUrl } = getLeaderboardUserData(profiles[0], currentUserId, user?.imageUrl);
+                    const currentUserAvatar = user?.user_metadata?.avatar_url || "/emoji/profile.webp";
+                    const { displayName, avatarUrl } = getLeaderboardUserData(profiles[0], currentUserId, currentUserAvatar);
                     return (
                       <>
                         <span className="font-din-round font-bold text-[11px] text-[#ffc700] truncate max-w-full mb-1 flex items-center gap-0.5">
@@ -615,7 +636,8 @@ export default function LeaderboardPage() {
               <div className="flex-1 flex flex-col items-center min-w-0">
                 {profiles[1] ? (
                   (() => {
-                    const { displayName, avatarUrl } = getLeaderboardUserData(profiles[1], currentUserId, user?.imageUrl);
+                    const currentUserAvatar = user?.user_metadata?.avatar_url || "/emoji/profile.webp";
+                    const { displayName, avatarUrl } = getLeaderboardUserData(profiles[1], currentUserId, currentUserAvatar);
                     return (
                       <>
                         <span className="font-din-round font-bold text-[10px] text-charcoal dark:text-silver truncate max-w-full mb-1">
@@ -657,7 +679,8 @@ export default function LeaderboardPage() {
             <div className="w-full max-w-[540px] flex flex-col z-10">
               {profiles.slice(3).map((profile, index) => {
                 const rank = index + 4;
-                const { displayName, avatarUrl } = getLeaderboardUserData(profile, currentUserId, user?.imageUrl);
+                const currentUserAvatar = user?.user_metadata?.avatar_url || "/emoji/profile.webp";
+                const { displayName, avatarUrl } = getLeaderboardUserData(profile, currentUserId, currentUserAvatar);
 
                 // Rank specific badge background (Rank >= 4)
                 const rankBadge = (

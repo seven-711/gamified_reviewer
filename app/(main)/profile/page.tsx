@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { supabase } from "@/lib/supabase";
-import { useUser, UserButton, SignOutButton } from "@clerk/nextjs";
+import { useAuth } from "@/lib/auth";
 import { StreakAsset } from "@/components/ui/StreakAsset";
 import { fetchFullProfile } from "@/lib/session";
 import { getProfileCache, setProfileCache } from "@/lib/profileCache";
@@ -212,7 +212,7 @@ export default function ProfilePage() {
   const [followingCount, setFollowingCount] = useState(0);
   const [followersCount, setFollowersCount] = useState(0);
 
-  const { user, isLoaded, isSignedIn } = useUser();
+  const { user, isLoaded, isSignedIn, signOut } = useAuth();
 
   const loadData = useCallback(async (bypassCache = false) => {
     if (!isLoaded) return;
@@ -535,7 +535,7 @@ export default function ProfilePage() {
         {/* Top Header Row: Name & Action Buttons */}
         <div className="flex items-center justify-between gap-4 mb-4">
           <h1 className="font-feather text-2xl sm:text-3xl font-black text-white tracking-wide truncate max-w-[200px] sm:max-w-none">
-            {user?.fullName || "Learner"}
+            {user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Learner"}
           </h1>
           <div className="flex items-center gap-3 shrink-0">
             <button className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white transition-colors cursor-pointer select-none" title="Share Profile">
@@ -559,9 +559,9 @@ export default function ProfilePage() {
               <div className="w-full h-full bg-cloud-gray/20 animate-pulse rounded-full" />
             ) : (
               <img
-                src={(user && user.imageUrl) ? user.imageUrl : "/emoji/profile.webp"}
+                src={user?.user_metadata?.avatar_url || "/emoji/profile.webp"}
                 alt="Avatar"
-                className={`object-cover w-full h-full rounded-full ${(!user || !user.imageUrl) ? "scale-[1.7] translate-y-1" : ""}`}
+                className="object-cover w-full h-full rounded-full"
               />
             )}
           </div>
@@ -572,18 +572,22 @@ export default function ProfilePage() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex flex-col min-w-0">
               <p className="text-silver font-semibold text-xs sm:text-sm truncate">
-                @{user?.primaryEmailAddress?.emailAddress.split("@")[0] || "learner"} • Joined {new Date(user?.createdAt || Date.now()).getFullYear()}
+                @{user?.email?.split("@")[0] || "learner"} • Joined {new Date(user?.created_at || Date.now()).getFullYear()}
               </p>
             </div>
 
             <div className="self-start sm:self-auto shrink-0">
-              <SignOutButton>
-                <button className="flex items-center gap-1.5 border-2 border-red-500/30 hover:border-red-500/50 hover:bg-red-500/10 px-3 py-1.5 rounded-xl transition-all cursor-pointer">
-                  <span className="text-red-500 font-extrabold uppercase tracking-widest text-[10px] select-none">
-                    Sign Out
-                  </span>
-                </button>
-              </SignOutButton>
+              <button
+                onClick={async () => {
+                  await signOut();
+                  router.push("/");
+                }}
+                className="flex items-center gap-1.5 border-2 border-red-500/30 hover:border-red-500/50 hover:bg-red-500/10 px-3 py-1.5 rounded-xl transition-all cursor-pointer"
+              >
+                <span className="text-red-500 font-extrabold uppercase tracking-widest text-[10px] select-none">
+                  Sign Out
+                </span>
+              </button>
             </div>
           </div>
 

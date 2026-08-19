@@ -8,7 +8,7 @@ import { StreakAsset } from "@/components/ui/StreakAsset";
 // Data fetched via API to improve client bundle performance
 import Image from "next/image";
 import { parseMathText } from "@/lib/mathUtils";
-import { useUser } from "@clerk/nextjs";
+import { useAuth } from "@/lib/auth";
 import { getOrCreateGuestSessionId, updateProfileStats, refillHeartsInDb, upsertFullProfile } from "@/lib/session";
 import { supabase } from "@/lib/supabase";
 import { useAlert } from "@/components/ui/AlertContext";
@@ -39,8 +39,14 @@ const playSound = (src: string) => {
   if (typeof window !== "undefined") {
     const enabled = localStorage.getItem("lesson_sfx_enabled") !== "false";
     if (!enabled) return;
-    const audio = new Audio(src);
-    audio.play().catch((err) => console.error("Error playing audio:", err));
+    try {
+      const audio = new Audio(src);
+      audio.play().catch(() => {
+        // Silently catch autoplay or unsupported format errors in browser
+      });
+    } catch {
+      // Ignore audio instantiation failures
+    }
   }
 };
 
@@ -51,7 +57,7 @@ function LessonContent() {
   const searchParams = useSearchParams();
   const testId = searchParams.get("testId") || "abstract_reasoning_test1";
 
-  const { user, isSignedIn } = useUser();
+  const { user, isSignedIn } = useAuth();
 
   const [questions, setQuestions] = useState<any[]>([]);
   const [shuffledIndices, setShuffledIndices] = useState<number[]>([]);

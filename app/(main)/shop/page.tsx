@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useUser } from "@clerk/nextjs";
+import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 import { refillHeartsInDb } from "@/lib/session";
 import { useAlert } from "@/components/ui/AlertContext";
@@ -66,7 +66,7 @@ function getLeagueInfo(xp: number, lessonsCompleted: number, rank: number): Leag
 
 export default function ShopPage() {
   const { showAlert } = useAlert();
-  const { user, isLoaded, isSignedIn } = useUser();
+  const { user, isLoaded, isSignedIn } = useAuth();
   const { streak, xp, hearts, gems, streakFreezeCount, refreshStats, updateStatsLocally } = useStats();
 
   const [purchasingHeart, setPurchasingHeart] = useState(false);
@@ -203,41 +203,45 @@ export default function ShopPage() {
 
     const fetchRank = async () => {
       try {
-        const [profilesRes, progressRes] = await Promise.all([
-          supabase.from("profiles").select("id"),
-          supabase.from("profile_progress").select("profile_id, total_score, lessons_completed"),
-        ]);
+        // 1. Fetch target user's total score
+        const { data: targetProg } = await supabase
+          .from("profile_progress")
+          .select("total_score, lessons_completed")
+          .eq("profile_id", user.id)
+          .maybeSingle();
 
-        if (profilesRes.data && progressRes.data) {
-          const progressMap = new Map(
-            progressRes.data.map((p) => [
-              p.profile_id,
-              { total_score: p.total_score, lessons_completed: p.lessons_completed },
-            ])
-          );
+        const userScore = targetProg?.total_score || 0;
+        if (targetProg) {
+          setTotalScore(userScore);
+          setLessonsCompletedCount(targetProg.lessons_completed || 0);
+        }
 
-          const mapped = profilesRes.data
-            .map((p: any) => {
-              const prog = progressMap.get(p.id) || { total_score: 0, lessons_completed: 0 };
-              return {
-                id: p.id,
-                total_score: prog.total_score,
-                lessons_completed: prog.lessons_completed,
-              };
-            })
-            .sort((a, b) => b.total_score - a.total_score);
+        // 2. Execute scalar subquery count to determine user rank directly at DB layer
+        const { count: higherCount, error: subqueryErr } = await supabase
+          .from("profile_progress")
+          .select("profile_id", { count: "exact", head: true })
+          .gt("total_score", userScore)
+          .not("profile_id", "like", "guest_%");
 
-          const registeredProfiles = mapped.filter((p) => !p.id.startsWith("guest_"));
-          const rankIdx = registeredProfiles.findIndex((p) => p.id === user.id);
-          if (rankIdx !== -1) {
-            setUserRank(rankIdx + 1);
-          }
+        if (!subqueryErr && higherCount !== null) {
+          setUserRank(higherCount + 1);
+          return;
+        }
 
-          const userProg = progressMap.get(user.id);
-          if (userProg) {
-            setTotalScore(userProg.total_score);
-            setLessonsCompletedCount(userProg.lessons_completed || 0);
-          }
+        // Fallback: PostgREST subquery query
+        const { data: subqueryData } = await supabase
+          .from("profiles")
+          .select("id, profile_progress(total_score, lessons_completed)")
+          .not("id", "like", "guest_%");
+
+        if (subqueryData) {
+          const mapped = subqueryData.map((p: any) => {
+            const prog = Array.isArray(p.profile_progress) ? p.profile_progress[0] : p.profile_progress;
+            return { id: p.id, total_score: prog?.total_score || 0 };
+          }).sort((a: any, b: any) => b.total_score - a.total_score);
+
+          const rankIdx = mapped.findIndex((p: any) => p.id === user.id);
+          if (rankIdx !== -1) setUserRank(rankIdx + 1);
         }
       } catch (err) {
         console.error("Failed to load user rank for shop:", err);

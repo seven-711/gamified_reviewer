@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { UserButton, useUser } from "@clerk/nextjs";
+import { useAuth } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import { useStats } from "@/components/ui/StatsContext";
 import { StreakAsset } from "@/components/ui/StreakAsset";
@@ -12,8 +12,14 @@ import { useAlert } from "@/components/ui/AlertContext";
 
 const playSound = (src: string) => {
   if (typeof window !== "undefined") {
-    const audio = new Audio(src);
-    audio.play().catch((err) => console.error("Error playing audio:", err));
+    try {
+      const audio = new Audio(src);
+      audio.play().catch(() => {
+        // Silently catch autoplay or unsupported format errors in browser
+      });
+    } catch {
+      // Ignore audio instantiation failures
+    }
   }
 };
 
@@ -73,7 +79,7 @@ function getLeagueInfo(xp: number, lessonsCompleted: number, rank: number): Leag
 
 export default function RightSidebar() {
   const router = useRouter();
-  const { user, isLoaded, isSignedIn } = useUser();
+  const { user, isLoaded, isSignedIn } = useAuth();
   const { streak, xp, hearts, gems, lastLessonDate, refreshStats, updateStatsLocally } = useStats();
   const { showAlert } = useAlert();
   const todayStr = new Date().toLocaleDateString("en-CA");

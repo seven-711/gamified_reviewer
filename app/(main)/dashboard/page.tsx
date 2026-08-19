@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { supabase } from "@/lib/supabase";
-import { useUser } from "@clerk/nextjs";
+import { useAuth } from "@/lib/auth";
 import RightSidebar from "@/components/ui/RightSidebar";
 import { getOrCreateGuestSessionId, refillHeartsInDb, upsertFullProfile, fetchFullProfile } from "@/lib/session";
 import { useAlert } from "@/components/ui/AlertContext";
@@ -206,7 +206,7 @@ export default function DashboardPage() {
     }
     return null;
   });
-  const { user, isLoaded, isSignedIn } = useUser();
+  const { user, isLoaded, isSignedIn } = useAuth();
 
   const [scores, setScores] = useState<Record<string, { score: number, total: number, previousBest?: number, lastScore?: number, attempts?: number }>>({});
   const [unlockAll, setUnlockAll] = useState(false);
@@ -352,9 +352,10 @@ export default function DashboardPage() {
               const mergedLastHeartLostAt = guestHearts !== null ? guestLastHeartLostAt : (userProfile?.last_heart_lost_at || null);
 
               if (category) {
+                const combinedName = `${user.user_metadata?.full_name || user.email?.split("@")[0] || "Learner"}|/emoji/profile.webp`;
                 await upsertFullProfile({
                   id: user.id,
-                  name: `${user.fullName || user.username || "Learner"}|${user.imageUrl}`,
+                  name: combinedName,
                   exam_category: category,
                   sub_topic: subTopic,
                   timer_duration: timerDuration,
@@ -405,9 +406,10 @@ export default function DashboardPage() {
             // Check for pending onboarding preferences from pre-signup flow (fallback if guestSessionId was missing)
             try {
               const prefs = JSON.parse(pendingPrefs);
+              const combinedName = `${user.user_metadata?.full_name || user.email?.split("@")[0] || "Learner"}|/emoji/profile.webp`;
               await upsertFullProfile({
                 id: user.id,
-                name: `${user.fullName || user.username || "Learner"}|${user.imageUrl}`,
+                name: combinedName,
                 exam_category: prefs.category,
                 sub_topic: prefs.subTopic,
                 study_style: prefs.studyStyle || "Flashcards",
@@ -423,8 +425,8 @@ export default function DashboardPage() {
           const userProfile = await fetchFullProfile(user.id);
 
           if (userProfile && user) {
-            const currentCombinedName = `${user.fullName || user.username || "Learner"}|${user.imageUrl}`;
-            if (userProfile.name !== currentCombinedName) {
+            const currentCombinedName = `${user.user_metadata?.full_name || user.email?.split("@")[0] || "Learner"}|/emoji/profile.webp`;
+            if (userProfile.name !== currentCombinedName && !userProfile.name?.includes("|")) {
               await supabase.from("profiles").update({ name: currentCombinedName }).eq("id", user.id);
               userProfile.name = currentCombinedName;
             }

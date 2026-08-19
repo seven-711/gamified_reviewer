@@ -48,7 +48,7 @@ export function QuizFooter({ status, onCheck, onContinue, explanation, correctAn
             )}
             
             {(status === "wrong" || status === "correct") && explanation && (
-              <div className={`mt-4 font-din-round text-[15px] md:text-[17px] leading-relaxed ${status === "correct" ? "text-[#3f8f01] quiz-explanation-correct" : "text-[#ba1c1c] quiz-explanation-wrong"}`}>
+              <div className={`mt-4 font-din-round text-[15px] md:text-[17px] leading-relaxed break-words [overflow-wrap:anywhere] max-w-full max-h-[250px] overflow-y-auto pr-2 ${status === "correct" ? "text-[#3f8f01] quiz-explanation-correct" : "text-[#ba1c1c] quiz-explanation-wrong"}`}>
                 <div className="opacity-90">
                   {(() => {
                     const lines = explanation.split('\n');

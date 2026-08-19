@@ -4,7 +4,7 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useUser } from "@clerk/nextjs";
+import { useAuth } from "@/lib/auth";
 import { checkIsAdmin } from "@/lib/admin";
 
 const NAV_ITEMS = [
@@ -18,7 +18,7 @@ const NAV_ITEMS = [
 
 export default function MobileNavbar() {
   const pathname = usePathname();
-  const { user } = useUser();
+  const { user } = useAuth();
   const isAdmin = checkIsAdmin(user);
 
   const visibleNavItems = NAV_ITEMS.filter((item) => {

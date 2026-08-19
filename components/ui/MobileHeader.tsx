@@ -4,14 +4,14 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useStats } from "@/components/ui/StatsContext";
-import { useUser, UserButton } from "@clerk/nextjs";
+import { useAuth } from "@/lib/auth";
 import { StreakAsset } from "@/components/ui/StreakAsset";
 
 export default function MobileHeader() {
   const { streak, hearts, gems, lastLessonDate, isLoaded: isStatsLoaded } = useStats();
   const todayStr = new Date().toLocaleDateString("en-CA");
   const isStreakActive = streak > 0 && lastLessonDate === todayStr;
-  const { user, isLoaded, isSignedIn } = useUser();
+  const { user, isLoaded, isSignedIn } = useAuth();
 
   return (
     <header className="md:hidden fixed top-0 left-0 right-0 h-14 bg-snow-white dark:bg-[#202f36] border-b-2 border-cloud-gray dark:border-cloud-gray/15 z-40 flex items-center justify-between px-4 shadow-sm font-din-round">
@@ -66,14 +66,11 @@ export default function MobileHeader() {
 
         {/* Profile Avatar */}
         {isLoaded && isSignedIn && user ? (
-          <div className="relative w-7 h-7 shrink-0 cursor-pointer">
+          <Link href="/profile" className="relative w-7 h-7 shrink-0 cursor-pointer block">
             <div className="absolute inset-0 rounded-full overflow-hidden border border-cloud-gray dark:border-cloud-gray/25 bg-duo-green-light p-0.5 flex items-center justify-center">
-              <img src={user.imageUrl} alt="Profile" className="object-cover w-full h-full rounded-full" />
+              <img src="/emoji/profile.webp" alt="Profile" className="object-cover w-full h-full rounded-full" />
             </div>
-            <div className="absolute inset-0 opacity-0 z-10">
-              <UserButton appearance={{ elements: { rootBox: "w-full h-full flex", userButtonTrigger: "w-full h-full flex", userButtonAvatarBox: "w-full h-full" } }} />
-            </div>
-          </div>
+          </Link>
         ) : (
           <Link href="/profile" className="relative w-7 h-7 shrink-0 block">
             <div className="absolute inset-0 rounded-full overflow-hidden border border-cloud-gray dark:border-cloud-gray/25 bg-duo-green-light p-0.5 flex items-center justify-center">

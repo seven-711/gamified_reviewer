@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createClerkClient } from '@clerk/nextjs/server';
+import { supabase } from '@/lib/supabase';
 
 export async function POST(request: Request) {
   try {
@@ -10,40 +10,39 @@ export async function POST(request: Request) {
       return NextResponse.json({ users: {} });
     }
 
-    // Filter out guest IDs
+    // Filter out guest IDs if needed
     const realUserIds = userIds.filter((id) => id && !id.startsWith("guest_"));
 
     if (realUserIds.length === 0) {
       return NextResponse.json({ users: {} });
     }
 
-    const clerkClient = createClerkClient({
-      secretKey: process.env.CLERK_SECRET_KEY,
-    });
+    const { data: profiles, error } = await supabase
+      .from('profiles')
+      .select('id, name')
+      .in('id', realUserIds);
 
-    const userListResponse = await clerkClient.users.getUserList({
-      userId: realUserIds,
-      limit: 100,
-    });
-
-    // Handle Clerk API pagination differences across versions
-    const usersArray = Array.isArray(userListResponse)
-      ? userListResponse
-      : (userListResponse.data || []);
+    if (error) {
+      console.error('Error fetching user profiles for avatars:', error);
+      return NextResponse.json({ users: {} });
+    }
 
     const usersMap: Record<string, { name: string | null; imageUrl: string }> = {};
 
-    usersArray.forEach((u: any) => {
-      const name = u.fullName || u.username || (u.firstName ? `${u.firstName} ${u.lastName || ""}`.trim() : null);
-      usersMap[u.id] = {
-        name,
-        imageUrl: u.imageUrl,
+    (profiles || []).forEach((p: any) => {
+      const nameParts = (p.name || '').split('|');
+      const displayName = nameParts[0] || null;
+      const avatarUrl = nameParts[1] || '/emoji/profile.webp';
+
+      usersMap[p.id] = {
+        name: displayName,
+        imageUrl: avatarUrl,
       };
     });
 
     return NextResponse.json({ users: usersMap });
   } catch (error: any) {
-    console.error('Error fetching Clerk user avatars:', error);
+    console.error('Error fetching user avatars:', error);
     return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
   }
 }

@@ -5,10 +5,10 @@ import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import Image from "next/image";
 import { Header } from "@/components/ui/Header";
-import { useUser } from "@clerk/nextjs";
+import { useAuth } from "@/lib/auth";
 
 export default function LandingPage() {
-  const { isSignedIn, isLoaded } = useUser();
+  const { isSignedIn, isLoaded } = useAuth();
 
   return (
     <div className="flex flex-col min-h-screen bg-snow-white text-almost-black font-din-round">

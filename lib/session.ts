@@ -1,13 +1,27 @@
 import { supabase } from "./supabase";
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function generateUUID(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
 /**
- * Gets or creates a unique guest session ID.
+ * Gets or creates a unique guest session ID (valid UUID v4).
+ * Overwrites any legacy non-UUID guest IDs stored in localStorage.
  */
 export function getOrCreateGuestSessionId(): string {
   if (typeof window === "undefined") return "";
   let id = localStorage.getItem("guest_session_id");
-  if (!id) {
-    id = "guest_" + Math.random().toString(36).substring(2, 15);
+  if (!id || !UUID_REGEX.test(id)) {
+    id = generateUUID();
     localStorage.setItem("guest_session_id", id);
   }
   return id;
@@ -40,7 +54,18 @@ export async function upsertFullProfile(params: {
 }): Promise<void> {
   const { id, name } = params;
 
-  const res1 = await supabase.from("profiles").upsert({ id, name: name ?? null });
+  // Try upserting with name; fall back to { id } if 'name' column is missing in Supabase schema
+  const profileData: Record<string, any> = { id };
+  if (name !== undefined) {
+    profileData.name = name ?? null;
+  }
+
+  let res1 = await supabase.from("profiles").upsert(profileData);
+  if (res1.error && res1.error.message?.includes("Could not find the 'name' column")) {
+    console.warn("Notice: 'name' column not found on profiles table in Supabase. Upserting { id } only.");
+    res1 = await supabase.from("profiles").upsert({ id });
+  }
+
   if (res1.error) {
     console.error("Error upserting profiles:", res1.error);
     throw new Error(`profiles table: ${res1.error.message}`);
@@ -94,7 +119,7 @@ export async function upsertFullProfile(params: {
 export async function fetchFullProfile(profileId: string): Promise<Record<string, any> | null> {
   try {
     const [profileRes, settingsRes, progressRes, gameStateRes] = await Promise.all([
-      supabase.from("profiles").select("id, name, created_at").eq("id", profileId).maybeSingle(),
+      supabase.from("profiles").select("*").eq("id", profileId).maybeSingle(),
       supabase.from("profile_study_settings").select("*").eq("profile_id", profileId).maybeSingle(),
       supabase.from("profile_progress").select("*").eq("profile_id", profileId).maybeSingle(),
       supabase.from("profile_game_state").select("*").eq("profile_id", profileId).maybeSingle(),

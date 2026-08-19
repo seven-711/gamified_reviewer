@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Button } from "@/components/ui/Button";
 import { ProgressBar } from "@/components/ui/ProgressBar";
-import { useUser } from "@clerk/nextjs";
+import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 import { getOrCreateGuestSessionId, upsertFullProfile } from "@/lib/session";
 import { useAlert } from "@/components/ui/AlertContext";
@@ -126,7 +126,7 @@ export default function OnboardingPage() {
     }
   };
 
-  const { user, isLoaded, isSignedIn } = useUser();
+  const { user, isLoaded, isSignedIn } = useAuth();
 
   // Session Check
   useEffect(() => {
@@ -210,7 +210,7 @@ export default function OnboardingPage() {
         } else {
           await upsertFullProfile({
             id: userId,
-            name: user ? `${user.fullName || user?.username || "Learner"}|${user.imageUrl}` : null,
+            name: user ? `${user.user_metadata?.full_name || user.email?.split("@")[0] || "Learner"}|/emoji/profile.webp` : null,
             exam_category: category,
             sub_topic: subTopic,
             timer_duration: timerDuration,

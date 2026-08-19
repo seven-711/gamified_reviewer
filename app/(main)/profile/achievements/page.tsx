@@ -3,7 +3,7 @@
 import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
-import { useUser } from "@clerk/nextjs";
+import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 import { useStats } from "@/components/ui/StatsContext";
 import { getStreakImage } from "@/lib/streak";
@@ -125,7 +125,7 @@ function AchievementsContent() {
     tabParam === "achievements" ? "achievements" : "badges"
   );
 
-  const { user, isLoaded: isUserLoaded, isSignedIn } = useUser();
+  const { user, isLoaded: isUserLoaded, isSignedIn } = useAuth();
   const targetUserId = searchParams.get("userId");
   const { streak: currentStreak, xp: currentXp, lessonsCompleted: currentLessonsCompleted } = useStats();
 

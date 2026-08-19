@@ -3,7 +3,7 @@
 import React, { useState, useEffect, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { useUser } from "@clerk/nextjs";
+import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 import { fetchFullProfile } from "@/lib/session";
 import { getProfileCache, setProfileCache, clearProfileCache } from "@/lib/profileCache";
@@ -17,7 +17,7 @@ interface ProfileItem {
 
 function FollowingContent({ userId }: { userId: string }) {
   const router = useRouter();
-  const { user: currentUser, isLoaded: isCurrentUserLoaded } = useUser();
+  const { user: currentUser, isLoaded: isCurrentUserLoaded } = useAuth();
   const [targetUser, setTargetUser] = useState<any>(null);
   const [followingList, setFollowingList] = useState<ProfileItem[]>([]);
   const [loading, setLoading] = useState(true);

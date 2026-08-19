@@ -4,14 +4,14 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useStats } from "@/components/ui/StatsContext";
-import { useUser } from "@clerk/nextjs";
+import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 import { StreakAsset } from "@/components/ui/StreakAsset";
 
 export default function StreakPage() {
   const router = useRouter();
   const { streak, lastLessonDate, refreshStats } = useStats();
-  const { user, isLoaded, isSignedIn } = useUser();
+  const { user, isLoaded, isSignedIn } = useAuth();
   const [createdAt, setCreatedAt] = useState<Date | null>(null);
 
   // Calendar state

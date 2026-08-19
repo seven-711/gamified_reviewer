@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Script from "next/script";
-import { ClerkProvider } from '@clerk/nextjs'
 import { Fredoka, Nunito } from "next/font/google";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
 
+import { AuthProvider } from "@/lib/auth";
 import { AlertProvider } from "@/components/ui/AlertContext";
 import { StatsProvider } from "@/components/ui/StatsContext";
 
@@ -31,29 +31,28 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider>
-      <html
-        lang="en"
-        className={`${fredoka.variable} ${nunito.variable} h-full antialiased`}
-      >
-      <head>
-        {process.env.NODE_ENV === "development" && (
-          <Script
-            src="//unpkg.com/react-grab/dist/index.global.js"
-            crossOrigin="anonymous"
-            strategy="beforeInteractive"
-          />
-        )}
-      </head>
-        <body className="min-h-full flex flex-col">
+    <html
+      lang="en"
+      className={`${fredoka.variable} ${nunito.variable} h-full antialiased`}
+      suppressHydrationWarning
+    >
+      <body className="min-h-full flex flex-col" suppressHydrationWarning>
+        <AuthProvider>
           <AlertProvider>
             <StatsProvider>
               {children}
               <Analytics />
             </StatsProvider>
           </AlertProvider>
-        </body>
-      </html>
-    </ClerkProvider>
+        </AuthProvider>
+        {process.env.NODE_ENV === "development" && (
+          <Script
+            src="//unpkg.com/react-grab/dist/index.global.js"
+            crossOrigin="anonymous"
+            strategy="afterInteractive"
+          />
+        )}
+      </body>
+    </html>
   );
 }

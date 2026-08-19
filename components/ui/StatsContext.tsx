@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { useUser } from "@clerk/nextjs";
+import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 
 interface StatsContextProps {
@@ -36,7 +36,7 @@ export const useStats = () => {
 };
 
 export const StatsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, isLoaded: isUserLoaded, isSignedIn } = useUser();
+  const { user, isLoaded: isUserLoaded, isSignedIn } = useAuth();
   const [streak, setStreak] = useState(0);
   const [xp, setXp] = useState(0);
   const [gems, setGems] = useState(50);

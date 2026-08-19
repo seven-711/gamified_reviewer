@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useUser } from "@clerk/nextjs";
+import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 import { useAlert } from "@/components/ui/AlertContext";
 import { useStats } from "@/components/ui/StatsContext";
@@ -11,14 +11,20 @@ import { StreakAsset } from "@/components/ui/StreakAsset";
 
 const playSound = (src: string) => {
   if (typeof window !== "undefined") {
-    const audio = new Audio(src);
-    audio.play().catch((err) => console.error("Error playing audio:", err));
+    try {
+      const audio = new Audio(src);
+      audio.play().catch(() => {
+        // Silently catch autoplay or unsupported format errors in browser
+      });
+    } catch {
+      // Ignore audio instantiation failures
+    }
   }
 };
 
 export default function QuestsPage() {
   const { showAlert } = useAlert();
-  const { user } = useUser();
+  const { user } = useAuth();
   const { streak, xp, hearts, gems, lessonsCompleted, lastLessonDate, refreshStats, updateStatsLocally } = useStats();
   const todayStr = new Date().toLocaleDateString("en-CA");
   const isStreakActive = streak > 0 && lastLessonDate === todayStr;

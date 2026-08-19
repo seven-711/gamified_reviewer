@@ -9,7 +9,6 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@clerk/nextjs": "^7.4.1",
     "@dotlottie/react-player": "^1.6.19",
     "@supabase/supabase-js": "^2.106.2",
     "@vercel/analytics": "^2.0.1",
