@@ -55,7 +55,7 @@ function getLeagueInfo(xp: number, lessonsCompleted: number, rank: number): Leag
   if (xp >= 300 || lessonsCompleted >= 5) {
     return {
       name: "Silver League",
-      image: "/img/gen_imgs/silver_league.webp",
+      image: "/img/gen_imgs/league_/silver_league.webp",
     };
   }
   return {
@@ -1190,26 +1190,28 @@ export default function ShopPage() {
             </div>
           </div>
 
-          {/* Create Profile / Sign In Widget */}
-          <div className="border-2 border-cloud-gray rounded-2xl p-5 flex flex-col gap-4 bg-snow-white">
-            <h3 className="font-bold text-[17px] text-almost-black leading-snug">
-              Create a profile to save your progress!
-            </h3>
+          {/* Create Profile / Sign In Widget (Guest only) */}
+          {!isSignedIn && (
+            <div className="border-2 border-cloud-gray rounded-2xl p-5 flex flex-col gap-4 bg-snow-white">
+              <h3 className="font-bold text-[17px] text-almost-black leading-snug">
+                Create a profile to save your progress!
+              </h3>
 
-            <div className="flex flex-col gap-3 w-full">
-              <Link href="/signup" className="w-full">
-                <button className="w-full bg-duo-green hover:bg-duo-green/95 text-white font-extrabold py-3 rounded-xl shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none transition-all uppercase tracking-widest text-xs md:text-sm cursor-pointer">
-                  CREATE A PROFILE
-                </button>
-              </Link>
+              <div className="flex flex-col gap-3 w-full">
+                <Link href="/signup" className="w-full">
+                  <button className="w-full bg-duo-green hover:bg-duo-green/95 text-white font-extrabold py-3 rounded-xl shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none transition-all uppercase tracking-widest text-xs md:text-sm cursor-pointer">
+                    CREATE A PROFILE
+                  </button>
+                </Link>
 
-              <Link href="/login" className="w-full">
-                <button className="w-full bg-sky-blue hover:bg-sky-blue/95 text-white font-extrabold py-3 rounded-xl shadow-[0_4px_0_#189edc] active:translate-y-[4px] active:shadow-none transition-all uppercase tracking-widest text-xs md:text-sm cursor-pointer">
-                  SIGN IN
-                </button>
-              </Link>
+                <Link href="/login" className="w-full">
+                  <button className="w-full bg-sky-blue hover:bg-sky-blue/95 text-white font-extrabold py-3 rounded-xl shadow-[0_4px_0_#189edc] active:translate-y-[4px] active:shadow-none transition-all uppercase tracking-widest text-xs md:text-sm cursor-pointer">
+                    SIGN IN
+                  </button>
+                </Link>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Footer Links */}
           <div className="flex flex-wrap gap-x-3 gap-y-1.5 px-2 text-[10px] md:text-[11px] font-bold text-silver uppercase tracking-wider">
