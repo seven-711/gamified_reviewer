@@ -367,7 +367,8 @@ function UserProfileContent({ userId }: { userId: string }) {
       }
 
       // Self-healing avatar fetch if database record is not yet combined
-      if (freshProfile && (!freshProfile.name || !freshProfile.name.includes("|")) && !userId.startsWith("guest_")) {
+      const isGuestUser = typeof userId === "string" ? userId.startsWith("guest_") : false;
+      if (freshProfile && (!freshProfile.name || !freshProfile.name.includes("|")) && !isGuestUser) {
         try {
           const avatarRes = await fetch("/api/users/avatars", {
             method: "POST",

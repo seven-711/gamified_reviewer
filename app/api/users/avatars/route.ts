@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     }
 
     // Filter out guest IDs if needed
-    const realUserIds = userIds.filter((id) => id && !id.startsWith("guest_"));
+    const realUserIds = userIds.filter((id) => typeof id === "string" && !id.startsWith("guest_"));
 
     if (realUserIds.length === 0) {
       return NextResponse.json({ users: {} });

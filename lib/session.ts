@@ -78,7 +78,7 @@ export async function upsertFullProfile(params: {
     study_style: params.study_style ?? "Flashcards",
     difficulty: params.difficulty ?? "Beginner",
     timer_duration: params.timer_duration ?? 5,
-  });
+  }, { onConflict: 'profile_id' });
   if (res2.error) {
     console.error("Error upserting profile_study_settings:", res2.error);
     throw new Error(`profile_study_settings table: ${res2.error.message}`);
@@ -90,7 +90,7 @@ export async function upsertFullProfile(params: {
     current_level: params.current_level ?? 1,
     lessons_completed: params.lessons_completed ?? 0,
     last_lesson_date: params.last_lesson_date ?? null,
-  });
+  }, { onConflict: 'profile_id' });
   if (res3.error) {
     console.error("Error upserting profile_progress:", res3.error);
     throw new Error(`profile_progress table: ${res3.error.message}`);
@@ -103,7 +103,7 @@ export async function upsertFullProfile(params: {
     hearts: params.hearts ?? 5,
     last_heart_lost_at: params.last_heart_lost_at ?? null,
     gems: params.gems ?? 50,
-  });
+  }, { onConflict: 'profile_id' });
   if (res4.error) {
     console.error("Error upserting profile_game_state:", res4.error);
     throw new Error(`profile_game_state table: ${res4.error.message}`);
@@ -239,7 +239,7 @@ export async function updateProfileStats(
     }
 
     const todayStr = new Date().toLocaleDateString("en-CA"); // "YYYY-MM-DD"
-    const isGuest = profileId.startsWith("guest_");
+    const isGuest = typeof profileId === "string" ? profileId.startsWith("guest_") : false;
     let newStreak = currentStreak;
     let finalFreezes = currentFreezes;
 

@@ -68,7 +68,7 @@ export default function QuestsPage() {
 
     if (!profileId) return;
 
-    const isGuest = profileId.startsWith("guest_");
+    const isGuest = typeof profileId === "string" ? profileId.startsWith("guest_") : false;
 
     if (isGuest) {
       if (typeof window !== "undefined") {
@@ -216,7 +216,7 @@ export default function QuestsPage() {
     }
 
     if (profileId) {
-      const isGuest = profileId.startsWith("guest_");
+      const isGuest = typeof profileId === "string" ? profileId.startsWith("guest_") : false;
       try {
         const { error: gameError } = await supabase
           .from("profile_game_state")

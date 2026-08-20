@@ -607,7 +607,7 @@ export default function ProfilePage() {
                 <polygon points="45,27 46,29 48,29 46.5,30 47,32 45,31 43,32 43.5,30 42,29 44,29" fill="#FCD116" />
               </svg>
                 <span className="bg-sky-blue/20 text-sky-blue text-[10px] font-black px-1.5 py-0.5 rounded uppercase">
-                  {profile?.exam_category.split(" ")[0] || "CSE"}
+                  {profile?.exam_category?.split(" ")[0] || "CSE"}
                 </span>
               </span>
               <span className="text-silver font-extrabold text-[10px] uppercase tracking-wider mt-1">Courses</span>

@@ -131,7 +131,7 @@ export default function RightSidebar() {
           .sort((a, b) => b.total_score - a.total_score);
 
         // Filter out guest accounts
-        const registeredProfiles = mapped.filter((p) => !p.id.startsWith("guest_"));
+        const registeredProfiles = mapped.filter((p) => typeof p.id === "string" && !p.id.startsWith("guest_"));
         const rankIdx = registeredProfiles.findIndex((p) => p.id === user.id);
         if (rankIdx !== -1) {
           setUserRank(rankIdx + 1);

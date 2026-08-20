@@ -28,13 +28,14 @@ async function checkDailyStreakValidation(
   dbProfile: any,
   showAlert: (msg: string) => Promise<void>
 ): Promise<{ streak: number; last_lesson_date: string | null }> {
-  const profileId = dbProfile.id;
-  const isGuest = profileId.startsWith("guest_");
+  if (!dbProfile) return { streak: 0, last_lesson_date: null };
+  const profileId = typeof dbProfile?.id === "string" ? dbProfile.id : String(dbProfile?.id || "");
+  const isGuest = profileId ? profileId.startsWith("guest_") : false;
   const currentStreak = dbProfile.streak || 0;
   const lastLessonDateStr = dbProfile.last_lesson_date || null;
 
   // Make sure we have a local streak freeze initialized in localStorage
-  if (typeof window !== "undefined") {
+  if (typeof window !== "undefined" && profileId) {
     const localFreeze = localStorage.getItem("streak_freeze_count");
     if (localFreeze === null) {
       const dbFreeze = dbProfile.streak_freeze_count !== undefined && dbProfile.streak_freeze_count !== null ? dbProfile.streak_freeze_count : 1;
@@ -143,11 +144,12 @@ async function checkDailyLoginReward(
 }
 
 async function checkHeartsRegeneration(dbProfile: any): Promise<{ hearts: number; last_heart_lost_at: string | null }> {
-  const profileId = dbProfile.id;
+  if (!dbProfile) return { hearts: 5, last_heart_lost_at: null };
+  const profileId = typeof dbProfile?.id === "string" ? dbProfile.id : String(dbProfile?.id || "");
   let currentHearts = dbProfile.hearts !== undefined && dbProfile.hearts !== null ? dbProfile.hearts : 5;
   let lastHeartLostAt = dbProfile.last_heart_lost_at || null;
 
-  if (currentHearts < 5 && lastHeartLostAt) {
+  if (profileId && currentHearts < 5 && lastHeartLostAt) {
     const now = new Date().getTime();
     const lastLost = new Date(lastHeartLostAt).getTime();
     const hoursPassed = (now - lastLost) / (1000 * 60 * 60);

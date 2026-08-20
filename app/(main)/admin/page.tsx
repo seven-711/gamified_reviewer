@@ -410,8 +410,8 @@ export default function AdminDashboard() {
 
   // ── OVERVIEW CHARTS ────────────────────────────────────────────────────────
   const totalUsers = users.length;
-  const totalRegistered = users.filter((u) => !u.id.startsWith("guest_")).length;
-  const totalGuests = users.filter((u) => u.id.startsWith("guest_")).length;
+  const totalRegistered = users.filter((u) => typeof u.id === "string" && !u.id.startsWith("guest_")).length;
+  const totalGuests = users.filter((u) => typeof u.id === "string" && u.id.startsWith("guest_")).length;
   const totalGems = users.reduce((acc, u) => acc + u.gems, 0);
   const averageLevel = totalUsers > 0 ? (users.reduce((acc, u) => acc + u.current_level, 0) / totalUsers).toFixed(1) : 0;
 

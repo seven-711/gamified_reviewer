@@ -192,10 +192,10 @@ function getLeaderboardUserData(
     } else {
       displayName = p.name;
     }
-  } else if (p.id.startsWith("guest_")) {
+  } else if (typeof p.id === "string" && p.id.startsWith("guest_")) {
     displayName = `Guest_${p.id.substring(6, 11)}`;
   } else {
-    displayName = `Reviewer_${p.id.substring(5, 10)}`;
+    displayName = `Reviewer_${String(p.id || "").substring(5, 10)}`;
   }
 
   if (p.id === currentUserId) {
