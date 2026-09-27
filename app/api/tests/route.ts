@@ -3,6 +3,8 @@ import abstractReasoningTests from '@/public/data/abstractReasoning.json';
 import logicalReasoningTests from '@/public/data/logicalReasoning.json';
 import numericalReasoningTests from '@/public/data/numericalReasoning.json';
 import quantitativeReasoningFile from '@/public/img/afp_reviewer_imgs/quantitative_reasoning/quantitativeReasoning.json';
+import wordProblemsAndOperationsTests from '@/public/data/wordProblemsAndOperations.json';
+import dataSufficiencyTests from '@/public/data/dataSufficiency.json';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -16,7 +18,9 @@ export async function GET(request: Request) {
       ...abstractReasoningTests, 
       ...logicalReasoningTests, 
       ...numericalReasoningTests, 
-      ...quantitativeReasoningTests 
+      ...quantitativeReasoningTests,
+      ...wordProblemsAndOperationsTests,
+      ...dataSufficiencyTests
     };
 
     if (action === 'metadata') {

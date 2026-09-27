@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import Link from "next/link";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -52,664 +53,652 @@ interface ViewsData {
   view3: View3Row[];
 }
 
+type ReportType = "view1" | "view2" | "view3";
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const LEAGUE_COLORS: Record<string, string> = {
-  "Legend League": "#ef4444",
-  "Champion League": "#ec4899",
-  "Master League": "#a855f7",
-  "Diamond League": "#3b82f6",
-  "Crystal League": "#06b6d4",
-  "Gold League": "#f59e0b",
-  "Silver League": "#94a3b8",
-  "Bronze League": "#cc348d",
-};
-
-const LEAGUE_EMOJI: Record<string, string> = {
-  "Legend League": "🔴",
-  "Champion League": "🌸",
-  "Master League": "💜",
-  "Diamond League": "💎",
-  "Crystal League": "🔷",
-  "Gold League": "🥇",
-  "Silver League": "🥈",
-  "Bronze League": "🥉",
-};
-
-function fmt(v: string | null) {
-  if (!v) return "—";
-  const d = new Date(v);
-  return d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+function formatDate(dateStr: string | null): string {
+  if (!dateStr) return "—";
+  const d = new Date(dateStr);
+  return isNaN(d.getTime()) ? "—" : d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
 }
 
-function truncate(s: string | null, n = 16) {
+function truncateText(s: string | null, maxLen = 22): string {
   if (!s) return "—";
-  return s.length > n ? s.slice(0, n) + "…" : s;
+  return s.length > maxLen ? s.slice(0, maxLen) + "…" : s;
 }
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
+const LEAGUE_BADGES: Record<string, { bg: string; text: string; border: string }> = {
+  "Legend League": { bg: "bg-red-500/10", text: "text-red-600", border: "border-red-500/25" },
+  "Champion League": { bg: "bg-pink-500/10", text: "text-pink-600", border: "border-pink-500/25" },
+  "Master League": { bg: "bg-purple-500/10", text: "text-purple-600", border: "border-purple-500/25" },
+  "Diamond League": { bg: "bg-sky-500/10", text: "text-sky-600", border: "border-sky-500/25" },
+  "Crystal League": { bg: "bg-teal-500/10", text: "text-teal-600", border: "border-teal-500/25" },
+  "Gold League": { bg: "bg-amber-500/10", text: "text-amber-600", border: "border-amber-500/25" },
+  "Silver League": { bg: "bg-slate-500/10", text: "text-slate-600", border: "border-slate-500/25" },
+  "Bronze League": { bg: "bg-rose-500/10", text: "text-rose-600", border: "border-rose-500/25" },
+};
 
-function SqlBlock({ label, sql }: { label: string; sql: string }) {
+function getLeagueStyle(league: string) {
+  return LEAGUE_BADGES[league] || { bg: "bg-cloud-gray/20", text: "text-silver", border: "border-cloud-gray" };
+}
+
+const REPORT_INFO: Record<
+  ReportType,
+  {
+    title: string;
+    viewName: string;
+    description: string;
+    sourceTables: string[];
+    featureContext: string;
+    accentColor: string;
+  }
+> = {
+  view1: {
+    title: "Full Profile Snapshot",
+    viewName: "vw_user_full_profile",
+    description: "Consolidates reviewer identity, study configuration, and module completion history into an operational summary.",
+    sourceTables: ["profiles", "profile_study_settings", "profile_progress"],
+    featureContext: "Profile management & learning analytics",
+    accentColor: "sky-blue",
+  },
+  view2: {
+    title: "Game Economy & Status",
+    viewName: "vw_user_game_status",
+    description: "Tracks active daily streaks, currency balances, life counters, and competitive league tiers across all candidates.",
+    sourceTables: ["profiles", "profile_game_state", "profile_progress"],
+    featureContext: "Economy balance & leaderboard standings",
+    accentColor: "duo-green",
+  },
+  view3: {
+    title: "Lesson Activity Audit",
+    viewName: "vw_lesson_activity_summary",
+    description: "Aggregates historical review event logs, drill volume, and XP progression with first and latest timestamps.",
+    sourceTables: ["profiles", "lesson_events", "profile_study_settings"],
+    featureContext: "Audit logs & syllabus completion telemetry",
+    accentColor: "bubblegum-pink",
+  },
+};
+
+// ─── Subcomponents ────────────────────────────────────────────────────────────
+
+function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
-  const copy = () => {
-    navigator.clipboard.writeText(sql);
+  const handleCopy = () => {
+    navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   };
   return (
-    <div className="sql-block">
-      <div className="sql-block-header">
-        <span className="sql-label">{label}</span>
-        <button className="copy-btn" onClick={copy}>
-          {copied ? "✓ Copied" : "Copy SQL"}
-        </button>
-      </div>
-      <pre className="sql-code">{sql}</pre>
-    </div>
-  );
-}
-
-function ViewBadge({ view, active, onClick }: { view: string; active: boolean; onClick: () => void }) {
-  const labels: Record<string, string> = {
-    view1: "VIEW 1",
-    view2: "VIEW 2",
-    view3: "VIEW 3",
-  };
-  const descs: Record<string, string> = {
-    view1: "Full Profile",
-    view2: "Game Status",
-    view3: "Activity Summary",
-  };
-  return (
     <button
-      onClick={onClick}
-      className={`view-badge ${active ? "view-badge-active" : ""}`}
-      id={`view-tab-${view}`}
+      onClick={handleCopy}
+      className="px-2.5 py-1 text-[11px] font-extrabold rounded-lg bg-cloud-gray/20 hover:bg-cloud-gray/30 text-silver hover:text-charcoal border border-cloud-gray/40 transition-colors cursor-pointer shrink-0"
     >
-      <span className="view-badge-num">{labels[view]}</span>
-      <span className="view-badge-desc">{descs[view]}</span>
+      {copied ? "Copied" : "Copy SQL"}
     </button>
   );
 }
 
-// ─── Main Page ────────────────────────────────────────────────────────────────
+// ─── Main Component ───────────────────────────────────────────────────────────
 
-export default function SqlViewsPage() {
+export default function SystemReportsPage() {
   const [data, setData] = useState<ViewsData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeView, setActiveView] = useState<"view1" | "view2" | "view3">("view1");
-  const [showSql, setShowSql] = useState(true);
+  const [mainTab, setMainTab] = useState<"reports" | "definitions">("reports");
+  const [activeReport, setActiveReport] = useState<ReportType>("view1");
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     setLoading(true);
     fetch("/api/admin/views")
-      .then((r) => r.json())
+      .then((res) => res.json())
       .then((d) => setData(d))
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
 
-  const viewMeta: Record<
-    string,
-    { title: string; sql_name: string; purpose: string; tables: string[]; feature: string; color: string }
-  > = {
-    view1: {
-      title: "vw_user_full_profile",
-      sql_name: "vw_user_full_profile",
-      purpose: "Full Player Dashboard Report — combines identity, study preferences, and learning progress into one unified snapshot.",
-      tables: ["profiles", "profile_study_settings", "profile_progress"],
-      feature: "Admin 'Users' tab & Player Profile page",
-      color: "#58cc02",
-    },
-    view2: {
-      title: "vw_user_game_status",
-      sql_name: "vw_user_game_status",
-      purpose: "Game Economy & Engagement Report — tracks streaks, hearts, gems, league ranks and freeze counts per player.",
-      tables: ["profiles", "profile_game_state", "profile_progress"],
-      feature: "Admin 'Overview' tab & Leaderboard page",
-      color: "#a570ff",
-    },
-    view3: {
-      title: "vw_lesson_activity_summary",
-      sql_name: "vw_lesson_activity_summary",
-      purpose: "Lesson Activity & XP Audit Report — aggregates each player's lesson completion events, XP earned, and activity timeline.",
-      tables: ["profiles", "lesson_events", "profile_study_settings"],
-      feature: "Admin SQL Views Report page (this page)",
-      color: "#1cb0f6",
-    },
-  };
+  const currentMeta = REPORT_INFO[activeReport];
 
-  const meta = viewMeta[activeView];
+  // ── Filtered Records ───────────────────────────────────────────────────────
+  const filteredView1 = useMemo(() => {
+    if (!data?.view1) return [];
+    if (!searchQuery.trim()) return data.view1;
+    const q = searchQuery.toLowerCase();
+    return data.view1.filter(
+      (r) =>
+        r.display_name.toLowerCase().includes(q) ||
+        (r.exam_category && r.exam_category.toLowerCase().includes(q)) ||
+        (r.sub_topic && r.sub_topic.toLowerCase().includes(q)) ||
+        r.profile_id.toLowerCase().includes(q)
+    );
+  }, [data?.view1, searchQuery]);
+
+  const filteredView2 = useMemo(() => {
+    if (!data?.view2) return [];
+    if (!searchQuery.trim()) return data.view2;
+    const q = searchQuery.toLowerCase();
+    return data.view2.filter(
+      (r) =>
+        r.display_name.toLowerCase().includes(q) ||
+        r.league_name.toLowerCase().includes(q) ||
+        r.profile_id.toLowerCase().includes(q)
+    );
+  }, [data?.view2, searchQuery]);
+
+  const filteredView3 = useMemo(() => {
+    if (!data?.view3) return [];
+    if (!searchQuery.trim()) return data.view3;
+    const q = searchQuery.toLowerCase();
+    return data.view3.filter(
+      (r) =>
+        r.display_name.toLowerCase().includes(q) ||
+        (r.exam_category && r.exam_category.toLowerCase().includes(q)) ||
+        (r.sub_topic && r.sub_topic.toLowerCase().includes(q)) ||
+        r.profile_id.toLowerCase().includes(q)
+    );
+  }, [data?.view3, searchQuery]);
+
+  // ── Summary KPI Calculations ───────────────────────────────────────────────
+  const summaryStats = useMemo(() => {
+    if (!data) return { stat1: "0", stat2: "0", stat3: "0", stat4: "0" };
+
+    if (activeReport === "view1") {
+      const rows = data.view1 || [];
+      const total = rows.length;
+      const active = rows.filter((r) => r.total_score > 0).length;
+      const avgLessons = total > 0 ? (rows.reduce((acc, r) => acc + r.lessons_completed, 0) / total).toFixed(1) : "0";
+      const totalXp = rows.reduce((acc, r) => acc + r.total_score, 0);
+      return {
+        label1: "Total Reviewers",
+        stat1: total.toString(),
+        sub1: `${active} active`,
+        label2: "Active Learners",
+        stat2: active.toString(),
+        sub2: `${total > 0 ? Math.round((active / total) * 100) : 0}% active rate`,
+        label3: "Avg Lessons Finished",
+        stat3: avgLessons,
+        sub3: "per candidate",
+        label4: "Total Score Recorded",
+        stat4: totalXp.toLocaleString(),
+        sub4: "cumulative XP",
+      };
+    } else if (activeReport === "view2") {
+      const rows = data.view2 || [];
+      const total = rows.length;
+      const totalGems = rows.reduce((acc, r) => acc + r.gems, 0);
+      const activeStreaks = rows.filter((r) => r.streak > 0).length;
+      const maxStreak = rows.length > 0 ? Math.max(...rows.map((r) => r.streak)) : 0;
+      return {
+        label1: "Total Reviewers",
+        stat1: total.toString(),
+        sub1: "audited accounts",
+        label2: "Gems Active",
+        stat2: totalGems.toLocaleString(),
+        sub2: "economy vault",
+        label3: "Active Streaks",
+        stat3: activeStreaks.toString(),
+        sub3: `${total > 0 ? Math.round((activeStreaks / total) * 100) : 0}% retention`,
+        label4: "Top Streak Record",
+        stat4: `${maxStreak}d`,
+        sub4: "consecutive days",
+      };
+    } else {
+      const rows = data.view3 || [];
+      const totalEvents = rows.reduce((acc, r) => acc + r.total_events, 0);
+      const totalXp = rows.reduce((acc, r) => acc + r.total_xp_earned, 0);
+      const activeCandidates = rows.filter((r) => r.total_events > 0).length;
+      return {
+        label1: "Completed Drills",
+        stat1: totalEvents.toString(),
+        sub1: "total events logged",
+        label2: "Drill XP Earned",
+        stat2: totalXp.toLocaleString(),
+        sub2: "awarded from sessions",
+        label3: "Active Candidates",
+        stat3: activeCandidates.toString(),
+        sub3: "with recorded activity",
+        label4: "Drills / Active User",
+        stat4: activeCandidates > 0 ? (totalEvents / activeCandidates).toFixed(1) : "0",
+        sub4: "average throughput",
+      };
+    }
+  }, [data, activeReport]);
 
   return (
-    <>
-      <style>{`
-        /* ── Page Layout ── */
-        .views-root {
-          width: 100%;
-          min-height: 100vh;
-          padding-bottom: 48px;
-          font-family: 'Din Round', system-ui, sans-serif;
-        }
-
-        /* ── Header ── */
-        .views-header {
-          padding: 28px 0 20px;
-        }
-        .views-title {
-          font-size: 1.75rem;
-          font-weight: 800;
-          color: var(--text-primary, #1e1e1e);
-          letter-spacing: -0.5px;
-          margin: 0 0 4px;
-          display: flex;
-          align-items: center;
-          gap: 10px;
-        }
-        .views-subtitle {
-          font-size: 0.875rem;
-          color: var(--text-secondary, #6e7891);
-          margin: 0 0 20px;
-        }
-
-        /* ── VIEW Tabs ── */
-        .view-tabs {
-          display: flex;
-          gap: 10px;
-          flex-wrap: wrap;
-          margin-bottom: 24px;
-        }
-        .view-badge {
-          display: flex;
-          flex-direction: column;
-          align-items: flex-start;
-          padding: 10px 18px;
-          border-radius: 12px;
-          border: 2px solid #e0e4ef;
-          background: #f8f9fc;
-          cursor: pointer;
-          transition: all 0.18s;
-          gap: 2px;
-        }
-        .dark-mode .view-badge { background: #1a1a2e; border-color: #2a2a40; }
-        .view-badge:hover { border-color: #a0a8c0; }
-        .view-badge-active {
-          border-color: #5b5ef6 !important;
-          background: linear-gradient(135deg, #5b5ef610, #a570ff10) !important;
-          box-shadow: 0 0 0 3px #5b5ef620;
-        }
-        .view-badge-num {
-          font-size: 0.65rem;
-          font-weight: 800;
-          text-transform: uppercase;
-          letter-spacing: 1px;
-          color: #5b5ef6;
-        }
-        .view-badge-desc {
-          font-size: 0.875rem;
-          font-weight: 700;
-          color: #1e1e1e;
-        }
-        .dark-mode .view-badge-desc { color: #e0e4ef; }
-
-        /* ── View Meta Card ── */
-        .view-meta-card {
-          border-radius: 16px;
-          border: 2px solid #e0e4ef;
-          background: #ffffff;
-          padding: 20px 24px;
-          margin-bottom: 20px;
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-        }
-        .dark-mode .view-meta-card { background: #12121f; border-color: #2a2a40; }
-        .view-meta-title {
-          font-size: 1.15rem;
-          font-weight: 800;
-          color: #1e1e1e;
-          font-family: 'Courier New', monospace;
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          flex-wrap: wrap;
-        }
-        .dark-mode .view-meta-title { color: #e8eaf6; }
-        .view-meta-dot {
-          width: 10px; height: 10px;
-          border-radius: 50%;
-          flex-shrink: 0;
-        }
-        .view-meta-purpose {
-          font-size: 0.875rem;
-          color: #44485a;
-          line-height: 1.5;
-        }
-        .dark-mode .view-meta-purpose { color: #8b90ab; }
-        .view-meta-tables {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 8px;
-        }
-        .table-chip {
-          padding: 4px 12px;
-          border-radius: 20px;
-          font-size: 0.75rem;
-          font-weight: 700;
-          font-family: 'Courier New', monospace;
-          border: 1.5px solid;
-        }
-        .view-meta-row {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          font-size: 0.8rem;
-          color: #6e7891;
-        }
-        .view-meta-row strong { color: #1e1e1e; }
-        .dark-mode .view-meta-row strong { color: #e0e4ef; }
-
-        /* ── SQL Block ── */
-        .sql-toggle-bar {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          margin-bottom: 12px;
-        }
-        .sql-toggle-label {
-          font-size: 0.875rem;
-          font-weight: 700;
-          color: #44485a;
-        }
-        .dark-mode .sql-toggle-label { color: #8b90ab; }
-        .sql-toggle-btn {
-          font-size: 0.75rem;
-          font-weight: 700;
-          color: #5b5ef6;
-          background: none;
-          border: none;
-          cursor: pointer;
-          padding: 4px 10px;
-          border-radius: 8px;
-          background: #5b5ef610;
-          transition: background 0.15s;
-        }
-        .sql-toggle-btn:hover { background: #5b5ef625; }
-        .sql-block {
-          border-radius: 12px;
-          overflow: hidden;
-          border: 1.5px solid #e0e4ef;
-          margin-bottom: 20px;
-        }
-        .dark-mode .sql-block { border-color: #2a2a40; }
-        .sql-block-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 10px 16px;
-          background: #1e1e2e;
-        }
-        .sql-label {
-          font-size: 0.7rem;
-          font-weight: 700;
-          color: #7c7cff;
-          text-transform: uppercase;
-          letter-spacing: 1px;
-          font-family: 'Courier New', monospace;
-        }
-        .copy-btn {
-          font-size: 0.7rem;
-          font-weight: 700;
-          color: #58cc02;
-          background: none;
-          border: 1px solid #58cc0240;
-          padding: 3px 10px;
-          border-radius: 6px;
-          cursor: pointer;
-          transition: all 0.15s;
-        }
-        .copy-btn:hover { background: #58cc0218; }
-        .sql-code {
-          background: #0d0d1a;
-          color: #c8d3f5;
-          padding: 16px 18px;
-          font-size: 0.78rem;
-          line-height: 1.65;
-          overflow-x: auto;
-          margin: 0;
-          font-family: 'Courier New', monospace;
-        }
-
-        /* ── Data Table ── */
-        .data-section-title {
-          font-size: 1rem;
-          font-weight: 800;
-          color: #1e1e1e;
-          margin-bottom: 12px;
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-        .dark-mode .data-section-title { color: #e0e4ef; }
-        .data-count-badge {
-          font-size: 0.7rem;
-          font-weight: 700;
-          background: #5b5ef620;
-          color: #5b5ef6;
-          padding: 2px 8px;
-          border-radius: 10px;
-        }
-        .table-wrap {
-          overflow-x: auto;
-          border-radius: 14px;
-          border: 1.5px solid #e0e4ef;
-          background: #ffffff;
-        }
-        .dark-mode .table-wrap { background: #12121f; border-color: #2a2a40; }
-        table.data-table {
-          width: 100%;
-          border-collapse: collapse;
-          min-width: 640px;
-        }
-        table.data-table thead {
-          background: #f3f4f8;
-        }
-        .dark-mode table.data-table thead { background: #1a1a2e; }
-        table.data-table th {
-          padding: 10px 14px;
-          font-size: 0.7rem;
-          font-weight: 800;
-          text-transform: uppercase;
-          letter-spacing: 0.7px;
-          color: #6e7891;
-          text-align: left;
-          white-space: nowrap;
-          font-family: 'Courier New', monospace;
-        }
-        table.data-table td {
-          padding: 10px 14px;
-          font-size: 0.8rem;
-          color: #44485a;
-          border-top: 1px solid #edf0f7;
-          white-space: nowrap;
-        }
-        .dark-mode table.data-table td {
-          color: #9ba0b8;
-          border-top-color: #22223a;
-        }
-        table.data-table tr:hover td { background: #f7f8fd; }
-        .dark-mode table.data-table tr:hover td { background: #1c1c30; }
-        .td-name { font-weight: 700; color: #1e1e1e !important; }
-        .dark-mode .td-name { color: #e0e4ef !important; }
-        .td-mono { font-family: 'Courier New', monospace; font-size: 0.72rem !important; }
-        .badge-diff {
-          display: inline-block;
-          padding: 2px 9px;
-          border-radius: 9px;
-          font-size: 0.7rem;
-          font-weight: 700;
-        }
-        .badge-beginner { background: #58cc0218; color: #3a9a00; }
-        .badge-intermediate { background: #ffc70018; color: #9b7200; }
-        .badge-advanced { background: #ff4b4b18; color: #cc0000; }
-
-        /* ── Skeleton / Loading ── */
-        .skeleton-table { padding: 20px; }
-        .skeleton-row {
-          height: 36px;
-          border-radius: 8px;
-          background: linear-gradient(90deg, #e8ecf0 25%, #f3f4f8 50%, #e8ecf0 75%);
-          background-size: 200% 100%;
-          animation: shimmer 1.4s infinite;
-          margin-bottom: 8px;
-        }
-        .dark-mode .skeleton-row {
-          background: linear-gradient(90deg, #1a1a2e 25%, #22223a 50%, #1a1a2e 75%);
-          background-size: 200% 100%;
-        }
-        @keyframes shimmer {
-          0% { background-position: -200% 0; }
-          100% { background-position: 200% 0; }
-        }
-
-        /* ── Empty ── */
-        .empty-state {
-          text-align: center;
-          padding: 40px 20px;
-          color: #6e7891;
-          font-size: 0.875rem;
-        }
-      `}</style>
-
-      <div className="views-root">
-        {/* Header */}
-        <div className="views-header">
-          <h1 className="views-title">
-            <span>🗄️</span> SQL Views Report
-          </h1>
-          <p className="views-subtitle">
-            Three SQL VIEWs combining multiple tables — implemented as live system features.
-          </p>
-
-          {/* VIEW Tabs */}
-          <div className="view-tabs" role="tablist">
-            {(["view1", "view2", "view3"] as const).map((v) => (
-              <ViewBadge
-                key={v}
-                view={v}
-                active={activeView === v}
-                onClick={() => setActiveView(v)}
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* View Meta Card */}
-        {meta && (
-          <div className="view-meta-card">
-            <div className="view-meta-title">
-              <span className="view-meta-dot" style={{ background: meta.color }} />
-              {meta.title}
-            </div>
-            <p className="view-meta-purpose">{meta.purpose}</p>
-            <div className="view-meta-tables">
-              {meta.tables.map((t, i) => (
-                <span
-                  key={t}
-                  className="table-chip"
-                  style={{
-                    borderColor: meta.color + "60",
-                    color: meta.color,
-                    background: meta.color + "12",
-                  }}
-                >
-                  {i === 0 ? "📋 " : i === 1 ? "⚙️ " : "📊 "}
-                  {t}
-                </span>
-              ))}
-            </div>
-            <div className="view-meta-row">
-              <span>🖥️</span>
-              <strong>System feature:</strong>
-              <span>{meta.feature}</span>
-            </div>
-          </div>
-        )}
-
-        {/* SQL Statement */}
-        <div className="sql-toggle-bar">
-          <span className="sql-toggle-label">📝 CREATE VIEW Statement</span>
-          <button className="sql-toggle-btn" onClick={() => setShowSql((s) => !s)}>
-            {showSql ? "Hide SQL ▲" : "Show SQL ▼"}
-          </button>
-        </div>
-
-        {showSql && data?.viewSql && (
-          <SqlBlock
-            label={`CREATE OR REPLACE VIEW ${meta.sql_name}`}
-            sql={data.viewSql[meta.sql_name] ?? "Loading…"}
-          />
-        )}
-
-        {/* Data Result */}
-        <div className="data-section-title">
-          📊 VIEW Result
-          {!loading && data && (
-            <span className="data-count-badge">
-              {activeView === "view1"
-                ? data.view1.length
-                : activeView === "view2"
-                ? data.view2.length
-                : data.view3.length}{" "}
-              rows
-            </span>
-          )}
-        </div>
-
-        {loading ? (
-          <div className="skeleton-table">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="skeleton-row" />
-            ))}
-          </div>
-        ) : !data ? (
-          <div className="empty-state">⚠️ Failed to load view data.</div>
-        ) : activeView === "view1" ? (
-          /* ── VIEW 1 Table ── */
-          <div className="table-wrap">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>display_name</th>
-                  <th>exam_category</th>
-                  <th>sub_topic</th>
-                  <th>study_style</th>
-                  <th>difficulty</th>
-                  <th>timer_duration</th>
-                  <th>total_score</th>
-                  <th>current_level</th>
-                  <th>lessons_completed</th>
-                  <th>last_lesson_date</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.view1.length === 0 ? (
-                  <tr>
-                    <td colSpan={10} className="empty-state">No rows found.</td>
-                  </tr>
-                ) : (
-                  data.view1.map((r) => (
-                    <tr key={r.profile_id}>
-                      <td className="td-name">{r.display_name}</td>
-                      <td>{r.exam_category ?? "—"}</td>
-                      <td>{truncate(r.sub_topic, 18)}</td>
-                      <td>{r.study_style}</td>
-                      <td>
-                        <span
-                          className={`badge-diff ${
-                            r.difficulty === "Beginner"
-                              ? "badge-beginner"
-                              : r.difficulty === "Intermediate"
-                              ? "badge-intermediate"
-                              : "badge-advanced"
-                          }`}
-                        >
-                          {r.difficulty}
-                        </span>
-                      </td>
-                      <td>{r.timer_duration}m</td>
-                      <td style={{ fontWeight: 700, color: "#58cc02" }}>{r.total_score.toLocaleString()}</td>
-                      <td>Lv. {r.current_level}</td>
-                      <td>{r.lessons_completed}</td>
-                      <td className="td-mono">{fmt(r.last_lesson_date)}</td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        ) : activeView === "view2" ? (
-          /* ── VIEW 2 Table ── */
-          <div className="table-wrap">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>display_name</th>
-                  <th>league_name</th>
-                  <th>total_score</th>
-                  <th>lessons_completed</th>
-                  <th>streak 🔥</th>
-                  <th>streak_freeze_count</th>
-                  <th>hearts ❤️</th>
-                  <th>gems 💎</th>
-                  <th>last_lesson_date</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.view2.length === 0 ? (
-                  <tr>
-                    <td colSpan={9} className="empty-state">No rows found.</td>
-                  </tr>
-                ) : (
-                  data.view2.map((r) => (
-                    <tr key={r.profile_id}>
-                      <td className="td-name">{r.display_name}</td>
-                      <td>
-                        <span style={{ color: LEAGUE_COLORS[r.league_name] ?? "#999", fontWeight: 700, fontSize: "0.78rem" }}>
-                          {LEAGUE_EMOJI[r.league_name] ?? "🏅"} {r.league_name}
-                        </span>
-                      </td>
-                      <td style={{ fontWeight: 700, color: "#58cc02" }}>{r.total_score.toLocaleString()}</td>
-                      <td>{r.lessons_completed}</td>
-                      <td>{r.streak}</td>
-                      <td>{r.streak_freeze_count}</td>
-                      <td>{r.hearts}</td>
-                      <td style={{ color: "#ffc700", fontWeight: 700 }}>{r.gems}</td>
-                      <td className="td-mono">{fmt(r.last_lesson_date)}</td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          /* ── VIEW 3 Table ── */
-          <div className="table-wrap">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>display_name</th>
-                  <th>exam_category</th>
-                  <th>sub_topic</th>
-                  <th>total_events</th>
-                  <th>total_xp_earned</th>
-                  <th>first_activity_at</th>
-                  <th>last_activity_at</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.view3.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="empty-state">No lesson events found yet.</td>
-                  </tr>
-                ) : (
-                  data.view3.map((r) => (
-                    <tr key={r.profile_id}>
-                      <td className="td-name">{r.display_name}</td>
-                      <td>{r.exam_category ?? "—"}</td>
-                      <td>{truncate(r.sub_topic, 18)}</td>
-                      <td style={{ fontWeight: 700 }}>{r.total_events}</td>
-                      <td style={{ fontWeight: 700, color: "#58cc02" }}>{(r.total_xp_earned ?? 0).toLocaleString()} XP</td>
-                      <td className="td-mono">{fmt(r.first_activity_at)}</td>
-                      <td className="td-mono">{fmt(r.last_activity_at)}</td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        )}
+    <main className="flex-1 w-full max-w-[1000px] mx-auto pb-24 flex flex-col gap-6 pt-4 md:pt-8 px-4 font-din-round relative">
+      {/* Page Header */}
+      <div className="mt-4">
+        <h1 className="font-feather text-heading text-almost-black tracking-tight uppercase">
+          System Reports
+        </h1>
+        <p className="text-graphite text-body mt-1 max-w-2xl">
+          Unified database view reports combining candidate registration, gamification economy, and practice audit logs.
+        </p>
       </div>
-    </>
+
+      {/* Main Tabs */}
+      <div className="flex border-b-2 border-cloud-gray overflow-x-auto gap-2 sm:gap-6 pt-2 pb-0 scrollbar-none">
+        <button
+          onClick={() => setMainTab("reports")}
+          className={`pb-3 font-extrabold text-[15px] tracking-wider uppercase border-b-4 transition-all shrink-0 px-2 cursor-pointer ${
+            mainTab === "reports"
+              ? "border-sky-blue text-sky-blue"
+              : "border-transparent text-silver hover:text-charcoal hover:border-cloud-gray"
+          }`}
+        >
+          View Reports
+        </button>
+        <button
+          onClick={() => setMainTab("definitions")}
+          className={`pb-3 font-extrabold text-[15px] tracking-wider uppercase border-b-4 transition-all shrink-0 px-2 cursor-pointer ${
+            mainTab === "definitions"
+              ? "border-sky-blue text-sky-blue"
+              : "border-transparent text-silver hover:text-charcoal hover:border-cloud-gray"
+          }`}
+        >
+          SQL View Definitions
+        </button>
+
+        <div className="flex items-center gap-4 ml-auto">
+          <Link
+            href="/admin/functions"
+            className="pb-3 font-extrabold text-[15px] tracking-wider uppercase border-b-4 transition-all shrink-0 px-2 cursor-pointer border-transparent text-silver hover:text-sky-blue hover:border-sky-blue"
+          >
+            Performance
+          </Link>
+          <Link
+            href="/admin"
+            className="pb-3 font-extrabold text-[15px] tracking-wider uppercase border-b-4 transition-all shrink-0 px-2 cursor-pointer border-transparent text-silver hover:text-charcoal hover:border-cloud-gray"
+          >
+            Dashboard
+          </Link>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-24 gap-3">
+          <div className="w-8 h-8 border-[3px] border-cloud-gray border-t-sky-blue rounded-full animate-spin" />
+          <p className="text-silver font-bold text-sm">Loading system reports...</p>
+        </div>
+      ) : (
+        <>
+          {/* ═══════════════════════════════════════════════════════════════════
+              TAB 1: VIEW REPORTS
+          ═══════════════════════════════════════════════════════════════════ */}
+          {mainTab === "reports" && (
+            <div className="flex flex-col gap-6 animate-fade-in">
+              {/* Report Selector Pills */}
+              <div className="bg-snow-white border-2 border-cloud-gray p-2 rounded-2xl flex flex-wrap gap-2">
+                {(["view1", "view2", "view3"] as const).map((key) => {
+                  const info = REPORT_INFO[key];
+                  const isSelected = activeReport === key;
+                  return (
+                    <button
+                      key={key}
+                      onClick={() => {
+                        setActiveReport(key);
+                        setSearchQuery("");
+                      }}
+                      className={`flex-1 min-w-[200px] text-left px-4 py-3 rounded-xl transition-all border-2 cursor-pointer ${
+                        isSelected
+                          ? "bg-sky-blue/10 border-sky-blue text-sky-blue shadow-sm"
+                          : "bg-transparent border-transparent text-charcoal hover:bg-cloud-gray/10"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-extrabold text-sm">{info.title}</span>
+                        <span className="text-[10px] font-mono uppercase text-silver font-bold">{info.viewName}</span>
+                      </div>
+                      <p className="text-xs text-silver mt-0.5 truncate">{info.featureContext}</p>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* KPI Summary Cards */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-snow-white border-2 border-cloud-gray p-5 rounded-2xl hover:border-sky-blue transition-colors">
+                  <p className="text-silver font-bold uppercase text-[11px] tracking-wider">{summaryStats.label1}</p>
+                  <h2 className="text-heading font-extrabold mt-1 text-almost-black">{summaryStats.stat1}</h2>
+                  <p className="text-xs text-silver mt-0.5">{summaryStats.sub1}</p>
+                </div>
+                <div className="bg-snow-white border-2 border-cloud-gray p-5 rounded-2xl hover:border-duo-green transition-colors">
+                  <p className="text-silver font-bold uppercase text-[11px] tracking-wider">{summaryStats.label2}</p>
+                  <h2 className="text-heading font-extrabold mt-1 text-duo-green">{summaryStats.stat2}</h2>
+                  <p className="text-xs text-silver mt-0.5">{summaryStats.sub2}</p>
+                </div>
+                <div className="bg-snow-white border-2 border-cloud-gray p-5 rounded-2xl hover:border-sunshine-yellow transition-colors">
+                  <p className="text-silver font-bold uppercase text-[11px] tracking-wider">{summaryStats.label3}</p>
+                  <h2 className="text-heading font-extrabold mt-1 text-almost-black">{summaryStats.stat3}</h2>
+                  <p className="text-xs text-silver mt-0.5">{summaryStats.sub3}</p>
+                </div>
+                <div className="bg-snow-white border-2 border-cloud-gray p-5 rounded-2xl hover:border-bubblegum-pink transition-colors">
+                  <p className="text-silver font-bold uppercase text-[11px] tracking-wider">{summaryStats.label4}</p>
+                  <h2 className="text-heading font-extrabold mt-1 text-almost-black">{summaryStats.stat4}</h2>
+                  <p className="text-xs text-silver mt-0.5">{summaryStats.sub4}</p>
+                </div>
+              </div>
+
+              {/* Report Description & Filter Bar */}
+              <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-snow-white border-2 border-cloud-gray p-4 rounded-2xl">
+                <div className="flex flex-col min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="font-extrabold text-almost-black text-sm">{currentMeta.title}</span>
+                    <span className="text-[11px] font-mono text-silver">({currentMeta.viewName})</span>
+                  </div>
+                  <div className="flex items-center gap-2 mt-1 flex-wrap">
+                    <span className="text-xs text-silver">Source tables:</span>
+                    {currentMeta.sourceTables.map((t) => (
+                      <span key={t} className="px-2 py-0.5 rounded bg-cloud-gray/20 font-mono text-[11px] text-charcoal font-bold">
+                        {t}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="relative min-w-[240px]">
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search records..."
+                    className="w-full border-2 border-cloud-gray focus:border-sky-blue rounded-xl py-2 px-3 text-xs font-bold text-almost-black outline-none transition-colors"
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery("")}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-silver hover:text-charcoal text-xs font-bold"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* ── Table for VIEW 1: Full Profile ── */}
+              {activeReport === "view1" && (
+                <div className="bg-snow-white border-2 border-cloud-gray rounded-2xl overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse text-left min-w-[850px]">
+                      <thead>
+                        <tr className="border-b-2 border-cloud-gray bg-cloud-gray/10 text-silver font-extrabold text-[12px] uppercase tracking-wider">
+                          <th className="p-4 whitespace-nowrap">Reviewer</th>
+                          <th className="p-4 whitespace-nowrap">Exam Category</th>
+                          <th className="p-4 whitespace-nowrap">Sub-Topic</th>
+                          <th className="p-4 whitespace-nowrap">Difficulty</th>
+                          <th className="p-4 whitespace-nowrap">Style</th>
+                          <th className="p-4 whitespace-nowrap">Score</th>
+                          <th className="p-4 whitespace-nowrap">Lessons</th>
+                          <th className="p-4 whitespace-nowrap">Last Lesson</th>
+                          <th className="p-4 whitespace-nowrap text-right">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y-2 divide-cloud-gray font-bold text-[14px]">
+                        {filteredView1.length === 0 ? (
+                          <tr>
+                            <td colSpan={9} className="p-8 text-center text-silver font-bold">
+                              No reviewer records found.
+                            </td>
+                          </tr>
+                        ) : (
+                          filteredView1.map((r) => (
+                            <tr key={r.profile_id} className="hover:bg-cloud-gray/5 text-charcoal">
+                              <td className="p-4 whitespace-nowrap">
+                                <div className="flex flex-col min-w-0">
+                                  <span className="text-almost-black font-extrabold text-sm">{r.display_name}</span>
+                                  <span className="text-[11px] text-silver font-mono font-medium truncate max-w-[160px]">
+                                    {r.profile_id}
+                                  </span>
+                                </div>
+                              </td>
+                              <td className="p-4 whitespace-nowrap text-almost-black">
+                                <span className="px-2.5 py-1 rounded-lg bg-sky-blue/10 text-sky-blue border border-sky-blue/20 text-xs font-extrabold">
+                                  {r.exam_category || "General"}
+                                </span>
+                              </td>
+                              <td className="p-4 whitespace-nowrap text-silver text-xs">
+                                {truncateText(r.sub_topic, 24)}
+                              </td>
+                              <td className="p-4 whitespace-nowrap">
+                                <span
+                                  className={`px-2 py-0.5 rounded-full text-xs font-bold ${
+                                    r.difficulty === "Advanced"
+                                      ? "bg-rose-500/10 text-rose-600"
+                                      : r.difficulty === "Intermediate"
+                                      ? "bg-amber-500/10 text-amber-600"
+                                      : "bg-duo-green/10 text-duo-green"
+                                  }`}
+                                >
+                                  {r.difficulty}
+                                </span>
+                              </td>
+                              <td className="p-4 whitespace-nowrap text-silver text-xs">{r.study_style}</td>
+                              <td className="p-4 whitespace-nowrap text-almost-black font-extrabold">
+                                {r.total_score.toLocaleString()} <span className="text-silver text-xs font-medium">XP</span>
+                              </td>
+                              <td className="p-4 whitespace-nowrap text-almost-black">{r.lessons_completed}</td>
+                              <td className="p-4 whitespace-nowrap text-silver text-xs font-mono">
+                                {formatDate(r.last_lesson_date)}
+                              </td>
+                              <td className="p-4 whitespace-nowrap text-right">
+                                <Link
+                                  href="/admin/functions"
+                                  className="text-sky-blue hover:bg-sky-blue/10 px-3 py-1.5 rounded-xl border-2 border-sky-blue/20 transition-all text-xs font-extrabold inline-block"
+                                >
+                                  Performance
+                                </Link>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* ── Table for VIEW 2: Game Status ── */}
+              {activeReport === "view2" && (
+                <div className="bg-snow-white border-2 border-cloud-gray rounded-2xl overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse text-left min-w-[850px]">
+                      <thead>
+                        <tr className="border-b-2 border-cloud-gray bg-cloud-gray/10 text-silver font-extrabold text-[12px] uppercase tracking-wider">
+                          <th className="p-4 whitespace-nowrap">Reviewer</th>
+                          <th className="p-4 whitespace-nowrap">League Standing</th>
+                          <th className="p-4 whitespace-nowrap">Score</th>
+                          <th className="p-4 whitespace-nowrap">Lessons</th>
+                          <th className="p-4 whitespace-nowrap">Streak</th>
+                          <th className="p-4 whitespace-nowrap">Streak Freeze</th>
+                          <th className="p-4 whitespace-nowrap">Hearts</th>
+                          <th className="p-4 whitespace-nowrap">Gems</th>
+                          <th className="p-4 whitespace-nowrap text-right">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y-2 divide-cloud-gray font-bold text-[14px]">
+                        {filteredView2.length === 0 ? (
+                          <tr>
+                            <td colSpan={9} className="p-8 text-center text-silver font-bold">
+                              No game status records found.
+                            </td>
+                          </tr>
+                        ) : (
+                          filteredView2.map((r) => {
+                            const league = getLeagueStyle(r.league_name);
+                            return (
+                              <tr key={r.profile_id} className="hover:bg-cloud-gray/5 text-charcoal">
+                                <td className="p-4 whitespace-nowrap">
+                                  <div className="flex flex-col min-w-0">
+                                    <span className="text-almost-black font-extrabold text-sm">{r.display_name}</span>
+                                    <span className="text-[11px] text-silver font-mono font-medium truncate max-w-[160px]">
+                                      {r.profile_id}
+                                    </span>
+                                  </div>
+                                </td>
+                                <td className="p-4 whitespace-nowrap">
+                                  <span className={`px-2.5 py-1 rounded-lg text-xs font-extrabold border ${league.bg} ${league.text} ${league.border}`}>
+                                    {r.league_name}
+                                  </span>
+                                </td>
+                                <td className="p-4 whitespace-nowrap text-almost-black font-extrabold">
+                                  {r.total_score.toLocaleString()} <span className="text-silver text-xs font-medium">XP</span>
+                                </td>
+                                <td className="p-4 whitespace-nowrap text-almost-black">{r.lessons_completed}</td>
+                                <td className="p-4 whitespace-nowrap">
+                                  <span className={`font-extrabold ${r.streak > 0 ? "text-[#ff5e00]" : "text-silver"}`}>
+                                    {r.streak}d
+                                  </span>
+                                </td>
+                                <td className="p-4 whitespace-nowrap text-silver text-xs">
+                                  {r.streak_freeze_count} remaining
+                                </td>
+                                <td className="p-4 whitespace-nowrap text-rose-500 font-extrabold">
+                                  {r.hearts}/5
+                                </td>
+                                <td className="p-4 whitespace-nowrap text-amber-500 font-extrabold">
+                                  {r.gems.toLocaleString()}
+                                </td>
+                                <td className="p-4 whitespace-nowrap text-right">
+                                  <Link
+                                    href="/admin/functions"
+                                    className="text-sky-blue hover:bg-sky-blue/10 px-3 py-1.5 rounded-xl border-2 border-sky-blue/20 transition-all text-xs font-extrabold inline-block"
+                                  >
+                                    Performance
+                                  </Link>
+                                </td>
+                              </tr>
+                            );
+                          })
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* ── Table for VIEW 3: Activity Summary ── */}
+              {activeReport === "view3" && (
+                <div className="bg-snow-white border-2 border-cloud-gray rounded-2xl overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse text-left min-w-[850px]">
+                      <thead>
+                        <tr className="border-b-2 border-cloud-gray bg-cloud-gray/10 text-silver font-extrabold text-[12px] uppercase tracking-wider">
+                          <th className="p-4 whitespace-nowrap">Reviewer</th>
+                          <th className="p-4 whitespace-nowrap">Exam Category</th>
+                          <th className="p-4 whitespace-nowrap">Sub-Topic</th>
+                          <th className="p-4 whitespace-nowrap">Drills Logged</th>
+                          <th className="p-4 whitespace-nowrap">XP Awarded</th>
+                          <th className="p-4 whitespace-nowrap">First Activity</th>
+                          <th className="p-4 whitespace-nowrap">Latest Activity</th>
+                          <th className="p-4 whitespace-nowrap text-right">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y-2 divide-cloud-gray font-bold text-[14px]">
+                        {filteredView3.length === 0 ? (
+                          <tr>
+                            <td colSpan={8} className="p-8 text-center text-silver font-bold">
+                              No lesson events logged yet.
+                            </td>
+                          </tr>
+                        ) : (
+                          filteredView3.map((r) => (
+                            <tr key={r.profile_id} className="hover:bg-cloud-gray/5 text-charcoal">
+                              <td className="p-4 whitespace-nowrap">
+                                <div className="flex flex-col min-w-0">
+                                  <span className="text-almost-black font-extrabold text-sm">{r.display_name}</span>
+                                  <span className="text-[11px] text-silver font-mono font-medium truncate max-w-[160px]">
+                                    {r.profile_id}
+                                  </span>
+                                </div>
+                              </td>
+                              <td className="p-4 whitespace-nowrap">
+                                <span className="px-2.5 py-1 rounded-lg bg-sky-blue/10 text-sky-blue border border-sky-blue/20 text-xs font-extrabold">
+                                  {r.exam_category || "General"}
+                                </span>
+                              </td>
+                              <td className="p-4 whitespace-nowrap text-silver text-xs">
+                                {truncateText(r.sub_topic, 24)}
+                              </td>
+                              <td className="p-4 whitespace-nowrap text-almost-black font-extrabold">
+                                {r.total_events}
+                              </td>
+                              <td className="p-4 whitespace-nowrap text-duo-green font-extrabold">
+                                {(r.total_xp_earned || 0).toLocaleString()} <span className="text-silver text-xs font-medium">XP</span>
+                              </td>
+                              <td className="p-4 whitespace-nowrap text-silver text-xs font-mono">
+                                {formatDate(r.first_activity_at)}
+                              </td>
+                              <td className="p-4 whitespace-nowrap text-silver text-xs font-mono">
+                                {formatDate(r.last_activity_at)}
+                              </td>
+                              <td className="p-4 whitespace-nowrap text-right">
+                                <Link
+                                  href="/admin/functions"
+                                  className="text-sky-blue hover:bg-sky-blue/10 px-3 py-1.5 rounded-xl border-2 border-sky-blue/20 transition-all text-xs font-extrabold inline-block"
+                                >
+                                  Performance
+                                </Link>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ═══════════════════════════════════════════════════════════════════
+              TAB 2: SQL DEFINITIONS
+          ═══════════════════════════════════════════════════════════════════ */}
+          {mainTab === "definitions" && (
+            <div className="flex flex-col gap-6 animate-fade-in">
+              <div className="bg-snow-white border-2 border-cloud-gray p-5 rounded-2xl">
+                <h3 className="font-extrabold text-heading-sm text-almost-black">
+                  SQL View Declarations
+                </h3>
+                <p className="text-xs text-silver mt-1">
+                  These database views run directly in PostgreSQL / Supabase, encapsulating complex relational joins, aggregations, and league calculations into virtual tables.
+                </p>
+              </div>
+
+              {(["view1", "view2", "view3"] as const).map((key) => {
+                const info = REPORT_INFO[key];
+                const sql = data?.viewSql?.[info.viewName] || "";
+                return (
+                  <div key={key} className="bg-snow-white border-2 border-cloud-gray rounded-2xl overflow-hidden">
+                    <div className="p-4 bg-cloud-gray/10 border-b-2 border-cloud-gray flex items-center justify-between gap-3">
+                      <div>
+                        <span className="font-mono font-extrabold text-sm text-almost-black">{info.viewName}</span>
+                        <span className="text-xs text-silver ml-2">— {info.title}</span>
+                      </div>
+                      <CopyButton text={sql} />
+                    </div>
+
+                    <div className="p-4 flex flex-col gap-2">
+                      <p className="text-xs text-charcoal font-medium">{info.description}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-[11px] font-bold text-silver">Joined tables:</span>
+                        {info.sourceTables.map((tbl) => (
+                          <span key={tbl} className="px-2 py-0.5 bg-cloud-gray/20 rounded font-mono text-[11px] text-charcoal font-bold">
+                            {tbl}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    <pre className="p-4 bg-[#1e1e2e] text-[#c8d3f5] font-mono text-xs overflow-x-auto leading-relaxed border-t border-cloud-gray/20 m-0">
+                      <code>{sql}</code>
+                    </pre>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </>
+      )}
+    </main>
   );
 }

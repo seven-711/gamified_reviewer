@@ -565,13 +565,29 @@ export default function AdminDashboard() {
             </button>
           );
         })}
-        {/* SQL Views Tab — links to dedicated SQL Views Report page */}
+        {/* Reports Tab — links to dedicated Reports & Views analytics page */}
         <a
           href="/admin/views"
           className="pb-3 font-extrabold text-[15px] tracking-wider uppercase border-b-4 transition-all shrink-0 px-2 cursor-pointer border-transparent text-silver hover:text-[#a570ff] hover:border-[#a570ff] flex items-center gap-1.5"
-          id="admin-sql-views-tab"
+          id="admin-reports-tab"
         >
-          🗄️ SQL Views
+          Reports
+        </a>
+        {/* Reviewer Performance Tab — links to dedicated performance analytics page */}
+        <a
+          href="/admin/functions"
+          className="pb-3 font-extrabold text-[15px] tracking-wider uppercase border-b-4 transition-all shrink-0 px-2 cursor-pointer border-transparent text-silver hover:text-sky-blue hover:border-sky-blue flex items-center gap-1.5"
+          id="admin-sql-functions-tab"
+        >
+          Performance
+        </a>
+        {/* Triggers Tab — links to dedicated SQL triggers page */}
+        <a
+          href="/admin/triggers"
+          className="pb-3 font-extrabold text-[15px] tracking-wider uppercase border-b-4 transition-all shrink-0 px-2 cursor-pointer border-transparent text-silver hover:text-duo-green hover:border-duo-green flex items-center gap-1.5"
+          id="admin-sql-triggers-tab"
+        >
+          Triggers
         </a>
       </div>
 

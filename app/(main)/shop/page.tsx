@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
-import { refillHeartsInDb } from "@/lib/session";
+import { refillHeartsInDb, getOrCreateGuestSessionId } from "@/lib/session";
 import { useAlert } from "@/components/ui/AlertContext";
 import { useStats } from "@/components/ui/StatsContext";
 import { StreakAsset } from "@/components/ui/StreakAsset";
@@ -368,13 +368,10 @@ export default function ShopPage() {
     }
 
     setPurchasingHeart(true);
-    let profileId: string | null = null;
-    if (user) {
-      profileId = user.id;
-    }
+    const profileId = user ? user.id : getOrCreateGuestSessionId();
 
     if (profileId) {
-      const res = await refillHeartsInDb(profileId);
+      const res = await refillHeartsInDb(profileId, heartCost);
       if (res.success) {
         updateStatsLocally({ gems: Math.max(0, gems - heartCost), hearts: 5 });
         await refreshStats();

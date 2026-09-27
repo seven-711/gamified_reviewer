@@ -11,6 +11,8 @@ const fileMap: Record<string, string> = {
   logical: path.join(dataDir, 'logicalReasoning.json'),
   numerical: path.join(dataDir, 'numericalReasoning.json'),
   quantitative: path.join(quantDir, 'quantitativeReasoning.json'),
+  word_problems: path.join(dataDir, 'wordProblemsAndOperations.json'),
+  data_sufficiency: path.join(dataDir, 'dataSufficiency.json'),
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -18,6 +20,8 @@ const CATEGORY_LABELS: Record<string, string> = {
   logical: 'Logical Reasoning',
   numerical: 'Numerical Reasoning',
   quantitative: 'Quantitative Reasoning',
+  word_problems: 'Word Problems and Operations',
+  data_sufficiency: 'Data Sufficiency',
 };
 
 function getCategoryForTestId(testId: string): string {
@@ -25,6 +29,8 @@ function getCategoryForTestId(testId: string): string {
   if (testId.startsWith('logical')) return 'logical';
   if (testId.startsWith('numerical')) return 'numerical';
   if (testId.startsWith('quantitative') || testId.startsWith('part2')) return 'quantitative';
+  if (testId.startsWith('data_sufficiency')) return 'data_sufficiency';
+  if (testId.startsWith('word_problems') || testId.startsWith('practice_tests')) return 'word_problems';
   return 'abstract';
 }
 
@@ -37,14 +43,24 @@ async function loadAllData() {
   const logicalStr = await fs.promises.readFile(fileMap.logical, 'utf8');
   const numericalStr = await fs.promises.readFile(fileMap.numerical, 'utf8');
   const quantitativeStr = await fs.promises.readFile(fileMap.quantitative, 'utf8');
+  let wordProblemsStr = '{}';
+  try {
+    wordProblemsStr = await fs.promises.readFile(fileMap.word_problems, 'utf8');
+  } catch (e) {}
+  let dataSufficiencyStr = '{}';
+  try {
+    dataSufficiencyStr = await fs.promises.readFile(fileMap.data_sufficiency, 'utf8');
+  } catch (e) {}
 
   const abstractTests: Record<string, any[]> = JSON.parse(abstractStr);
   const logicalTests: Record<string, any[]> = JSON.parse(logicalStr);
   const numericalTests: Record<string, any[]> = JSON.parse(numericalStr);
   const quantitativeFile = JSON.parse(quantitativeStr);
   const quantitativeTests: Record<string, any[]> = quantitativeFile.quantitativeReasoningTests || {};
+  const wordProblemsTests: Record<string, any[]> = JSON.parse(wordProblemsStr);
+  const dataSufficiencyTests: Record<string, any[]> = JSON.parse(dataSufficiencyStr);
 
-  return { abstractTests, logicalTests, numericalTests, quantitativeTests };
+  return { abstractTests, logicalTests, numericalTests, quantitativeTests, wordProblemsTests, dataSufficiencyTests };
 }
 
 function flattenCategoryData(testsObj: Record<string, any[]>, categoryKey: string, categoryLabel: string) {
@@ -74,13 +90,15 @@ export async function GET(request: Request) {
     const testId = searchParams.get('testId');
     const mode = searchParams.get('mode');
 
-    const { abstractTests, logicalTests, numericalTests, quantitativeTests } = await loadAllData();
+    const { abstractTests, logicalTests, numericalTests, quantitativeTests, wordProblemsTests, dataSufficiencyTests } = await loadAllData();
 
     const categorizedTestIds: Record<string, string[]> = {
       abstract: Object.keys(abstractTests),
       logical: Object.keys(logicalTests),
       numerical: Object.keys(numericalTests),
       quantitative: Object.keys(quantitativeTests),
+      word_problems: Object.keys(wordProblemsTests),
+      data_sufficiency: Object.keys(dataSufficiencyTests),
     };
 
     const allTestIds = [
@@ -88,6 +106,8 @@ export async function GET(request: Request) {
       ...categorizedTestIds.logical,
       ...categorizedTestIds.numerical,
       ...categorizedTestIds.quantitative,
+      ...categorizedTestIds.word_problems,
+      ...categorizedTestIds.data_sufficiency,
     ];
 
     // Prepare table datasets for AlaSQL execution
@@ -95,12 +115,16 @@ export async function GET(request: Request) {
     const logicalQs = flattenCategoryData(logicalTests, 'logical', CATEGORY_LABELS.logical);
     const numericalQs = flattenCategoryData(numericalTests, 'numerical', CATEGORY_LABELS.numerical);
     const quantitativeQs = flattenCategoryData(quantitativeTests, 'quantitative', CATEGORY_LABELS.quantitative);
+    const wordProblemsQs = flattenCategoryData(wordProblemsTests, 'word_problems', CATEGORY_LABELS.word_problems);
+    const dataSufficiencyQs = flattenCategoryData(dataSufficiencyTests, 'data_sufficiency', CATEGORY_LABELS.data_sufficiency);
 
     const categoriesTable = [
       { category: 'abstract', label: CATEGORY_LABELS.abstract },
       { category: 'logical', label: CATEGORY_LABELS.logical },
       { category: 'numerical', label: CATEGORY_LABELS.numerical },
       { category: 'quantitative', label: CATEGORY_LABELS.quantitative },
+      { category: 'word_problems', label: CATEGORY_LABELS.word_problems },
+      { category: 'data_sufficiency', label: CATEGORY_LABELS.data_sufficiency },
     ];
 
     // ── 1. UNION ALL RAW SQL SUBQUERY ──────────────────────────────────────
@@ -112,8 +136,12 @@ export async function GET(request: Request) {
       SELECT * FROM ?
       UNION ALL
       SELECT * FROM ?
+      UNION ALL
+      SELECT * FROM ?
+      UNION ALL
+      SELECT * FROM ?
     `;
-    const allQuestions: any[] = alasql(rawUnionAllSql, [abstractQs, logicalQs, numericalQs, quantitativeQs]);
+    const allQuestions: any[] = alasql(rawUnionAllSql, [abstractQs, logicalQs, numericalQs, quantitativeQs, wordProblemsQs, dataSufficiencyQs]);
 
     // ── 2. SCALAR RAW SQL SUBQUERY ──────────────────────────────────────────
     const rawScalarSql = `
@@ -225,6 +253,10 @@ export async function GET(request: Request) {
       questions = logicalTests[testId] || [];
     } else if (testId.startsWith('numerical')) {
       questions = numericalTests[testId] || [];
+    } else if (testId.startsWith('data_sufficiency')) {
+      questions = dataSufficiencyTests[testId] || [];
+    } else if (testId.startsWith('word_problems') || testId.startsWith('practice_tests')) {
+      questions = wordProblemsTests[testId] || [];
     }
 
     return NextResponse.json({

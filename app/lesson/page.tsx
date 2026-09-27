@@ -20,6 +20,11 @@ const DotLottiePlayer = dynamic(
   { ssr: false }
 );
 
+const FiveStreakRive = dynamic(
+  () => import("@/components/ui/FiveStreakRive"),
+  { ssr: false }
+);
+
 type QuizStatus = "none" | "selected" | "correct" | "wrong" | "completed";
 
 function shuffleArray<T>(array: T[], indices: number[]): T[] {
@@ -52,7 +57,7 @@ const playSound = (src: string) => {
 
 function LessonContent() {
   const { showAlert } = useAlert();
-  const { updateStatsLocally, refreshStats } = useStats();
+  const { updateStatsLocally, refreshStats, gems: statsGems } = useStats();
   const router = useRouter();
   const searchParams = useSearchParams();
   const testId = searchParams.get("testId") || "abstract_reasoning_test1";
@@ -73,6 +78,7 @@ function LessonContent() {
   const [correctAnswers, setCorrectAnswers] = useState(0);
   const [consecutiveCorrect, setConsecutiveCorrect] = useState<number>(0);
   const [streakOverlay, setStreakOverlay] = useState<{ src: string; title: string; color: string } | null>(null);
+  const [showFiveStreakModal, setShowFiveStreakModal] = useState<boolean>(false);
 
   useEffect(() => {
     if (streakOverlay) {
@@ -91,11 +97,7 @@ function LessonContent() {
         color: "text-[#ffc700]"
       });
     } else if (next === 5) {
-      setStreakOverlay({
-        src: "/img/gen_imgs/Streak/30_day_streak.webp",
-        title: "5 STRAIGHT!",
-        color: "text-[#ff5e00]"
-      });
+      setShowFiveStreakModal(true);
     } else if (next === 10) {
       setStreakOverlay({
         src: "/img/gen_imgs/Streak/50_day_streak.webp",
@@ -153,8 +155,14 @@ function LessonContent() {
   const [isHeartsInitialized, setIsHeartsInitialized] = useState<boolean>(false);
   const [showOutOfHeartsModal, setShowOutOfHeartsModal] = useState<boolean>(false);
   const [profileXp, setProfileXp] = useState<number>(0);
-  const [profileGems, setProfileGems] = useState<number>(50);
+  const [profileGems, setProfileGems] = useState<number>(statsGems ?? 50);
   const [refilling, setRefilling] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (statsGems !== undefined && statsGems !== null) {
+      setProfileGems(statsGems);
+    }
+  }, [statsGems]);
 
   // Power-Ups inventory states
   const [doubleXpExpiresAt, setDoubleXpExpiresAt] = useState<number>(0);
@@ -274,12 +282,18 @@ function LessonContent() {
   const handleRefillHearts = async () => {
     if (profileGems < 50) return;
     setRefilling(true);
-    const profileId = isSignedIn && user ? user.id : getOrCreateGuestSessionId();
+    const profileId = (isSignedIn && user ? user.id : null) || getOrCreateGuestSessionId();
     if (profileId) {
-      const res = await refillHeartsInDb(profileId);
+      const res = await refillHeartsInDb(profileId, 50);
       if (res.success) {
         setHearts(5);
-        setProfileGems((prev) => Math.max(0, prev - 50));
+        const nextGems = Math.max(0, profileGems - 50);
+        setProfileGems(nextGems);
+        updateStatsLocally({ hearts: 5, gems: nextGems });
+        await refreshStats();
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("reviewer-db-update"));
+        }
         setShowOutOfHeartsModal(false);
       } else {
         await showAlert("Refill failed: " + res.error);
@@ -373,12 +387,12 @@ function LessonContent() {
               .from("profile_game_state")
               .select("hearts, gems")
               .eq("profile_id", profileId)
-              .single(),
+              .maybeSingle(),
             supabase
               .from("profile_progress")
               .select("total_score")
               .eq("profile_id", profileId)
-              .single(),
+              .maybeSingle(),
           ]);
           const dbGameState = gameStateRes.data;
           const dbProgress = progressRes.data;
@@ -666,6 +680,10 @@ function LessonContent() {
       // Ignore if user is typing in an input
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
 
+      if (showFiveStreakModal) {
+        return;
+      }
+
       if (streakOverlay) {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
@@ -780,7 +798,8 @@ function LessonContent() {
     showOutOfHeartsModal,
     showExitModal,
     hearts,
-    streakOverlay
+    streakOverlay,
+    showFiveStreakModal
   ]);
 
   const handleOptionSelect = (index: number) => {
@@ -843,6 +862,7 @@ function LessonContent() {
     setStatus("none");
     setCorrectAnswers(0);
     setConsecutiveCorrect(0);
+    setShowFiveStreakModal(false);
     setEliminatedOptions([]);
     setHintRevealed(false);
     scoreSavedRef.current = false;
@@ -1553,6 +1573,15 @@ function LessonContent() {
             </div>
           </div>
         </div>
+      )}
+
+      {showFiveStreakModal && (
+        <FiveStreakRive
+          onContinue={() => {
+            setShowFiveStreakModal(false);
+            handleContinue();
+          }}
+        />
       )}
 
       {streakOverlay && (

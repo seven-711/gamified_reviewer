@@ -183,7 +183,7 @@ async function checkHeartsRegeneration(dbProfile: any): Promise<{ hearts: number
 export default function DashboardPage() {
   const { showAlert } = useAlert();
   const router = useRouter();
-  const { streak, xp, gems, hearts, refreshStats } = useStats();
+  const { streak, xp, gems, hearts, refreshStats, updateStatsLocally } = useStats();
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<UserProfile | null>(() => {
     if (typeof window !== "undefined") {
@@ -209,6 +209,11 @@ export default function DashboardPage() {
     return null;
   });
   const { user, isLoaded, isSignedIn } = useAuth();
+
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const [scores, setScores] = useState<Record<string, { score: number, total: number, previousBest?: number, lastScore?: number, attempts?: number }>>({});
   const [unlockAll, setUnlockAll] = useState(false);
@@ -275,11 +280,37 @@ export default function DashboardPage() {
             let gGems = guestDbProfile.gems !== undefined && guestDbProfile.gems !== null ? guestDbProfile.gems : 50;
             gGems = await checkDailyLoginReward(guestSessionId, gGems, showAlert);
 
+            let examCategory = guestDbProfile.exam_category;
+            let currentSubTopic = guestDbProfile.sub_topic;
+
+            if (pendingPrefs) {
+              try {
+                const prefs = JSON.parse(pendingPrefs);
+                if (prefs.category) examCategory = prefs.category;
+                if (prefs.subTopic) currentSubTopic = prefs.subTopic;
+                if (prefs.timerDuration) {
+                  localStorage.setItem("timer_duration", prefs.timerDuration.toString());
+                }
+                if (guestDbProfile.exam_category !== examCategory || guestDbProfile.sub_topic !== currentSubTopic) {
+                  await supabase.from("profile_study_settings").upsert({
+                    profile_id: guestSessionId,
+                    exam_category: examCategory,
+                    sub_topic: currentSubTopic,
+                    study_style: prefs.studyStyle || "Flashcards",
+                    difficulty: prefs.difficulty || "Beginner",
+                    timer_duration: prefs.timerDuration || 5,
+                  }, { onConflict: "profile_id" });
+                }
+              } catch (e) {
+                console.error("Error applying pendingPrefs to guest profile:", e);
+              }
+            }
+
             activeProfile = {
               id: guestSessionId,
               email: "",
-              exam_category: guestDbProfile.exam_category,
-              sub_topic: guestDbProfile.sub_topic,
+              exam_category: examCategory,
+              sub_topic: currentSubTopic,
               study_style: guestDbProfile.study_style,
               difficulty: guestDbProfile.difficulty,
               total_score: guestDbProfile.total_score || 0,
@@ -288,7 +319,7 @@ export default function DashboardPage() {
               gems: gGems
             };
             setProfile(activeProfile);
-            if (guestDbProfile.timer_duration) {
+            if (guestDbProfile.timer_duration && !pendingPrefs) {
               localStorage.setItem("timer_duration", guestDbProfile.timer_duration.toString());
             }
           } else if (pendingPrefs) {
@@ -328,9 +359,10 @@ export default function DashboardPage() {
               const mergedStreak = Math.max(userProfile?.streak || 0, guestFlat?.streak || 0);
               const mergedGems = (userProfile?.gems || 50) + (guestFlat?.gems || 0);
 
-              const category = userProfile?.exam_category || guestFlat?.exam_category || (pendingPrefs ? JSON.parse(pendingPrefs).category : null);
-              const subTopic = userProfile?.sub_topic || guestFlat?.sub_topic || (pendingPrefs ? JSON.parse(pendingPrefs).subTopic : null);
-              const timerDuration = userProfile?.timer_duration || guestFlat?.timer_duration || (pendingPrefs ? JSON.parse(pendingPrefs).timerDuration : 5);
+              const parsedPending = pendingPrefs ? (() => { try { return JSON.parse(pendingPrefs); } catch { return null; } })() : null;
+              const category = parsedPending?.category || userProfile?.exam_category || guestFlat?.exam_category || null;
+              const subTopic = parsedPending?.subTopic || userProfile?.sub_topic || guestFlat?.sub_topic || null;
+              const timerDuration = parsedPending?.timerDuration || userProfile?.timer_duration || guestFlat?.timer_duration || 5;
 
               // Merge last_lesson_date (use the newer one)
               let mergedLastLessonDate = userProfile?.last_lesson_date || guestFlat?.last_lesson_date || null;
@@ -408,16 +440,14 @@ export default function DashboardPage() {
             // Check for pending onboarding preferences from pre-signup flow (fallback if guestSessionId was missing)
             try {
               const prefs = JSON.parse(pendingPrefs);
-              const combinedName = `${user.user_metadata?.full_name || user.email?.split("@")[0] || "Learner"}|/emoji/profile.webp`;
-              await upsertFullProfile({
-                id: user.id,
-                name: combinedName,
+              await supabase.from("profile_study_settings").upsert({
+                profile_id: user.id,
                 exam_category: prefs.category,
                 sub_topic: prefs.subTopic,
                 study_style: prefs.studyStyle || "Flashcards",
                 difficulty: prefs.difficulty || "Beginner",
                 timer_duration: prefs.timerDuration || 5,
-              });
+              }, { onConflict: "profile_id" });
               localStorage.removeItem("onboarding_prefs");
             } catch (e) {
               console.error("Error saving pending prefs", e);
@@ -474,14 +504,19 @@ export default function DashboardPage() {
               const topicName = fullTopic.split(" > ").pop() || fullTopic;
               const formattedTopic = topicName.toLowerCase().replace(/[^a-z0-9]+/g, '_');
 
-              const filtered = availableTestsKeys.filter((key: string) => key.startsWith(formattedTopic));
-              setTestCount(Math.max(filtered.length, 1));
+              let filtered = availableTestsKeys.filter((key: string) => key.startsWith(formattedTopic));
+              if (formattedTopic === "practice_tests") {
+                // Practice tests currently comprises 2 tests: Word Problems and Operations (Test 1) and Data Sufficiency (Test 2)
+                setTestCount(2);
+              } else {
+                setTestCount(filtered.length);
+              }
             } else {
-              setTestCount(1);
+              setTestCount(0);
             }
           } catch (e) {
             console.error("Failed to load test metadata", e);
-            setTestCount(1);
+            setTestCount(0);
           }
         }
 
@@ -520,8 +555,15 @@ export default function DashboardPage() {
       const loadedScores: Record<string, { score: number, total: number, previousBest?: number, lastScore?: number, attempts?: number }> = {};
       const currentTestCount = isPart2SecA ? 33 : isPart2SecB ? 1 : testCount;
       for (let i = 1; i <= currentTestCount; i++) {
-        const testId = isPart2SecA ? `part2_secA_test${i}` : isPart2SecB ? `part2_secB_test${i}` : `${formattedTopic}_test${i}`;
-        const scoreData = localStorage.getItem(`quiz_score_${testId}`);
+        let testId = isPart2SecA ? `part2_secA_test${i}` : isPart2SecB ? `part2_secB_test${i}` : `${formattedTopic}_test${i}`;
+        if (formattedTopic === "practice_tests") {
+          if (i === 1) testId = "word_problems_and_operations_test1";
+          else if (i === 2) testId = "data_sufficiency_test1";
+        }
+        let scoreData = localStorage.getItem(`quiz_score_${testId}`);
+        if (!scoreData && formattedTopic === "practice_tests") {
+          scoreData = localStorage.getItem(`quiz_score_practice_tests_test${i}`);
+        }
         if (scoreData) {
           try {
             const parsed = JSON.parse(scoreData);
@@ -592,20 +634,26 @@ export default function DashboardPage() {
   };
 
   const handleRefillHeartsDashboard = async () => {
-    if (!profile || profile.gems < 50) return;
+    const profileId = (isSignedIn && user ? user.id : null) || (typeof profile?.id === "string" ? profile.id : null) || getOrCreateGuestSessionId();
+    if (!profileId) return;
+    if (profile && profile.gems < 50) return;
     setRefillingHearts(true);
-    const res = await refillHeartsInDb(profile.id);
+    const res = await refillHeartsInDb(profileId, 50);
     if (res.success) {
       setProfile((prev) => {
         if (!prev) return null;
         return {
           ...prev,
-          gems: Math.max(0, prev.gems - 50),
+          gems: Math.max(0, (prev.gems || 0) - 50),
           hearts: 5
         };
       });
+      updateStatsLocally({ hearts: 5, gems: Math.max(0, (gems || 50) - 50) });
       setShowHeartsBlocker(false);
       await refreshStats();
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("reviewer-db-update"));
+      }
     } else {
       await showAlert("Refill failed: " + res.error);
     }
@@ -623,9 +671,16 @@ export default function DashboardPage() {
   let activeIndex = 0;
   const renderCount = isPart2SecA ? 33 : isPart2SecB ? 1 : testCount;
   for (let i = 1; i <= renderCount; i++) {
-    const tId = isPart2SecA ? `part2_secA_test${i}` : isPart2SecB ? `part2_secB_test${i}` : `${formattedTopic}_test${i}`;
+    const tId = isPart2SecA 
+      ? `part2_secA_test${i}` 
+      : isPart2SecB 
+        ? `part2_secB_test${i}` 
+        : formattedTopic === "practice_tests" 
+          ? (i === 1 ? "word_problems_and_operations_test1" : "data_sufficiency_test1") 
+          : `${formattedTopic}_test${i}`;
+    const scoreItem = scores[tId] || (formattedTopic === "practice_tests" ? scores[`practice_tests_test${i}`] : undefined);
     // Unlock next test if previous test exists and score is >= 80% of total
-    if (scores[tId] && scores[tId].total > 0 && (scores[tId].score / scores[tId].total) >= 0.8) {
+    if (scoreItem && scoreItem.total > 0 && (scoreItem.score / scoreItem.total) >= 0.8) {
       activeIndex = i; // Move active to the next test
     } else {
       break; // Found an uncompleted or failed (<80%) test
@@ -633,7 +688,7 @@ export default function DashboardPage() {
   }
   if (activeIndex >= renderCount) activeIndex = renderCount - 1; // Cap at the last test if all are completed
   const showSubOnboarding = isQuantTopic && !quantSection;
-  const showComingSoon = isQuantTopic && quantSection && quantSection !== "part1" && quantSection !== "part2_secA" && quantSection !== "part2_secB";
+  const showComingSoon = (isQuantTopic && quantSection && quantSection !== "part1" && quantSection !== "part2_secA" && quantSection !== "part2_secB") || (!isQuantTopic && testCount === 0 && !loading);
 
   return (
     <>
@@ -650,10 +705,10 @@ export default function DashboardPage() {
                   </span>
                 </div>
                 <h2 className="font-feather text-base md:text-2xl font-bold tracking-wide leading-tight truncate">
-                  {profile ? (
+                  {mounted && profile ? (
                     `${profile.exam_category} ${topicName ? `- ${topicName}` : ""}`
                   ) : (
-                    <div className="h-6 w-48 bg-white/20 rounded animate-pulse mt-1" />
+                    <span className="inline-block h-6 w-48 bg-white/20 rounded animate-pulse mt-1" />
                   )}
                 </h2>
               </div>
@@ -843,30 +898,45 @@ export default function DashboardPage() {
                     Coming Soon!
                   </h3>
                   <p className="text-xs md:text-sm text-graphite leading-relaxed font-semibold">
-                    We&apos;re still curating the database for this section. You can practice <span className="text-sky-blue font-black">Part 1</span> in the meantime!
+                    {isQuantTopic ? (
+                      <>We&apos;re still curating the database for this section. You can practice <span className="text-sky-blue font-black">Part 1</span> in the meantime!</>
+                    ) : (
+                      <>We&apos;re currently curating test questions for <span className="text-sky-blue font-black">{topicName}</span>. Choose another topic or check back soon!</>
+                    )}
                   </p>
                 </div>
               </div>
 
               <div className="flex flex-col sm:flex-row gap-3 w-full max-w-[400px] mt-4">
-                <button
-                  onClick={() => {
-                    setQuantSection("part1");
-                    localStorage.setItem("quant_reasoning_section", "part1");
-                  }}
-                  className="flex-1 bg-duo-green hover:bg-duo-green/90 text-white font-bold py-3 rounded-2xl shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none transition-all text-sm font-din-round uppercase tracking-wide cursor-pointer"
-                >
-                  Switch to Part 1
-                </button>
-                <button
-                  onClick={() => {
-                    setQuantSection(null);
-                    localStorage.removeItem("quant_reasoning_section");
-                  }}
-                  className="flex-1 bg-snow-white text-sky-blue border-2 border-cloud-gray font-bold py-3 rounded-2xl shadow-[0_4px_0_var(--color-cloud-gray)] active:translate-y-[4px] active:shadow-none hover:bg-cloud-gray/25 transition-all text-sm font-din-round uppercase tracking-wide cursor-pointer"
-                >
-                  Other Sections
-                </button>
+                {isQuantTopic ? (
+                  <>
+                    <button
+                      onClick={() => {
+                        setQuantSection("part1");
+                        localStorage.setItem("quant_reasoning_section", "part1");
+                      }}
+                      className="flex-1 bg-duo-green hover:bg-duo-green/90 text-white font-bold py-3 rounded-2xl shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none transition-all text-sm font-din-round uppercase tracking-wide cursor-pointer"
+                    >
+                      Switch to Part 1
+                    </button>
+                    <button
+                      onClick={() => {
+                        setQuantSection(null);
+                        localStorage.removeItem("quant_reasoning_section");
+                      }}
+                      className="flex-1 bg-snow-white text-sky-blue border-2 border-cloud-gray font-bold py-3 rounded-2xl shadow-[0_4px_0_var(--color-cloud-gray)] active:translate-y-[4px] active:shadow-none hover:bg-cloud-gray/25 transition-all text-sm font-din-round uppercase tracking-wide cursor-pointer"
+                    >
+                      Other Sections
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={() => router.push("/onboarding?edit=true")}
+                    className="flex-1 bg-duo-green hover:bg-duo-green/90 text-white font-bold py-3 px-6 rounded-2xl shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none transition-all text-sm font-din-round uppercase tracking-wide cursor-pointer"
+                  >
+                    Select Another Topic
+                  </button>
+                )}
               </div>
             </div>
           ) : (
@@ -923,7 +993,15 @@ export default function DashboardPage() {
                     const isLocked = !unlockAll && index > activeIndex;
 
                     let testTitle = `${topicName} - Test ${testNum}`;
-                    if (formattedTopic === "quantitative_reasoning") {
+                    if (formattedTopic === "practice_tests") {
+                      if (testNum === 1) testTitle = "Word Problems and Operations";
+                      else if (testNum === 2) testTitle = "Data Sufficiency";
+                      else testTitle = `Practice Test ${testNum}`;
+                    } else if (formattedTopic === "word_problems_and_operations") {
+                      testTitle = "Word Problems and Operations";
+                    } else if (formattedTopic === "data_sufficiency") {
+                      testTitle = "Data Sufficiency";
+                    } else if (formattedTopic === "quantitative_reasoning") {
                       if (quantSection === "part2_secA") {
                         if (testNum === 1) testTitle = "Chapter 1: Analogy (Exercise 1)";
                         else if (testNum === 2) testTitle = "Chapter 1: Analogy (Exercise 2)";
@@ -1008,8 +1086,14 @@ export default function DashboardPage() {
                         else testTitle = `Chapter ${testNum}`;
                       }
                     }
-                    const testId = isPart2SecA ? `part2_secA_test${testNum}` : isPart2SecB ? `part2_secB_test${testNum}` : `${formattedTopic}_test${testNum}`;
-                    const scoreData = scores[testId];
+                    const testId = isPart2SecA 
+                      ? `part2_secA_test${testNum}` 
+                      : isPart2SecB 
+                        ? `part2_secB_test${testNum}` 
+                        : (formattedTopic === "practice_tests")
+                          ? (testNum === 1 ? "word_problems_and_operations_test1" : "data_sufficiency_test1")
+                          : `${formattedTopic}_test${testNum}`;
+                    const scoreData = scores[testId] || (formattedTopic === "practice_tests" ? scores[`practice_tests_test${testNum}`] : undefined);
 
                     let cardClass = "";
                     let titleClass = "";

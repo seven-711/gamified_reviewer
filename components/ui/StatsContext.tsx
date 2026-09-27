@@ -73,12 +73,12 @@ export const StatsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           .from("profile_game_state")
           .select("streak, hearts, last_heart_lost_at, gems, streak_freeze_count")
           .eq("profile_id", profileId)
-          .single(),
+          .maybeSingle(),
         supabase
           .from("profile_progress")
           .select("total_score, lessons_completed, last_lesson_date")
           .eq("profile_id", profileId)
-          .single(),
+          .maybeSingle(),
       ]);
 
       const gameState = gameStateRes.data;

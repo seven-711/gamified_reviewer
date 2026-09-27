@@ -144,7 +144,7 @@ export default function OnboardingPage() {
         .from("profile_study_settings")
         .select("exam_category")
         .eq("profile_id", user.id)
-        .single();
+        .maybeSingle();
 
       const isEditing = typeof window !== "undefined" && window.location.search.includes("edit=true");
       if (settings && settings.exam_category && !isEditing) {
@@ -179,6 +179,11 @@ export default function OnboardingPage() {
   };
 
   const handleBack = () => {
+    if (topicPath.length > 0) {
+      setTopicPath(topicPath.slice(0, -1));
+      setSubTopic("");
+      return;
+    }
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
     }
@@ -205,7 +210,7 @@ export default function OnboardingPage() {
               study_style: "Flashcards",
               difficulty: "Beginner",
               timer_duration: timerDuration,
-            });
+            }, { onConflict: "profile_id" });
           if (settingsError) throw settingsError;
         } else {
           await upsertFullProfile({
@@ -239,6 +244,10 @@ export default function OnboardingPage() {
     } else {
       try {
         const guestSessionId = getOrCreateGuestSessionId();
+
+        // Ensure the profiles base record exists first
+        await supabase.from("profiles").upsert({ id: guestSessionId, name: "Guest" });
+
         const { data: existingProgress } = await supabase
           .from("profile_progress")
           .select("total_score")
@@ -255,7 +264,7 @@ export default function OnboardingPage() {
               study_style: "Flashcards",
               difficulty: "Beginner",
               timer_duration: timerDuration,
-            });
+            }, { onConflict: "profile_id" });
           if (settingsError) throw settingsError;
         } else {
           await upsertFullProfile({
@@ -275,8 +284,8 @@ export default function OnboardingPage() {
             gems: 50,
           });
         }
-      } catch (dbErr) {
-        console.error("Failed to update/create guest profile in database:", dbErr);
+      } catch (dbErr: any) {
+        console.error("Failed to update/create guest profile in database:", dbErr?.message || JSON.stringify(dbErr) || dbErr);
       }
 
       localStorage.setItem("timer_duration", timerDuration.toString());
@@ -338,17 +347,17 @@ export default function OnboardingPage() {
     return (
       <div className="flex flex-col gap-4 animate-[slideIn_0.3s_ease-out]">
         {topicPath.length > 0 && (
-          <button 
+          <button
+            type="button"
             onClick={() => {
               setTopicPath(topicPath.slice(0, -1));
               setSubTopic("");
-            }} 
-            className="self-start text-sky-blue font-bold mb-2 flex items-center gap-1 hover:opacity-80"
+            }}
+            className="flex items-center gap-1.5 text-sm font-bold text-sky-blue hover:underline cursor-pointer self-start"
           >
-            ← Back to {topicPath.length === 1 ? category : topicPath[topicPath.length - 2]}
+            <span>← Back to {topicPath.length > 1 ? topicPath[topicPath.length - 2] : category}</span>
           </button>
         )}
-
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {keys.map((topic) => {
             const isLeaf = currentNode![topic] === null;

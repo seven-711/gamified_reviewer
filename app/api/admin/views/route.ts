@@ -121,21 +121,26 @@ export async function GET() {
     `);
 
     const view1 = (profilesRaw || [])
-      .filter((p: any) => p.profile_study_settings?.length && p.profile_progress?.length)
-      .map((p: any) => ({
-        profile_id: p.id,
-        display_name: extractName(p.name),
-        registered_at: p.created_at,
-        exam_category: p.profile_study_settings[0]?.exam_category ?? null,
-        sub_topic: p.profile_study_settings[0]?.sub_topic ?? null,
-        study_style: p.profile_study_settings[0]?.study_style ?? 'Flashcards',
-        difficulty: p.profile_study_settings[0]?.difficulty ?? 'Beginner',
-        timer_duration: p.profile_study_settings[0]?.timer_duration ?? 5,
-        total_score: p.profile_progress[0]?.total_score ?? 0,
-        current_level: p.profile_progress[0]?.current_level ?? 1,
-        lessons_completed: p.profile_progress[0]?.lessons_completed ?? 0,
-        last_lesson_date: p.profile_progress[0]?.last_lesson_date ?? null,
-      }));
+      .map((p: any) => {
+        const settings = Array.isArray(p.profile_study_settings) ? p.profile_study_settings[0] : p.profile_study_settings;
+        const prog = Array.isArray(p.profile_progress) ? p.profile_progress[0] : p.profile_progress;
+        if (!settings && !prog) return null;
+        return {
+          profile_id: p.id,
+          display_name: extractName(p.name),
+          registered_at: p.created_at,
+          exam_category: settings?.exam_category ?? null,
+          sub_topic: settings?.sub_topic ?? null,
+          study_style: settings?.study_style ?? 'Flashcards',
+          difficulty: settings?.difficulty ?? 'Beginner',
+          timer_duration: settings?.timer_duration ?? 5,
+          total_score: Number(prog?.total_score) || 0,
+          current_level: Number(prog?.current_level) || 1,
+          lessons_completed: Number(prog?.lessons_completed) || 0,
+          last_lesson_date: prog?.last_lesson_date ?? null,
+        };
+      })
+      .filter(Boolean);
 
     // ── VIEW 2: vw_user_game_status ──────────────────────────────────────────
     // Equivalent of: SELECT * FROM vw_user_game_status
@@ -146,23 +151,26 @@ export async function GET() {
     `);
 
     const view2 = (gameRaw || [])
-      .filter((p: any) => p.profile_game_state?.length && p.profile_progress?.length)
       .map((p: any) => {
-        const score = p.profile_progress[0]?.total_score ?? 0;
+        const game = Array.isArray(p.profile_game_state) ? p.profile_game_state[0] : p.profile_game_state;
+        const prog = Array.isArray(p.profile_progress) ? p.profile_progress[0] : p.profile_progress;
+        if (!game && !prog) return null;
+        const score = Number(prog?.total_score) || 0;
         return {
           profile_id: p.id,
           display_name: extractName(p.name),
           total_score: score,
-          lessons_completed: p.profile_progress[0]?.lessons_completed ?? 0,
-          last_lesson_date: p.profile_progress[0]?.last_lesson_date ?? null,
-          streak: p.profile_game_state[0]?.streak ?? 0,
-          streak_freeze_count: p.profile_game_state[0]?.streak_freeze_count ?? 0,
-          hearts: p.profile_game_state[0]?.hearts ?? 5,
-          gems: p.profile_game_state[0]?.gems ?? 0,
-          last_heart_lost_at: p.profile_game_state[0]?.last_heart_lost_at ?? null,
+          lessons_completed: Number(prog?.lessons_completed) || 0,
+          last_lesson_date: prog?.last_lesson_date ?? null,
+          streak: Number(game?.streak) || 0,
+          streak_freeze_count: Number(game?.streak_freeze_count) || 0,
+          hearts: game?.hearts !== undefined && game?.hearts !== null ? Number(game.hearts) : 5,
+          gems: game?.gems !== undefined && game?.gems !== null ? Number(game.gems) : 0,
+          last_heart_lost_at: game?.last_heart_lost_at ?? null,
           league_name: getLeague(score),
         };
-      });
+      })
+      .filter(Boolean);
 
     // ── VIEW 3: vw_lesson_activity_summary ──────────────────────────────────
     // Equivalent of: SELECT * FROM vw_lesson_activity_summary
@@ -207,6 +215,10 @@ export async function GET() {
           first_activity_at: dates.length ? dates[0] : null,
         };
       });
+
+    view1.sort((a: any, b: any) => b.total_score - a.total_score);
+    view2.sort((a: any, b: any) => b.total_score - a.total_score);
+    view3.sort((a: any, b: any) => b.total_xp_earned - a.total_xp_earned);
 
     return NextResponse.json({
       viewSql: VIEW_SQL,

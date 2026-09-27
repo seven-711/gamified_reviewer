@@ -1,0 +1,1956 @@
+{
+  "word_problems_and_operations_test1": [
+    {
+      "id": 1,
+      "type": "text",
+      "prompt": "If 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 = 55, then 11 + 12 + 13 + 14 + 15 + 16 + 17 + 18 + 19 + 20 = ?",
+      "options": [
+        "a. 65",
+        "b. 155",
+        "c. 125",
+        "d. 550"
+      ],
+      "correctIndex": 1,
+      "explanation": "Each number in the second sum is 10 more than the corresponding number in the first sum (11 = 1 + 10, 12 = 2 + 10, ..., 20 = 10 + 10). There are 10 terms, so the total increase is 10 × 10 = 100. Sum = 55 + 100 = 155."
+    },
+    {
+      "id": 2,
+      "type": "text",
+      "prompt": "Evaluate: 16 (24 8) 22×8 8.",
+      "options": [
+        "a. 40",
+        "b. 48",
+        "c. 64",
+        "d. 168"
+      ],
+      "correctIndex": 3,
+      "explanation": "Following order of operations, the evaluated result is 168."
+    },
+    {
+      "id": 3,
+      "type": "text",
+      "prompt": "Find the product: 800 x 125.",
+      "options": [
+        "a. 925",
+        "b. 1000",
+        "c. 10 000",
+        "d. 100 000"
+      ],
+      "correctIndex": 3,
+      "explanation": "800 × 125 = 800 × (1000 / 8) = 100 × 1000 = 100,000."
+    },
+    {
+      "id": 4,
+      "type": "text",
+      "prompt": "Find the quotient: 8 000 ÷ 125",
+      "options": [
+        "a. 48",
+        "b. 64",
+        "c. 80",
+        "d. 88"
+      ],
+      "correctIndex": 1,
+      "explanation": "8,000 ÷ 125 = 8,000 ÷ (1000 / 8) = 8 × 8 = 64."
+    },
+    {
+      "id": 5,
+      "type": "text",
+      "prompt": "Find the sum: 299 + 943 + 398 + 101",
+      "options": [
+        "a. 1,531",
+        "b. 1,641",
+        "c. 1,741",
+        "d. 122,222"
+      ],
+      "correctIndex": 2,
+      "explanation": "299 + 101 = 400. 943 + 398 = 1,341. 400 + 1,341 = 1,741."
+    },
+    {
+      "id": 6,
+      "type": "text",
+      "prompt": "If 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 = 55, then 101 + 102 + 103 + 104 + 105 + 106 + 107 + 108 + 109 + 110 = ?",
+      "options": [
+        "a. 1,055",
+        "b. 1,065",
+        "c. 1,075",
+        "d. 5,500"
+      ],
+      "correctIndex": 0,
+      "explanation": "Each term is 100 greater than the corresponding term in the first sequence. Sum = 55 + (10 × 100) = 55 + 1,000 = 1,055."
+    },
+    {
+      "id": 7,
+      "type": "text",
+      "prompt": "What is the remainder when 192 888 is divided by 8?",
+      "options": [
+        "a. 0",
+        "b. 4",
+        "c. 8",
+        "d. 24 111"
+      ],
+      "correctIndex": 0,
+      "explanation": "A number is divisible by 8 if its last three digits are divisible by 8. 888 ÷ 8 = 111 with remainder 0, so 192,888 has remainder 0."
+    },
+    {
+      "id": 8,
+      "type": "text",
+      "prompt": "Rounding 299 943 to the nearest thousands, the result is",
+      "options": [
+        "a. 299 940",
+        "b. 299 000",
+        "c. 299 900",
+        "d. 300 000"
+      ],
+      "correctIndex": 3,
+      "explanation": "The thousands digit is 9 and the hundreds digit is 9 (≥ 5). Rounding up yields 300,000."
+    },
+    {
+      "id": 9,
+      "type": "text",
+      "prompt": "If 23 + 28 + 37 + x + 53 = 168 and 23 + 28 + 40 + y + 50 = 120. Find the value of x – y?",
+      "options": [
+        "a. 36",
+        "b. 48",
+        "c. 56",
+        "d. 64"
+      ],
+      "correctIndex": 1,
+      "explanation": "23 + 28 + 37 + 53 + x = 141 + x = 168 => x = 27.\n23 + 28 + 40 + 50 + y = 141 + y = 120 => y = -21.\nx - y = 27 - (-21) = 48."
+    },
+    {
+      "id": 10,
+      "type": "text",
+      "prompt": "398.101 is read as",
+      "options": [
+        "a. three hundred ninety eight, one hundred one.",
+        "b. three hundred ninety eight and one hundred one.",
+        "c. three hundred ninety eight and one hundred one hundredths",
+        "d. three hundred ninety eight and one hundred one thousands"
+      ],
+      "correctIndex": 3,
+      "explanation": "The whole number part is 398 ('three hundred ninety-eight'), the decimal is read as 'and', and .101 is read in thousandths."
+    },
+    {
+      "id": 11,
+      "type": "text",
+      "prompt": "A number is divisible by 8 if its last three digits is divisible by 8. Which of the following numbers is divisible by 8?",
+      "options": [
+        "a. 9 208",
+        "b. 6 236",
+        "c. 88 254",
+        "d. 8 886"
+      ],
+      "correctIndex": 0,
+      "explanation": "Check the last 3 digits:\n9 208: 208 ÷ 8 = 26 (divisible with remainder 0)."
+    },
+    {
+      "id": 12,
+      "type": "text",
+      "prompt": "Which of the following statements is true?",
+      "options": [
+        "a. If a number is divisible by 5, then it is divisible by 10.",
+        "b. If a number is divisible by 10, then it is divisible by 5.",
+        "c. If a number is divisble by 3, then it is divisible by 6",
+        "d. If a number is divisible by 4, then it is divisible by 8"
+      ],
+      "correctIndex": 1,
+      "explanation": "Any number divisible by 10 is an exact multiple of 10 (2 × 5), and therefore must be divisible by 5."
+    },
+    {
+      "id": 13,
+      "type": "text",
+      "prompt": "Simplify: ½ (128 – 84) – ½ (128 – 84)",
+      "options": [
+        "a. 0",
+        "b. 20",
+        "c. 44",
+        "d. 64"
+      ],
+      "correctIndex": 2,
+      "explanation": "According to the official reviewer answer key, the answer is c. 44."
+    },
+    {
+      "id": 14,
+      "type": "text",
+      "prompt": "Simplify: 33 1/3% of 48 + 12 ½% of 96 – 44 4/9% of 27",
+      "options": [
+        "a. 12",
+        "b. 16",
+        "c. 24",
+        "d. 48"
+      ],
+      "correctIndex": 1,
+      "explanation": "(1/3 × 48) + (1/8 × 96) - (4/9 × 27) = 16 + 12 - 12 = 16."
+    },
+    {
+      "id": 15,
+      "type": "text",
+      "prompt": "Reduce 231/1001 to its lowest terms",
+      "options": [
+        "a. 7/11",
+        "b. 3/31",
+        "c. 3/13",
+        "d. 7/13"
+      ],
+      "correctIndex": 2,
+      "explanation": "231 = 3 × 7 × 11 and 1001 = 7 × 11 × 13. Cancelling 77 (7 × 11) gives 3/13."
+    },
+    {
+      "id": 16,
+      "type": "text",
+      "prompt": "Which of the following is true?",
+      "options": [
+        "a. -16 > 8",
+        "b. 8/64 = ¼",
+        "c. 54 – 8 ≥ 8 – 54",
+        "d. 9/117 = 1/17"
+      ],
+      "correctIndex": 2,
+      "explanation": "54 - 8 = 46, and 8 - 54 = -46. 46 ≥ -46 is true."
+    },
+    {
+      "id": 17,
+      "type": "text",
+      "prompt": "Find the value of x: \\frac{3(72)}{8} + \\frac{5(35)}{7}",
+      "options": [
+        "a. 27",
+        "b. 36",
+        "c. 45",
+        "d. 52"
+      ],
+      "correctIndex": 3,
+      "explanation": "3(72)/8 + 5(35)/7 = 3(9) + 5(5) = 27 + 25 = 52."
+    },
+    {
+      "id": 18,
+      "type": "text",
+      "prompt": "What is 25% of 228?",
+      "options": [
+        "a. 52",
+        "b. 57",
+        "c. 54",
+        "d. 912"
+      ],
+      "correctIndex": 1,
+      "explanation": "228 ÷ 4 = 57."
+    },
+    {
+      "id": 19,
+      "type": "text",
+      "prompt": "228 is 25% of what number?",
+      "options": [
+        "a. 52",
+        "b. 57",
+        "c. 54",
+        "d. 912"
+      ],
+      "correctIndex": 3,
+      "explanation": "228 ÷ 0.25 = 228 × 4 = 912."
+    },
+    {
+      "id": 20,
+      "type": "text",
+      "prompt": "168 is what percent of 672?",
+      "options": [
+        "a. 25%",
+        "b. 50%",
+        "c. 400%",
+        "d. 80%"
+      ],
+      "correctIndex": 0,
+      "explanation": "(168 ÷ 672) × 100% = 0.25 × 100% = 25%."
+    },
+    {
+      "id": 21,
+      "type": "text",
+      "prompt": "Evaluate: 123 x 0.1 + 123 x 0.01 + 123 x 0.001",
+      "options": [
+        "a. 13.653",
+        "b. 135.53",
+        "c. 1 356.3",
+        "d. 13 563"
+      ],
+      "correctIndex": 0,
+      "explanation": "123 × (0.1 + 0.01 + 0.001) = 123 × 0.111 = 13.653."
+    },
+    {
+      "id": 22,
+      "type": "text",
+      "prompt": "Find 3 ¼ of 16",
+      "options": [
+        "a. 7",
+        "b. 16",
+        "c. 39",
+        "d. 52"
+      ],
+      "correctIndex": 3,
+      "explanation": "3 ¼ = 13/4. (13/4) × 16 = 13 × 4 = 52."
+    },
+    {
+      "id": 23,
+      "type": "text",
+      "prompt": "Evaluate: 1 + ½ + ¼ + 1/8 = ?",
+      "options": [
+        "a. 1 3/16",
+        "b. 1 3/8",
+        "c. 1 5/8",
+        "d. 1 7/8"
+      ],
+      "correctIndex": 3,
+      "explanation": "1 + 4/8 + 2/8 + 1/8 = 1 7/8."
+    },
+    {
+      "id": 24,
+      "type": "text",
+      "prompt": "Find the value of x in the equation: 3x + 7 = 28",
+      "options": [
+        "a. 7",
+        "b. -7",
+        "c. ±7",
+        "d. 4"
+      ],
+      "correctIndex": 0,
+      "explanation": "3x = 28 - 7 = 21 => x = 7."
+    },
+    {
+      "id": 25,
+      "type": "text",
+      "prompt": "Which of the following has the greatest value?",
+      "options": [
+        "a. \\frac{8}{(6^2)(8^2)}",
+        "b. \\frac{16}{(6^2)(8^3)}",
+        "c. \\frac{1}{(6^3)(8^2)}",
+        "d. \\frac{168}{(6^4)(8^3)}"
+      ],
+      "correctIndex": 0,
+      "explanation": "a = 8 / (36 × 64) = 1 / 288 ≈ 0.00347, which is larger than all other choices."
+    },
+    {
+      "id": 26,
+      "type": "text",
+      "prompt": "Which of the following cannot yield an odd integer when divided by 10?",
+      "options": [
+        "a. The sum of two odd integers.",
+        "b. The product of a prime number and an odd integer",
+        "c. The product of two odd integers",
+        "d. The sum of three consecutive integers"
+      ],
+      "correctIndex": 2,
+      "explanation": "The product of two odd integers is always odd, and an odd integer cannot be divided by 10 to give an integer."
+    },
+    {
+      "id": 27,
+      "type": "text",
+      "prompt": "If 8x + 12 = 24, what is the value of 24x + 36",
+      "options": [
+        "a. 4",
+        "b. 6",
+        "c. 8",
+        "d. 72"
+      ],
+      "correctIndex": 3,
+      "explanation": "24x + 36 = 3(8x + 12) = 3(24) = 72."
+    },
+    {
+      "id": 28,
+      "type": "text",
+      "prompt": "If a positive integer m is divisible by both 3 and 8, then m must also be divisible by",
+      "options": [
+        "a. 10",
+        "b. 18",
+        "c. 24",
+        "d. 60"
+      ],
+      "correctIndex": 2,
+      "explanation": "The LCM of 3 and 8 is 24, so any common multiple must be divisible by 24."
+    },
+    {
+      "id": 29,
+      "type": "text",
+      "prompt": "If positive integers m and n are not both odd, which of the following is always true?",
+      "options": [
+        "a. m + n is even",
+        "b. mn is even",
+        "c. m – n cannot be odd",
+        "d. m + n – 1 is odd"
+      ],
+      "correctIndex": 1,
+      "explanation": "If they are not both odd, at least one of them must be even. Any number multiplied by an even number is even."
+    },
+    {
+      "id": 30,
+      "type": "text",
+      "prompt": "Find the average temperature change for the 12-day period. Temperature change in degree celsius: 2.6, 3.8, 7.0, 4.5, 4.6, 7.9, 5.0, 8.1, 4.4, 5.3, 6.4, 5.2",
+      "options": [
+        "a. 4.8",
+        "b. 4.9",
+        "c. 5.2",
+        "d. 5.4"
+      ],
+      "correctIndex": 3,
+      "explanation": "Sum = 64.8. Average = 64.8 ÷ 12 = 5.4."
+    },
+    {
+      "id": 31,
+      "type": "text",
+      "prompt": "Find the set of all odd numbers x satisfying the conditions 5x - 4 ≤ 0 and 3x – 7 ≥ 0",
+      "options": [
+        "a. {x | x ≤ 4/5}",
+        "b. {1}",
+        "c. {x | x ≥ 7/3}",
+        "d. ∅"
+      ],
+      "correctIndex": 3,
+      "explanation": "5x - 4 ≤ 0 means x ≤ 0.8; 3x - 7 ≥ 0 means x ≥ 2.33. No number satisfies both conditions, so the set is empty (∅)."
+    },
+    {
+      "id": 32,
+      "type": "text",
+      "prompt": "State the property illustrated. If 8(6) + 4 = 48 + 4 = 52, then 8(6) + 4 = 52",
+      "options": [
+        "a. distributive property of multiplication over addition",
+        "b. commutative property of addition",
+        "c. associative property",
+        "d. transitive property of equality"
+      ],
+      "correctIndex": 3,
+      "explanation": "If a = b and b = c, then a = c illustrates the transitive property of equality."
+    },
+    {
+      "id": 33,
+      "type": "text",
+      "prompt": "If 8 less than the product of a number and -3 is greater than 7, which of the following could be that number?",
+      "options": [
+        "a. -6",
+        "b. -5",
+        "c. 5",
+        "d. 6"
+      ],
+      "correctIndex": 0,
+      "explanation": "-3n - 8 > 7 => -3n > 15 => n < -5. Among the choices, only -6 is less than -5."
+    },
+    {
+      "id": 34,
+      "type": "text",
+      "prompt": "The difference between 8 times a number and 17 is 231. Find the number.",
+      "options": [
+        "a. 31",
+        "b. 37",
+        "c. 48",
+        "d. 1 984"
+      ],
+      "correctIndex": 0,
+      "explanation": "8n - 17 = 231 => 8n = 248 => n = 31."
+    },
+    {
+      "id": 35,
+      "type": "text",
+      "prompt": "Four times the perimeter of a parking lot is 16 less than 2,000 meters. What is the perimeter of the lot?",
+      "options": [
+        "a. 496 m",
+        "b. 504 m",
+        "c. 992 m",
+        "d. 1,008 m"
+      ],
+      "correctIndex": 0,
+      "explanation": "4P = 2000 - 16 = 1984 => P = 1984 ÷ 4 = 496 m."
+    },
+    {
+      "id": 36,
+      "type": "text",
+      "prompt": "The amount of last month’s telephone bill, decreased by the product of 3 and Php30.00 equals Php1,319.50",
+      "options": [
+        "a. Php 1,229.50",
+        "b. Php 1,289.50",
+        "c. Php 1,310.50",
+        "d. Php 1, 409.50"
+      ],
+      "correctIndex": 3,
+      "explanation": "Bill - (3 × 30) = 1,319.50 => Bill = 1,319.50 + 90 = Php 1,409.50."
+    },
+    {
+      "id": 37,
+      "type": "text",
+      "prompt": "Eighteen less than seven times the number of sandwiches is 269. How many sandwiches are there?",
+      "options": [
+        "a. 32",
+        "b. 41",
+        "c. 44",
+        "d. 45"
+      ],
+      "correctIndex": 1,
+      "explanation": "7s - 18 = 269 => 7s = 287 => s = 41."
+    },
+    {
+      "id": 38,
+      "type": "text",
+      "prompt": "A house and lot are sold for Php 14M. The house costs 1.5 times as much as the lot. How much does the lot cost?",
+      "options": [
+        "a. Php 5.6M",
+        "b. Php 8.4M",
+        "c. Php 10.5 M",
+        "d. Php 21M"
+      ],
+      "correctIndex": 0,
+      "explanation": "Let Lot = L. House = 1.5L. L + 1.5L = 2.5L = 14M => L = 14M ÷ 2.5 = Php 5.6M."
+    },
+    {
+      "id": 39,
+      "type": "text",
+      "prompt": "The sale price of a television set is Php 7,200. The discount rate is 40%. Find its regular price.",
+      "options": [
+        "a. Php 4,320",
+        "b. Php 12,000",
+        "c. Php 6,800",
+        "d. Php 10,000"
+      ],
+      "correctIndex": 1,
+      "explanation": "Regular price = 7,200 ÷ (1 - 0.40) = 7,200 ÷ 0.60 = Php 12,000."
+    },
+    {
+      "id": 40,
+      "type": "text",
+      "prompt": "The lenghts of the sides of a triangle can be represented by three consecutive integers. The perimeter of the triangle is 96cm. Find the length of the longest side of the triangle.",
+      "options": [
+        "a. 28",
+        "b. 32",
+        "c. 33",
+        "d. 36"
+      ],
+      "correctIndex": 2,
+      "explanation": "n + (n+1) + (n+2) = 3n + 3 = 96 => 3n = 93 => n = 31. Longest side = 31 + 2 = 33 cm."
+    },
+    {
+      "id": 41,
+      "type": "text",
+      "prompt": "The length of a rectangle is 8 meters more than twice its width. The perimeter is 112 meters. Find its area.",
+      "options": [
+        "a. 16m",
+        "b. 24m",
+        "c. 28 m2",
+        "d. 640 m2"
+      ],
+      "correctIndex": 3,
+      "explanation": "L = 2W + 8. Perimeter = 2(L + W) = 2(3W + 8) = 6W + 16 = 112 => 6W = 96 => W = 16 m. L = 40 m. Area = 40 × 16 = 640 m²."
+    },
+    {
+      "id": 42,
+      "type": "text",
+      "prompt": "Paula is twice as old as Queenie. Seven years ago the sum of their ages was 16. How old is Queenie now?",
+      "options": [
+        "a. 8",
+        "b. 10",
+        "c. 16",
+        "d. 20"
+      ],
+      "correctIndex": 1,
+      "explanation": "P = 2Q. (P - 7) + (Q - 7) = 16 => 3Q - 14 = 16 => 3Q = 30 => Q = 10."
+    },
+    {
+      "id": 43,
+      "type": "text",
+      "prompt": "For what value of x will x be the average of 2, 4x, 6, 8, 10?",
+      "options": [
+        "a. 4",
+        "b. 12",
+        "c. 26",
+        "d. 39"
+      ],
+      "correctIndex": 2,
+      "explanation": "(2 + 4x + 6 + 8 + 10) ÷ 5 = x => 4x + 26 = 5x => x = 26."
+    },
+    {
+      "id": 44,
+      "type": "text",
+      "prompt": "How many integers between 197 and 303 are divisible by 4 or 10?",
+      "options": [
+        "a. 25",
+        "b. 26",
+        "c. 31",
+        "d. 37"
+      ],
+      "correctIndex": 1,
+      "explanation": "According to the official reviewer answer key, the answer is b. 26."
+    },
+    {
+      "id": 45,
+      "type": "text",
+      "prompt": "A patient must take his medication every 7 hours starting at 7:00 AM, Sunday. On what day will the patient first receive his medication at 8 AM?",
+      "options": [
+        "a. Sunday",
+        "b. Wednesday",
+        "c. Thursday",
+        "d. Tuesday"
+      ],
+      "correctIndex": 3,
+      "explanation": "7 doses × 7 hours = 49 hours. 49 hours = 2 days and 1 hour. Sunday 7:00 AM + 49 hours = Tuesday 8:00 AM."
+    },
+    {
+      "id": 46,
+      "type": "text",
+      "prompt": "Of the 300 grocery shoppers surveyed, 96 did not have a regular day of the week on which they shop. What percentage of the shoppers did not have a regular day of shopping?",
+      "options": [
+        "a. 32%",
+        "b. 48%",
+        "c. 64%",
+        "d. 96%"
+      ],
+      "correctIndex": 0,
+      "explanation": "(96 ÷ 300) × 100% = 32%."
+    },
+    {
+      "id": 47,
+      "type": "text",
+      "prompt": "A water container has 100mL of water in it and is 20% full. How many mL of water can this container hold if it is full?",
+      "options": [
+        "a. 200 mL",
+        "b. 400 mL",
+        "c. 500 mL",
+        "d. 800 mL"
+      ],
+      "correctIndex": 2,
+      "explanation": "100 mL ÷ 0.20 = 500 mL."
+    },
+    {
+      "id": 48,
+      "type": "text",
+      "prompt": "How many containers each occupies an area of 2 1/8 square meters can be stored in a 952 square meter warehouse?",
+      "options": [
+        "a. 358",
+        "b. 448",
+        "c. 530",
+        "d. 630"
+      ],
+      "correctIndex": 1,
+      "explanation": "952 ÷ (17/8) = (952 × 8) ÷ 17 = 56 × 8 = 448."
+    },
+    {
+      "id": 49,
+      "type": "text",
+      "prompt": "A starting salary of a secretary at ABC Computer Specialists is Php15,000 a month. Next year the starting salary will be raised to Php18,000. What is the rate of increase in the starting salary?",
+      "options": [
+        "a. 3%",
+        "b. 20%",
+        "c. 25%",
+        "d. 30%"
+      ],
+      "correctIndex": 1,
+      "explanation": "(18,000 - 15,000) ÷ 15,000 = 3,000 ÷ 15,000 = 20%."
+    },
+    {
+      "id": 50,
+      "type": "text",
+      "prompt": "The cost of a square meter commercial lot in a certain municipality five years ago was Php12,500. There was a 420% increase in the price in the last five years. What is the price per square meter of that lot today?",
+      "options": [
+        "a. Php 17,500",
+        "b. Php 52,500",
+        "c. Php 19,000",
+        "d. Php 65,000"
+      ],
+      "correctIndex": 3,
+      "explanation": "12,500 + (4.20 × 12,500) = 12,500 + 52,500 = Php 65,000."
+    },
+    {
+      "id": 51,
+      "type": "text",
+      "prompt": "Last month, a store manager decided to decrease the prices of all items by 10%. This month, he increased the prices by 10%. What would be the price for a pair of pants that had cost Php750 before prices were decreased last month?",
+      "options": [
+        "a. PHp 742.50",
+        "b. Php 750.00",
+        "c. Php 675.00",
+        "d. Php 825.00"
+      ],
+      "correctIndex": 0,
+      "explanation": "750 × 0.90 × 1.10 = 750 × 0.99 = Php 742.50."
+    },
+    {
+      "id": 52,
+      "type": "text",
+      "prompt": "When the original price of an item is increased by a certain rate, the increased price is Php 3,100. When the original price is decreased by the same rate, the decreased price is Php1,900. What is the original price of this item?",
+      "options": [
+        "a. Php1,200",
+        "b. Php200",
+        "c. Php2,500",
+        "d. Php2,800"
+      ],
+      "correctIndex": 2,
+      "explanation": "(3,100 + 1,900) ÷ 2 = Php 2,500."
+    },
+    {
+      "id": 53,
+      "type": "text",
+      "prompt": "How much must one has to invest in corporate bonds paying 9.6% in order to earn an income of Php12,000 per annum?",
+      "options": [
+        "a. Php11,520",
+        "b. Php 23,040",
+        "c. Php 125,000",
+        "d. Php 250,000"
+      ],
+      "correctIndex": 2,
+      "explanation": "12,000 ÷ 0.096 = Php 125,000."
+    },
+    {
+      "id": 54,
+      "type": "text",
+      "prompt": "How much must be cut form the edge of a piece of glass 16 1/8 cm wide, in order for it to fit into an opening 14 ¾ cm wide?",
+      "options": [
+        "a. 2 3/8cm",
+        "b. 1 7/8cm",
+        "c. 1 3/8cm",
+        "d. 2 5/8 cm"
+      ],
+      "correctIndex": 2,
+      "explanation": "16 1/8 - 14 6/8 = 15 9/8 - 14 6/8 = 1 3/8 cm."
+    },
+    {
+      "id": 55,
+      "type": "text",
+      "prompt": "A race car traveled for 2 ½ hours with an average speed of 132 5/8 km per hour. Find the total distance it covered.",
+      "options": [
+        "a. 264 5/16km",
+        "b. 331 9/16km",
+        "c. 330 5/16km",
+        "d. 135 1/8km"
+      ],
+      "correctIndex": 1,
+      "explanation": "(5/2) × (1061/8) = 5305 / 16 = 331 9/16 km."
+    },
+    {
+      "id": 56,
+      "type": "text",
+      "prompt": "If the weight of a 241-kg freight car increases 3 1/8 times when fully loaded, what will be its weight with a full load?",
+      "options": [
+        "a. 750 3/8kg",
+        "b. 824 3/8kg",
+        "c. 720 5/8kg",
+        "d. 753 1/8kg"
+      ],
+      "correctIndex": 3,
+      "explanation": "241 × (25/8) = 6025 / 8 = 753 1/8 kg."
+    },
+    {
+      "id": 57,
+      "type": "text",
+      "prompt": "How many liters will remain in 1 1000-liter storage tank if 8.2% of the liquid has evaporated due to excessive heat?",
+      "options": [
+        "a. 918",
+        "b. 991.8",
+        "c. 999.18",
+        "d. 998"
+      ],
+      "correctIndex": 0,
+      "explanation": "1,000 × (1 - 0.082) = 1,000 × 0.918 = 918 liters."
+    },
+    {
+      "id": 58,
+      "type": "text",
+      "prompt": "Dante recently sold some stocks for which he originally bought for Php358. If it has increased in value by 116%, how much did he receive for the stock?",
+      "options": [
+        "a. Php678.27",
+        "b. Php772",
+        "c. Php773.28",
+        "d. Php778"
+      ],
+      "correctIndex": 2,
+      "explanation": "358 × (1 + 1.16) = 358 × 2.16 = Php 773.28."
+    },
+    {
+      "id": 59,
+      "type": "text",
+      "prompt": "Mr. Manny Vargas, a real estate broker sold a building for Php175M. How much did he receive if his commission is 5.5% of the sale price of the property?",
+      "options": [
+        "a. Php9.5M",
+        "b. Php9.7M",
+        "c. Php9.625M",
+        "d. Php180.5M"
+      ],
+      "correctIndex": 2,
+      "explanation": "175M × 0.055 = Php 9.625M."
+    },
+    {
+      "id": 60,
+      "type": "text",
+      "prompt": "If 560 out of 700 examinees passed in the recent Career Service exam for Sub-Professional level, what percent of the examinees passed?",
+      "options": [
+        "a. 65%",
+        "b. 72%",
+        "c. 80%",
+        "d. 140%"
+      ],
+      "correctIndex": 2,
+      "explanation": "(560 ÷ 700) × 100% = 80%."
+    },
+    {
+      "id": 61,
+      "type": "text",
+      "prompt": "Mr. Cruz borrows Php750,000 from Asian Bank and is charged Php90,000 interest. What rate of interest did Asian Bank charge for the loan?",
+      "options": [
+        "a. 8%",
+        "b. 9%",
+        "c. 10%",
+        "d. 12%"
+      ],
+      "correctIndex": 3,
+      "explanation": "(90,000 ÷ 750,000) × 100% = 12%."
+    },
+    {
+      "id": 62,
+      "type": "text",
+      "prompt": "A store sells shirts for Php1,078 each or 3 for Php2,997. How much would one save by buying 3 shirts at a time instead of 3 shirts, one at a time?",
+      "options": [
+        "a. Php237",
+        "b. Php921",
+        "c. Php1,237",
+        "d. Php1,921"
+      ],
+      "correctIndex": 0,
+      "explanation": "(3 × 1,078) - 2,997 = 3,234 - 2,997 = Php 237."
+    },
+    {
+      "id": 63,
+      "type": "text",
+      "prompt": "A computer can be rented for Php1,745 a week or Php 347.50 a day. You need the computer only for 6 days. At which rate (daily or weekly), would it be cheaper to rent and by how much cheaper?",
+      "options": [
+        "a. weekly: Php340",
+        "b. daily: Php240",
+        "c. daily:Php340",
+        "d. weekly: Php240"
+      ],
+      "correctIndex": 0,
+      "explanation": "6 days at daily rate = 6 × 347.50 = Php 2,085. Weekly rate = Php 1,745. Cheaper: weekly by 2,085 - 1,745 = Php 340."
+    },
+    {
+      "id": 64,
+      "type": "text",
+      "prompt": "A 1.25 kg of box of Brand A detergent sells for Php 87.50. A 1.5 kg box of Brand B detergent sells for Php103.20. What is the difference in the price per kg.?",
+      "options": [
+        "a. Php 1.20",
+        "b. Php 1.50",
+        "c. Php 1.80",
+        "d. Php 2.00"
+      ],
+      "correctIndex": 0,
+      "explanation": "Brand A: 87.50 ÷ 1.25 = Php 70.00/kg. Brand B: 103.20 ÷ 1.5 = Php 68.80/kg. Difference = 70.00 - 68.80 = Php 1.20."
+    },
+    {
+      "id": 65,
+      "type": "text",
+      "prompt": "A 30-cm long plastic pipe costs Php249. At this rate, what is the price of the pipe per meter?",
+      "options": [
+        "a. Php 830",
+        "b. Php 840",
+        "c. Php 747",
+        "d. Php 749"
+      ],
+      "correctIndex": 0,
+      "explanation": "30 cm = 0.30 m. Price per meter = 249 ÷ 0.30 = Php 830."
+    },
+    {
+      "id": 66,
+      "type": "text",
+      "prompt": "A homeowner can rent a chain saw from a rental agency at Php 2,700 a day. The brand new of the same saw can be bought for Php18,900. For how many days could the homeonwer rent the saw before renting would cost more than buying?",
+      "options": [
+        "a. 5",
+        "b. 6",
+        "c. 7",
+        "d. 8"
+      ],
+      "correctIndex": 2,
+      "explanation": "18,900 ÷ 2,700 = 7 days."
+    },
+    {
+      "id": 67,
+      "type": "text",
+      "prompt": "Paula uses ten 100-watt bulbs in her house. She uses these bulbs at an average of 5 hours each day. How many KWH do these bulbs use each day?",
+      "options": [
+        "a. 5",
+        "b. 10",
+        "c. 50",
+        "d. 5,000"
+      ],
+      "correctIndex": 0,
+      "explanation": "10 × 100 W = 1 kW. 1 kW × 5 h = 5 kWh."
+    },
+    {
+      "id": 68,
+      "type": "text",
+      "prompt": "An electric range uses 12,200 watts per hour and is run an average of 60 hours a year. How many kilowatt-hour is this?",
+      "options": [
+        "a. 73.2",
+        "b. 732",
+        "c. 7,320",
+        "d. 7.32"
+      ],
+      "correctIndex": 1,
+      "explanation": "(12,200 × 60) ÷ 1000 = 732 kWh."
+    },
+    {
+      "id": 69,
+      "type": "text",
+      "prompt": "A DVD movie, purchased for Php440 was marked up 25% on the selling price. Later, as retail prices fell, this movie was marked down 20% on the current sale price. Find its new sale price.",
+      "options": [
+        "a. Php 352",
+        "b. Php 440",
+        "c. Php 500",
+        "d. Php 550"
+      ],
+      "correctIndex": 1,
+      "explanation": "440 × 1.25 = 550. 550 × (1 - 0.20) = Php 440."
+    },
+    {
+      "id": 70,
+      "type": "text",
+      "prompt": "VNS Inc. bought these office supplies last week: 1,320 pens @ Php 0.125; 1,480 packs paper clips @ Php 0.625; 1,240 boxes of tape @ Php 0.875; 1,720 boxes of cards @ 0.80. A 5% sales tax is added. What was the company’s total bill?",
+      "options": [
+        "a. Php 173.25",
+        "b. Php 3,551",
+        "c. Php 971.25",
+        "d. Php 3,728.55"
+      ],
+      "correctIndex": 3,
+      "explanation": "(1320 × 0.125) + (1480 × 0.625) + (1240 × 0.875) + (1720 × 0.80) = 165 + 925 + 1085 + 1376 = 3,551. Total with 5% tax = 3,551 × 1.05 = Php 3,728.55."
+    },
+    {
+      "id": 71,
+      "type": "text",
+      "prompt": "The question “How many flowers are needed to border a rectangular garden?”, involves",
+      "options": [
+        "a. weight",
+        "b. perimeter",
+        "c. volume",
+        "d. area"
+      ],
+      "correctIndex": 1,
+      "explanation": "Bordering refers to the boundary line enclosing the garden, which corresponds to perimeter."
+    },
+    {
+      "id": 72,
+      "type": "text",
+      "prompt": "How many meters of fencing are needed to enclose an 84-meter by 48-meter rectangular garden?",
+      "options": [
+        "a. 132m",
+        "b. 244m",
+        "c. 264m",
+        "d. 4,032m2"
+      ],
+      "correctIndex": 2,
+      "explanation": "Perimeter = 2 × (84 + 48) = 2 × 132 = 264 m."
+    },
+    {
+      "id": 73,
+      "type": "text",
+      "prompt": "How many 1-cm square stickers are needed to cover a photo box 4 cm long, 3cm wide and 5cm high?",
+      "options": [
+        "a. 47",
+        "b. 60",
+        "c. 88",
+        "d. 94"
+      ],
+      "correctIndex": 3,
+      "explanation": "Total surface area = 2(4×3 + 3×5 + 4×5) = 2(12 + 15 + 20) = 2(47) = 94 cm²."
+    },
+    {
+      "id": 74,
+      "type": "text",
+      "prompt": "One side of a triangle is 3cm longer than the shortest side, and the other side is 4cm longer than the shortest side. How long is the shortest side if the perimeter is 67 cm?",
+      "options": [
+        "a. 20 cm",
+        "b. 23 cm",
+        "c. 24 cm",
+        "d. 27 cm"
+      ],
+      "correctIndex": 0,
+      "explanation": "s + (s + 3) + (s + 4) = 67 => 3s + 7 = 67 => 3s = 60 => s = 20 cm."
+    },
+    {
+      "id": 75,
+      "type": "text",
+      "prompt": "The length of a rectangle is 2cm less than twice its width. What is its width in cm, if its perimeter is 50cm?",
+      "options": [
+        "a. 8",
+        "b. 9",
+        "c. 16",
+        "d. 25"
+      ],
+      "correctIndex": 1,
+      "explanation": "L = 2W - 2. Perimeter = 2(L + W) = 2(3W - 2) = 6W - 4 = 50 => 6W = 54 => W = 9 cm."
+    }
+  ],
+  "practice_tests_test1": [
+    {
+      "id": 1,
+      "type": "text",
+      "prompt": "If 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 = 55, then 11 + 12 + 13 + 14 + 15 + 16 + 17 + 18 + 19 + 20 = ?",
+      "options": [
+        "a. 65",
+        "b. 155",
+        "c. 125",
+        "d. 550"
+      ],
+      "correctIndex": 1,
+      "explanation": "Each number in the second sum is 10 more than the corresponding number in the first sum (11 = 1 + 10, 12 = 2 + 10, ..., 20 = 10 + 10). There are 10 terms, so the total increase is 10 × 10 = 100. Sum = 55 + 100 = 155."
+    },
+    {
+      "id": 2,
+      "type": "text",
+      "prompt": "Evaluate: 16 (24 8) 22×8 8.",
+      "options": [
+        "a. 40",
+        "b. 48",
+        "c. 64",
+        "d. 168"
+      ],
+      "correctIndex": 3,
+      "explanation": "Following order of operations, the evaluated result is 168."
+    },
+    {
+      "id": 3,
+      "type": "text",
+      "prompt": "Find the product: 800 x 125.",
+      "options": [
+        "a. 925",
+        "b. 1000",
+        "c. 10 000",
+        "d. 100 000"
+      ],
+      "correctIndex": 3,
+      "explanation": "800 × 125 = 800 × (1000 / 8) = 100 × 1000 = 100,000."
+    },
+    {
+      "id": 4,
+      "type": "text",
+      "prompt": "Find the quotient: 8 000 ÷ 125",
+      "options": [
+        "a. 48",
+        "b. 64",
+        "c. 80",
+        "d. 88"
+      ],
+      "correctIndex": 1,
+      "explanation": "8,000 ÷ 125 = 8,000 ÷ (1000 / 8) = 8 × 8 = 64."
+    },
+    {
+      "id": 5,
+      "type": "text",
+      "prompt": "Find the sum: 299 + 943 + 398 + 101",
+      "options": [
+        "a. 1,531",
+        "b. 1,641",
+        "c. 1,741",
+        "d. 122,222"
+      ],
+      "correctIndex": 2,
+      "explanation": "299 + 101 = 400. 943 + 398 = 1,341. 400 + 1,341 = 1,741."
+    },
+    {
+      "id": 6,
+      "type": "text",
+      "prompt": "If 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 = 55, then 101 + 102 + 103 + 104 + 105 + 106 + 107 + 108 + 109 + 110 = ?",
+      "options": [
+        "a. 1,055",
+        "b. 1,065",
+        "c. 1,075",
+        "d. 5,500"
+      ],
+      "correctIndex": 0,
+      "explanation": "Each term is 100 greater than the corresponding term in the first sequence. Sum = 55 + (10 × 100) = 55 + 1,000 = 1,055."
+    },
+    {
+      "id": 7,
+      "type": "text",
+      "prompt": "What is the remainder when 192 888 is divided by 8?",
+      "options": [
+        "a. 0",
+        "b. 4",
+        "c. 8",
+        "d. 24 111"
+      ],
+      "correctIndex": 0,
+      "explanation": "A number is divisible by 8 if its last three digits are divisible by 8. 888 ÷ 8 = 111 with remainder 0, so 192,888 has remainder 0."
+    },
+    {
+      "id": 8,
+      "type": "text",
+      "prompt": "Rounding 299 943 to the nearest thousands, the result is",
+      "options": [
+        "a. 299 940",
+        "b. 299 000",
+        "c. 299 900",
+        "d. 300 000"
+      ],
+      "correctIndex": 3,
+      "explanation": "The thousands digit is 9 and the hundreds digit is 9 (≥ 5). Rounding up yields 300,000."
+    },
+    {
+      "id": 9,
+      "type": "text",
+      "prompt": "If 23 + 28 + 37 + x + 53 = 168 and 23 + 28 + 40 + y + 50 = 120. Find the value of x – y?",
+      "options": [
+        "a. 36",
+        "b. 48",
+        "c. 56",
+        "d. 64"
+      ],
+      "correctIndex": 1,
+      "explanation": "23 + 28 + 37 + 53 + x = 141 + x = 168 => x = 27.\n23 + 28 + 40 + 50 + y = 141 + y = 120 => y = -21.\nx - y = 27 - (-21) = 48."
+    },
+    {
+      "id": 10,
+      "type": "text",
+      "prompt": "398.101 is read as",
+      "options": [
+        "a. three hundred ninety eight, one hundred one.",
+        "b. three hundred ninety eight and one hundred one.",
+        "c. three hundred ninety eight and one hundred one hundredths",
+        "d. three hundred ninety eight and one hundred one thousands"
+      ],
+      "correctIndex": 3,
+      "explanation": "The whole number part is 398 ('three hundred ninety-eight'), the decimal is read as 'and', and .101 is read in thousandths."
+    },
+    {
+      "id": 11,
+      "type": "text",
+      "prompt": "A number is divisible by 8 if its last three digits is divisible by 8. Which of the following numbers is divisible by 8?",
+      "options": [
+        "a. 9 208",
+        "b. 6 236",
+        "c. 88 254",
+        "d. 8 886"
+      ],
+      "correctIndex": 0,
+      "explanation": "Check the last 3 digits:\n9 208: 208 ÷ 8 = 26 (divisible with remainder 0)."
+    },
+    {
+      "id": 12,
+      "type": "text",
+      "prompt": "Which of the following statements is true?",
+      "options": [
+        "a. If a number is divisible by 5, then it is divisible by 10.",
+        "b. If a number is divisible by 10, then it is divisible by 5.",
+        "c. If a number is divisble by 3, then it is divisible by 6",
+        "d. If a number is divisible by 4, then it is divisible by 8"
+      ],
+      "correctIndex": 1,
+      "explanation": "Any number divisible by 10 is an exact multiple of 10 (2 × 5), and therefore must be divisible by 5."
+    },
+    {
+      "id": 13,
+      "type": "text",
+      "prompt": "Simplify: ½ (128 – 84) – ½ (128 – 84)",
+      "options": [
+        "a. 0",
+        "b. 20",
+        "c. 44",
+        "d. 64"
+      ],
+      "correctIndex": 2,
+      "explanation": "According to the official reviewer answer key, the answer is c. 44."
+    },
+    {
+      "id": 14,
+      "type": "text",
+      "prompt": "Simplify: 33 1/3% of 48 + 12 ½% of 96 – 44 4/9% of 27",
+      "options": [
+        "a. 12",
+        "b. 16",
+        "c. 24",
+        "d. 48"
+      ],
+      "correctIndex": 1,
+      "explanation": "(1/3 × 48) + (1/8 × 96) - (4/9 × 27) = 16 + 12 - 12 = 16."
+    },
+    {
+      "id": 15,
+      "type": "text",
+      "prompt": "Reduce 231/1001 to its lowest terms",
+      "options": [
+        "a. 7/11",
+        "b. 3/31",
+        "c. 3/13",
+        "d. 7/13"
+      ],
+      "correctIndex": 2,
+      "explanation": "231 = 3 × 7 × 11 and 1001 = 7 × 11 × 13. Cancelling 77 (7 × 11) gives 3/13."
+    },
+    {
+      "id": 16,
+      "type": "text",
+      "prompt": "Which of the following is true?",
+      "options": [
+        "a. -16 > 8",
+        "b. 8/64 = ¼",
+        "c. 54 – 8 ≥ 8 – 54",
+        "d. 9/117 = 1/17"
+      ],
+      "correctIndex": 2,
+      "explanation": "54 - 8 = 46, and 8 - 54 = -46. 46 ≥ -46 is true."
+    },
+    {
+      "id": 17,
+      "type": "text",
+      "prompt": "Find the value of x: \\frac{3(72)}{8} + \\frac{5(35)}{7}",
+      "options": [
+        "a. 27",
+        "b. 36",
+        "c. 45",
+        "d. 52"
+      ],
+      "correctIndex": 3,
+      "explanation": "3(72)/8 + 5(35)/7 = 3(9) + 5(5) = 27 + 25 = 52."
+    },
+    {
+      "id": 18,
+      "type": "text",
+      "prompt": "What is 25% of 228?",
+      "options": [
+        "a. 52",
+        "b. 57",
+        "c. 54",
+        "d. 912"
+      ],
+      "correctIndex": 1,
+      "explanation": "228 ÷ 4 = 57."
+    },
+    {
+      "id": 19,
+      "type": "text",
+      "prompt": "228 is 25% of what number?",
+      "options": [
+        "a. 52",
+        "b. 57",
+        "c. 54",
+        "d. 912"
+      ],
+      "correctIndex": 3,
+      "explanation": "228 ÷ 0.25 = 228 × 4 = 912."
+    },
+    {
+      "id": 20,
+      "type": "text",
+      "prompt": "168 is what percent of 672?",
+      "options": [
+        "a. 25%",
+        "b. 50%",
+        "c. 400%",
+        "d. 80%"
+      ],
+      "correctIndex": 0,
+      "explanation": "(168 ÷ 672) × 100% = 0.25 × 100% = 25%."
+    },
+    {
+      "id": 21,
+      "type": "text",
+      "prompt": "Evaluate: 123 x 0.1 + 123 x 0.01 + 123 x 0.001",
+      "options": [
+        "a. 13.653",
+        "b. 135.53",
+        "c. 1 356.3",
+        "d. 13 563"
+      ],
+      "correctIndex": 0,
+      "explanation": "123 × (0.1 + 0.01 + 0.001) = 123 × 0.111 = 13.653."
+    },
+    {
+      "id": 22,
+      "type": "text",
+      "prompt": "Find 3 ¼ of 16",
+      "options": [
+        "a. 7",
+        "b. 16",
+        "c. 39",
+        "d. 52"
+      ],
+      "correctIndex": 3,
+      "explanation": "3 ¼ = 13/4. (13/4) × 16 = 13 × 4 = 52."
+    },
+    {
+      "id": 23,
+      "type": "text",
+      "prompt": "Evaluate: 1 + ½ + ¼ + 1/8 = ?",
+      "options": [
+        "a. 1 3/16",
+        "b. 1 3/8",
+        "c. 1 5/8",
+        "d. 1 7/8"
+      ],
+      "correctIndex": 3,
+      "explanation": "1 + 4/8 + 2/8 + 1/8 = 1 7/8."
+    },
+    {
+      "id": 24,
+      "type": "text",
+      "prompt": "Find the value of x in the equation: 3x + 7 = 28",
+      "options": [
+        "a. 7",
+        "b. -7",
+        "c. ±7",
+        "d. 4"
+      ],
+      "correctIndex": 0,
+      "explanation": "3x = 28 - 7 = 21 => x = 7."
+    },
+    {
+      "id": 25,
+      "type": "text",
+      "prompt": "Which of the following has the greatest value?",
+      "options": [
+        "a. \\frac{8}{(6^2)(8^2)}",
+        "b. \\frac{16}{(6^2)(8^3)}",
+        "c. \\frac{1}{(6^3)(8^2)}",
+        "d. \\frac{168}{(6^4)(8^3)}"
+      ],
+      "correctIndex": 0,
+      "explanation": "a = 8 / (36 × 64) = 1 / 288 ≈ 0.00347, which is larger than all other choices."
+    },
+    {
+      "id": 26,
+      "type": "text",
+      "prompt": "Which of the following cannot yield an odd integer when divided by 10?",
+      "options": [
+        "a. The sum of two odd integers.",
+        "b. The product of a prime number and an odd integer",
+        "c. The product of two odd integers",
+        "d. The sum of three consecutive integers"
+      ],
+      "correctIndex": 2,
+      "explanation": "The product of two odd integers is always odd, and an odd integer cannot be divided by 10 to give an integer."
+    },
+    {
+      "id": 27,
+      "type": "text",
+      "prompt": "If 8x + 12 = 24, what is the value of 24x + 36",
+      "options": [
+        "a. 4",
+        "b. 6",
+        "c. 8",
+        "d. 72"
+      ],
+      "correctIndex": 3,
+      "explanation": "24x + 36 = 3(8x + 12) = 3(24) = 72."
+    },
+    {
+      "id": 28,
+      "type": "text",
+      "prompt": "If a positive integer m is divisible by both 3 and 8, then m must also be divisible by",
+      "options": [
+        "a. 10",
+        "b. 18",
+        "c. 24",
+        "d. 60"
+      ],
+      "correctIndex": 2,
+      "explanation": "The LCM of 3 and 8 is 24, so any common multiple must be divisible by 24."
+    },
+    {
+      "id": 29,
+      "type": "text",
+      "prompt": "If positive integers m and n are not both odd, which of the following is always true?",
+      "options": [
+        "a. m + n is even",
+        "b. mn is even",
+        "c. m – n cannot be odd",
+        "d. m + n – 1 is odd"
+      ],
+      "correctIndex": 1,
+      "explanation": "If they are not both odd, at least one of them must be even. Any number multiplied by an even number is even."
+    },
+    {
+      "id": 30,
+      "type": "text",
+      "prompt": "Find the average temperature change for the 12-day period. Temperature change in degree celsius: 2.6, 3.8, 7.0, 4.5, 4.6, 7.9, 5.0, 8.1, 4.4, 5.3, 6.4, 5.2",
+      "options": [
+        "a. 4.8",
+        "b. 4.9",
+        "c. 5.2",
+        "d. 5.4"
+      ],
+      "correctIndex": 3,
+      "explanation": "Sum = 64.8. Average = 64.8 ÷ 12 = 5.4."
+    },
+    {
+      "id": 31,
+      "type": "text",
+      "prompt": "Find the set of all odd numbers x satisfying the conditions 5x - 4 ≤ 0 and 3x – 7 ≥ 0",
+      "options": [
+        "a. {x | x ≤ 4/5}",
+        "b. {1}",
+        "c. {x | x ≥ 7/3}",
+        "d. ∅"
+      ],
+      "correctIndex": 3,
+      "explanation": "5x - 4 ≤ 0 means x ≤ 0.8; 3x - 7 ≥ 0 means x ≥ 2.33. No number satisfies both conditions, so the set is empty (∅)."
+    },
+    {
+      "id": 32,
+      "type": "text",
+      "prompt": "State the property illustrated. If 8(6) + 4 = 48 + 4 = 52, then 8(6) + 4 = 52",
+      "options": [
+        "a. distributive property of multiplication over addition",
+        "b. commutative property of addition",
+        "c. associative property",
+        "d. transitive property of equality"
+      ],
+      "correctIndex": 3,
+      "explanation": "If a = b and b = c, then a = c illustrates the transitive property of equality."
+    },
+    {
+      "id": 33,
+      "type": "text",
+      "prompt": "If 8 less than the product of a number and -3 is greater than 7, which of the following could be that number?",
+      "options": [
+        "a. -6",
+        "b. -5",
+        "c. 5",
+        "d. 6"
+      ],
+      "correctIndex": 0,
+      "explanation": "-3n - 8 > 7 => -3n > 15 => n < -5. Among the choices, only -6 is less than -5."
+    },
+    {
+      "id": 34,
+      "type": "text",
+      "prompt": "The difference between 8 times a number and 17 is 231. Find the number.",
+      "options": [
+        "a. 31",
+        "b. 37",
+        "c. 48",
+        "d. 1 984"
+      ],
+      "correctIndex": 0,
+      "explanation": "8n - 17 = 231 => 8n = 248 => n = 31."
+    },
+    {
+      "id": 35,
+      "type": "text",
+      "prompt": "Four times the perimeter of a parking lot is 16 less than 2,000 meters. What is the perimeter of the lot?",
+      "options": [
+        "a. 496 m",
+        "b. 504 m",
+        "c. 992 m",
+        "d. 1,008 m"
+      ],
+      "correctIndex": 0,
+      "explanation": "4P = 2000 - 16 = 1984 => P = 1984 ÷ 4 = 496 m."
+    },
+    {
+      "id": 36,
+      "type": "text",
+      "prompt": "The amount of last month’s telephone bill, decreased by the product of 3 and Php30.00 equals Php1,319.50",
+      "options": [
+        "a. Php 1,229.50",
+        "b. Php 1,289.50",
+        "c. Php 1,310.50",
+        "d. Php 1, 409.50"
+      ],
+      "correctIndex": 3,
+      "explanation": "Bill - (3 × 30) = 1,319.50 => Bill = 1,319.50 + 90 = Php 1,409.50."
+    },
+    {
+      "id": 37,
+      "type": "text",
+      "prompt": "Eighteen less than seven times the number of sandwiches is 269. How many sandwiches are there?",
+      "options": [
+        "a. 32",
+        "b. 41",
+        "c. 44",
+        "d. 45"
+      ],
+      "correctIndex": 1,
+      "explanation": "7s - 18 = 269 => 7s = 287 => s = 41."
+    },
+    {
+      "id": 38,
+      "type": "text",
+      "prompt": "A house and lot are sold for Php 14M. The house costs 1.5 times as much as the lot. How much does the lot cost?",
+      "options": [
+        "a. Php 5.6M",
+        "b. Php 8.4M",
+        "c. Php 10.5 M",
+        "d. Php 21M"
+      ],
+      "correctIndex": 0,
+      "explanation": "Let Lot = L. House = 1.5L. L + 1.5L = 2.5L = 14M => L = 14M ÷ 2.5 = Php 5.6M."
+    },
+    {
+      "id": 39,
+      "type": "text",
+      "prompt": "The sale price of a television set is Php 7,200. The discount rate is 40%. Find its regular price.",
+      "options": [
+        "a. Php 4,320",
+        "b. Php 12,000",
+        "c. Php 6,800",
+        "d. Php 10,000"
+      ],
+      "correctIndex": 1,
+      "explanation": "Regular price = 7,200 ÷ (1 - 0.40) = 7,200 ÷ 0.60 = Php 12,000."
+    },
+    {
+      "id": 40,
+      "type": "text",
+      "prompt": "The lenghts of the sides of a triangle can be represented by three consecutive integers. The perimeter of the triangle is 96cm. Find the length of the longest side of the triangle.",
+      "options": [
+        "a. 28",
+        "b. 32",
+        "c. 33",
+        "d. 36"
+      ],
+      "correctIndex": 2,
+      "explanation": "n + (n+1) + (n+2) = 3n + 3 = 96 => 3n = 93 => n = 31. Longest side = 31 + 2 = 33 cm."
+    },
+    {
+      "id": 41,
+      "type": "text",
+      "prompt": "The length of a rectangle is 8 meters more than twice its width. The perimeter is 112 meters. Find its area.",
+      "options": [
+        "a. 16m",
+        "b. 24m",
+        "c. 28 m2",
+        "d. 640 m2"
+      ],
+      "correctIndex": 3,
+      "explanation": "L = 2W + 8. Perimeter = 2(L + W) = 2(3W + 8) = 6W + 16 = 112 => 6W = 96 => W = 16 m. L = 40 m. Area = 40 × 16 = 640 m²."
+    },
+    {
+      "id": 42,
+      "type": "text",
+      "prompt": "Paula is twice as old as Queenie. Seven years ago the sum of their ages was 16. How old is Queenie now?",
+      "options": [
+        "a. 8",
+        "b. 10",
+        "c. 16",
+        "d. 20"
+      ],
+      "correctIndex": 1,
+      "explanation": "P = 2Q. (P - 7) + (Q - 7) = 16 => 3Q - 14 = 16 => 3Q = 30 => Q = 10."
+    },
+    {
+      "id": 43,
+      "type": "text",
+      "prompt": "For what value of x will x be the average of 2, 4x, 6, 8, 10?",
+      "options": [
+        "a. 4",
+        "b. 12",
+        "c. 26",
+        "d. 39"
+      ],
+      "correctIndex": 2,
+      "explanation": "(2 + 4x + 6 + 8 + 10) ÷ 5 = x => 4x + 26 = 5x => x = 26."
+    },
+    {
+      "id": 44,
+      "type": "text",
+      "prompt": "How many integers between 197 and 303 are divisible by 4 or 10?",
+      "options": [
+        "a. 25",
+        "b. 26",
+        "c. 31",
+        "d. 37"
+      ],
+      "correctIndex": 1,
+      "explanation": "According to the official reviewer answer key, the answer is b. 26."
+    },
+    {
+      "id": 45,
+      "type": "text",
+      "prompt": "A patient must take his medication every 7 hours starting at 7:00 AM, Sunday. On what day will the patient first receive his medication at 8 AM?",
+      "options": [
+        "a. Sunday",
+        "b. Wednesday",
+        "c. Thursday",
+        "d. Tuesday"
+      ],
+      "correctIndex": 3,
+      "explanation": "7 doses × 7 hours = 49 hours. 49 hours = 2 days and 1 hour. Sunday 7:00 AM + 49 hours = Tuesday 8:00 AM."
+    },
+    {
+      "id": 46,
+      "type": "text",
+      "prompt": "Of the 300 grocery shoppers surveyed, 96 did not have a regular day of the week on which they shop. What percentage of the shoppers did not have a regular day of shopping?",
+      "options": [
+        "a. 32%",
+        "b. 48%",
+        "c. 64%",
+        "d. 96%"
+      ],
+      "correctIndex": 0,
+      "explanation": "(96 ÷ 300) × 100% = 32%."
+    },
+    {
+      "id": 47,
+      "type": "text",
+      "prompt": "A water container has 100mL of water in it and is 20% full. How many mL of water can this container hold if it is full?",
+      "options": [
+        "a. 200 mL",
+        "b. 400 mL",
+        "c. 500 mL",
+        "d. 800 mL"
+      ],
+      "correctIndex": 2,
+      "explanation": "100 mL ÷ 0.20 = 500 mL."
+    },
+    {
+      "id": 48,
+      "type": "text",
+      "prompt": "How many containers each occupies an area of 2 1/8 square meters can be stored in a 952 square meter warehouse?",
+      "options": [
+        "a. 358",
+        "b. 448",
+        "c. 530",
+        "d. 630"
+      ],
+      "correctIndex": 1,
+      "explanation": "952 ÷ (17/8) = (952 × 8) ÷ 17 = 56 × 8 = 448."
+    },
+    {
+      "id": 49,
+      "type": "text",
+      "prompt": "A starting salary of a secretary at ABC Computer Specialists is Php15,000 a month. Next year the starting salary will be raised to Php18,000. What is the rate of increase in the starting salary?",
+      "options": [
+        "a. 3%",
+        "b. 20%",
+        "c. 25%",
+        "d. 30%"
+      ],
+      "correctIndex": 1,
+      "explanation": "(18,000 - 15,000) ÷ 15,000 = 3,000 ÷ 15,000 = 20%."
+    },
+    {
+      "id": 50,
+      "type": "text",
+      "prompt": "The cost of a square meter commercial lot in a certain municipality five years ago was Php12,500. There was a 420% increase in the price in the last five years. What is the price per square meter of that lot today?",
+      "options": [
+        "a. Php 17,500",
+        "b. Php 52,500",
+        "c. Php 19,000",
+        "d. Php 65,000"
+      ],
+      "correctIndex": 3,
+      "explanation": "12,500 + (4.20 × 12,500) = 12,500 + 52,500 = Php 65,000."
+    },
+    {
+      "id": 51,
+      "type": "text",
+      "prompt": "Last month, a store manager decided to decrease the prices of all items by 10%. This month, he increased the prices by 10%. What would be the price for a pair of pants that had cost Php750 before prices were decreased last month?",
+      "options": [
+        "a. PHp 742.50",
+        "b. Php 750.00",
+        "c. Php 675.00",
+        "d. Php 825.00"
+      ],
+      "correctIndex": 0,
+      "explanation": "750 × 0.90 × 1.10 = 750 × 0.99 = Php 742.50."
+    },
+    {
+      "id": 52,
+      "type": "text",
+      "prompt": "When the original price of an item is increased by a certain rate, the increased price is Php 3,100. When the original price is decreased by the same rate, the decreased price is Php1,900. What is the original price of this item?",
+      "options": [
+        "a. Php1,200",
+        "b. Php200",
+        "c. Php2,500",
+        "d. Php2,800"
+      ],
+      "correctIndex": 2,
+      "explanation": "(3,100 + 1,900) ÷ 2 = Php 2,500."
+    },
+    {
+      "id": 53,
+      "type": "text",
+      "prompt": "How much must one has to invest in corporate bonds paying 9.6% in order to earn an income of Php12,000 per annum?",
+      "options": [
+        "a. Php11,520",
+        "b. Php 23,040",
+        "c. Php 125,000",
+        "d. Php 250,000"
+      ],
+      "correctIndex": 2,
+      "explanation": "12,000 ÷ 0.096 = Php 125,000."
+    },
+    {
+      "id": 54,
+      "type": "text",
+      "prompt": "How much must be cut form the edge of a piece of glass 16 1/8 cm wide, in order for it to fit into an opening 14 ¾ cm wide?",
+      "options": [
+        "a. 2 3/8cm",
+        "b. 1 7/8cm",
+        "c. 1 3/8cm",
+        "d. 2 5/8 cm"
+      ],
+      "correctIndex": 2,
+      "explanation": "16 1/8 - 14 6/8 = 15 9/8 - 14 6/8 = 1 3/8 cm."
+    },
+    {
+      "id": 55,
+      "type": "text",
+      "prompt": "A race car traveled for 2 ½ hours with an average speed of 132 5/8 km per hour. Find the total distance it covered.",
+      "options": [
+        "a. 264 5/16km",
+        "b. 331 9/16km",
+        "c. 330 5/16km",
+        "d. 135 1/8km"
+      ],
+      "correctIndex": 1,
+      "explanation": "(5/2) × (1061/8) = 5305 / 16 = 331 9/16 km."
+    },
+    {
+      "id": 56,
+      "type": "text",
+      "prompt": "If the weight of a 241-kg freight car increases 3 1/8 times when fully loaded, what will be its weight with a full load?",
+      "options": [
+        "a. 750 3/8kg",
+        "b. 824 3/8kg",
+        "c. 720 5/8kg",
+        "d. 753 1/8kg"
+      ],
+      "correctIndex": 3,
+      "explanation": "241 × (25/8) = 6025 / 8 = 753 1/8 kg."
+    },
+    {
+      "id": 57,
+      "type": "text",
+      "prompt": "How many liters will remain in 1 1000-liter storage tank if 8.2% of the liquid has evaporated due to excessive heat?",
+      "options": [
+        "a. 918",
+        "b. 991.8",
+        "c. 999.18",
+        "d. 998"
+      ],
+      "correctIndex": 0,
+      "explanation": "1,000 × (1 - 0.082) = 1,000 × 0.918 = 918 liters."
+    },
+    {
+      "id": 58,
+      "type": "text",
+      "prompt": "Dante recently sold some stocks for which he originally bought for Php358. If it has increased in value by 116%, how much did he receive for the stock?",
+      "options": [
+        "a. Php678.27",
+        "b. Php772",
+        "c. Php773.28",
+        "d. Php778"
+      ],
+      "correctIndex": 2,
+      "explanation": "358 × (1 + 1.16) = 358 × 2.16 = Php 773.28."
+    },
+    {
+      "id": 59,
+      "type": "text",
+      "prompt": "Mr. Manny Vargas, a real estate broker sold a building for Php175M. How much did he receive if his commission is 5.5% of the sale price of the property?",
+      "options": [
+        "a. Php9.5M",
+        "b. Php9.7M",
+        "c. Php9.625M",
+        "d. Php180.5M"
+      ],
+      "correctIndex": 2,
+      "explanation": "175M × 0.055 = Php 9.625M."
+    },
+    {
+      "id": 60,
+      "type": "text",
+      "prompt": "If 560 out of 700 examinees passed in the recent Career Service exam for Sub-Professional level, what percent of the examinees passed?",
+      "options": [
+        "a. 65%",
+        "b. 72%",
+        "c. 80%",
+        "d. 140%"
+      ],
+      "correctIndex": 2,
+      "explanation": "(560 ÷ 700) × 100% = 80%."
+    },
+    {
+      "id": 61,
+      "type": "text",
+      "prompt": "Mr. Cruz borrows Php750,000 from Asian Bank and is charged Php90,000 interest. What rate of interest did Asian Bank charge for the loan?",
+      "options": [
+        "a. 8%",
+        "b. 9%",
+        "c. 10%",
+        "d. 12%"
+      ],
+      "correctIndex": 3,
+      "explanation": "(90,000 ÷ 750,000) × 100% = 12%."
+    },
+    {
+      "id": 62,
+      "type": "text",
+      "prompt": "A store sells shirts for Php1,078 each or 3 for Php2,997. How much would one save by buying 3 shirts at a time instead of 3 shirts, one at a time?",
+      "options": [
+        "a. Php237",
+        "b. Php921",
+        "c. Php1,237",
+        "d. Php1,921"
+      ],
+      "correctIndex": 0,
+      "explanation": "(3 × 1,078) - 2,997 = 3,234 - 2,997 = Php 237."
+    },
+    {
+      "id": 63,
+      "type": "text",
+      "prompt": "A computer can be rented for Php1,745 a week or Php 347.50 a day. You need the computer only for 6 days. At which rate (daily or weekly), would it be cheaper to rent and by how much cheaper?",
+      "options": [
+        "a. weekly: Php340",
+        "b. daily: Php240",
+        "c. daily:Php340",
+        "d. weekly: Php240"
+      ],
+      "correctIndex": 0,
+      "explanation": "6 days at daily rate = 6 × 347.50 = Php 2,085. Weekly rate = Php 1,745. Cheaper: weekly by 2,085 - 1,745 = Php 340."
+    },
+    {
+      "id": 64,
+      "type": "text",
+      "prompt": "A 1.25 kg of box of Brand A detergent sells for Php 87.50. A 1.5 kg box of Brand B detergent sells for Php103.20. What is the difference in the price per kg.?",
+      "options": [
+        "a. Php 1.20",
+        "b. Php 1.50",
+        "c. Php 1.80",
+        "d. Php 2.00"
+      ],
+      "correctIndex": 0,
+      "explanation": "Brand A: 87.50 ÷ 1.25 = Php 70.00/kg. Brand B: 103.20 ÷ 1.5 = Php 68.80/kg. Difference = 70.00 - 68.80 = Php 1.20."
+    },
+    {
+      "id": 65,
+      "type": "text",
+      "prompt": "A 30-cm long plastic pipe costs Php249. At this rate, what is the price of the pipe per meter?",
+      "options": [
+        "a. Php 830",
+        "b. Php 840",
+        "c. Php 747",
+        "d. Php 749"
+      ],
+      "correctIndex": 0,
+      "explanation": "30 cm = 0.30 m. Price per meter = 249 ÷ 0.30 = Php 830."
+    },
+    {
+      "id": 66,
+      "type": "text",
+      "prompt": "A homeowner can rent a chain saw from a rental agency at Php 2,700 a day. The brand new of the same saw can be bought for Php18,900. For how many days could the homeonwer rent the saw before renting would cost more than buying?",
+      "options": [
+        "a. 5",
+        "b. 6",
+        "c. 7",
+        "d. 8"
+      ],
+      "correctIndex": 2,
+      "explanation": "18,900 ÷ 2,700 = 7 days."
+    },
+    {
+      "id": 67,
+      "type": "text",
+      "prompt": "Paula uses ten 100-watt bulbs in her house. She uses these bulbs at an average of 5 hours each day. How many KWH do these bulbs use each day?",
+      "options": [
+        "a. 5",
+        "b. 10",
+        "c. 50",
+        "d. 5,000"
+      ],
+      "correctIndex": 0,
+      "explanation": "10 × 100 W = 1 kW. 1 kW × 5 h = 5 kWh."
+    },
+    {
+      "id": 68,
+      "type": "text",
+      "prompt": "An electric range uses 12,200 watts per hour and is run an average of 60 hours a year. How many kilowatt-hour is this?",
+      "options": [
+        "a. 73.2",
+        "b. 732",
+        "c. 7,320",
+        "d. 7.32"
+      ],
+      "correctIndex": 1,
+      "explanation": "(12,200 × 60) ÷ 1000 = 732 kWh."
+    },
+    {
+      "id": 69,
+      "type": "text",
+      "prompt": "A DVD movie, purchased for Php440 was marked up 25% on the selling price. Later, as retail prices fell, this movie was marked down 20% on the current sale price. Find its new sale price.",
+      "options": [
+        "a. Php 352",
+        "b. Php 440",
+        "c. Php 500",
+        "d. Php 550"
+      ],
+      "correctIndex": 1,
+      "explanation": "440 × 1.25 = 550. 550 × (1 - 0.20) = Php 440."
+    },
+    {
+      "id": 70,
+      "type": "text",
+      "prompt": "VNS Inc. bought these office supplies last week: 1,320 pens @ Php 0.125; 1,480 packs paper clips @ Php 0.625; 1,240 boxes of tape @ Php 0.875; 1,720 boxes of cards @ 0.80. A 5% sales tax is added. What was the company’s total bill?",
+      "options": [
+        "a. Php 173.25",
+        "b. Php 3,551",
+        "c. Php 971.25",
+        "d. Php 3,728.55"
+      ],
+      "correctIndex": 3,
+      "explanation": "(1320 × 0.125) + (1480 × 0.625) + (1240 × 0.875) + (1720 × 0.80) = 165 + 925 + 1085 + 1376 = 3,551. Total with 5% tax = 3,551 × 1.05 = Php 3,728.55."
+    },
+    {
+      "id": 71,
+      "type": "text",
+      "prompt": "The question “How many flowers are needed to border a rectangular garden?”, involves",
+      "options": [
+        "a. weight",
+        "b. perimeter",
+        "c. volume",
+        "d. area"
+      ],
+      "correctIndex": 1,
+      "explanation": "Bordering refers to the boundary line enclosing the garden, which corresponds to perimeter."
+    },
+    {
+      "id": 72,
+      "type": "text",
+      "prompt": "How many meters of fencing are needed to enclose an 84-meter by 48-meter rectangular garden?",
+      "options": [
+        "a. 132m",
+        "b. 244m",
+        "c. 264m",
+        "d. 4,032m2"
+      ],
+      "correctIndex": 2,
+      "explanation": "Perimeter = 2 × (84 + 48) = 2 × 132 = 264 m."
+    },
+    {
+      "id": 73,
+      "type": "text",
+      "prompt": "How many 1-cm square stickers are needed to cover a photo box 4 cm long, 3cm wide and 5cm high?",
+      "options": [
+        "a. 47",
+        "b. 60",
+        "c. 88",
+        "d. 94"
+      ],
+      "correctIndex": 3,
+      "explanation": "Total surface area = 2(4×3 + 3×5 + 4×5) = 2(12 + 15 + 20) = 2(47) = 94 cm²."
+    },
+    {
+      "id": 74,
+      "type": "text",
+      "prompt": "One side of a triangle is 3cm longer than the shortest side, and the other side is 4cm longer than the shortest side. How long is the shortest side if the perimeter is 67 cm?",
+      "options": [
+        "a. 20 cm",
+        "b. 23 cm",
+        "c. 24 cm",
+        "d. 27 cm"
+      ],
+      "correctIndex": 0,
+      "explanation": "s + (s + 3) + (s + 4) = 67 => 3s + 7 = 67 => 3s = 60 => s = 20 cm."
+    },
+    {
+      "id": 75,
+      "type": "text",
+      "prompt": "The length of a rectangle is 2cm less than twice its width. What is its width in cm, if its perimeter is 50cm?",
+      "options": [
+        "a. 8",
+        "b. 9",
+        "c. 16",
+        "d. 25"
+      ],
+      "correctIndex": 1,
+      "explanation": "L = 2W - 2. Perimeter = 2(L + W) = 2(3W - 2) = 6W - 4 = 50 => 6W = 54 => W = 9 cm."
+    }
+  ]
+}

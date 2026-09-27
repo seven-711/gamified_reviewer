@@ -131,13 +131,26 @@ export async function fetchFullProfile(profileId: string): Promise<Record<string
     }
     if (!profileRes.data) return null;
 
+    const settings = settingsRes.data ? { ...settingsRes.data } : {};
+    const progress = progressRes.data ? { ...progressRes.data } : {};
+    const gameState = gameStateRes.data ? { ...gameStateRes.data } : {};
+
+    // Remove surrogate table PKs from child tables so they never overwrite the true profile ID
+    delete settings.id;
+    delete settings.profile_id;
+    delete progress.id;
+    delete progress.profile_id;
+    delete gameState.id;
+    delete gameState.profile_id;
+
     return {
+      ...settings,
+      ...progress,
+      ...gameState,
       id: profileRes.data.id,
+      profile_id: profileRes.data.id,
       name: profileRes.data.name,
       created_at: profileRes.data.created_at,
-      ...(settingsRes.data || {}),
-      ...(progressRes.data || {}),
-      ...(gameStateRes.data || {}),
     };
   } catch (err) {
     console.error("fetchFullProfile unexpected error:", err);
@@ -207,12 +220,12 @@ export async function updateProfileStats(
         .from("profile_progress")
         .select("total_score, lessons_completed, last_lesson_date")
         .eq("profile_id", profileId)
-        .single(),
+        .maybeSingle(),
       supabase
         .from("profile_game_state")
         .select("streak, streak_freeze_count, hearts, last_heart_lost_at, gems")
         .eq("profile_id", profileId)
-        .single(),
+        .maybeSingle(),
     ]);
 
     let currentScore = 0;
@@ -297,12 +310,12 @@ export async function updateProfileStats(
     // 2. Update profile_progress
     const { error: progressError } = await supabase
       .from("profile_progress")
-      .update({
+      .upsert({
+        profile_id: profileId,
         total_score: newScore,
         lessons_completed: newLessons,
         last_lesson_date: todayStr,
-      })
-      .eq("profile_id", profileId);
+      }, { onConflict: "profile_id" });
 
     if (progressError) {
       console.error("Failed to update profile_progress:", progressError);
@@ -311,14 +324,14 @@ export async function updateProfileStats(
     // 3. Update profile_game_state
     const { error: gameError } = await supabase
       .from("profile_game_state")
-      .update({
+      .upsert({
+        profile_id: profileId,
         streak: newStreak,
         hearts: finalHearts,
         last_heart_lost_at: finalLastHeartLostAt,
         gems: currentGems + gemsEarned,
         streak_freeze_count: finalFreezes,
-      })
-      .eq("profile_id", profileId);
+      }, { onConflict: "profile_id" });
 
     if (gameError) {
       console.error("Failed to update profile_game_state:", gameError);
@@ -347,35 +360,46 @@ export async function updateProfileStats(
 /**
  * Refills hearts to 5 for a profile, deducting 50 Gems.
  */
-export async function refillHeartsInDb(profileId: string): Promise<{ success: boolean; error?: string }> {
+export async function refillHeartsInDb(profileId: string, cost = 50): Promise<{ success: boolean; error?: string }> {
   try {
     const { data, error } = await supabase
       .from("profile_game_state")
       .select("gems")
       .eq("profile_id", profileId)
-      .single();
+      .maybeSingle();
 
-    if (error || !data) {
-      return { success: false, error: error?.message || "Profile not found" };
+    if (error) {
+      return { success: false, error: error.message };
     }
 
-    const currentGems = data.gems !== undefined && data.gems !== null ? data.gems : 50;
-    if (currentGems < 50) {
-      return { success: false, error: "Not enough gems" };
+    const currentGems = data?.gems !== undefined && data?.gems !== null ? data.gems : 50;
+    if (currentGems < cost) {
+      return { success: false, error: `Not enough gems (Have: ${currentGems}, Need: ${cost})` };
     }
-    const newGems = Math.max(0, currentGems - 50);
+    const newGems = Math.max(0, currentGems - cost);
 
-    const { error: updateError } = await supabase
+    // Ensure profiles record exists in case it's a new guest profile (do not overwrite registered user names)
+    const { data: existingProfile } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("id", profileId)
+      .maybeSingle();
+
+    if (!existingProfile) {
+      await supabase.from("profiles").insert({ id: profileId, name: "Guest" });
+    }
+
+    const { error: upsertError } = await supabase
       .from("profile_game_state")
-      .update({
+      .upsert({
+        profile_id: profileId,
         gems: newGems,
         hearts: 5,
         last_heart_lost_at: null,
-      })
-      .eq("profile_id", profileId);
+      }, { onConflict: "profile_id" });
 
-    if (updateError) {
-      return { success: false, error: updateError.message };
+    if (upsertError) {
+      return { success: false, error: upsertError.message };
     }
 
     return { success: true };

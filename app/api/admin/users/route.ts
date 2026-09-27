@@ -121,23 +121,29 @@ export async function GET(request: Request) {
 
       const { data: nestedData } = await query;
       if (nestedData) {
-        rawResults = nestedData.map((p: any) => ({
-          id: p.id,
-          name: p.name,
-          created_at: p.created_at,
-          exam_category: p.profile_study_settings?.[0]?.exam_category ?? null,
-          sub_topic: p.profile_study_settings?.[0]?.sub_topic ?? null,
-          study_style: p.profile_study_settings?.[0]?.study_style ?? 'Flashcards',
-          difficulty: p.profile_study_settings?.[0]?.difficulty ?? 'Beginner',
-          total_score: p.profile_progress?.[0]?.total_score ?? 0,
-          current_level: p.profile_progress?.[0]?.current_level ?? 1,
-          lessons_completed: p.profile_progress?.[0]?.lessons_completed ?? 0,
-          last_lesson_date: p.profile_progress?.[0]?.last_lesson_date ?? null,
-          streak: p.profile_game_state?.[0]?.streak ?? 0,
-          streak_freeze_count: p.profile_game_state?.[0]?.streak_freeze_count ?? 0,
-          hearts: p.profile_game_state?.[0]?.hearts ?? 5,
-          gems: p.profile_game_state?.[0]?.gems ?? 50,
-        }));
+        rawResults = nestedData.map((p: any) => {
+          const settings = Array.isArray(p.profile_study_settings) ? p.profile_study_settings[0] : p.profile_study_settings;
+          const prog = Array.isArray(p.profile_progress) ? p.profile_progress[0] : p.profile_progress;
+          const game = Array.isArray(p.profile_game_state) ? p.profile_game_state[0] : p.profile_game_state;
+
+          return {
+            id: p.id,
+            name: p.name,
+            created_at: p.created_at,
+            exam_category: settings?.exam_category ?? null,
+            sub_topic: settings?.sub_topic ?? null,
+            study_style: settings?.study_style ?? 'Flashcards',
+            difficulty: settings?.difficulty ?? 'Beginner',
+            total_score: Number(prog?.total_score) || 0,
+            current_level: Number(prog?.current_level) || 1,
+            lessons_completed: Number(prog?.lessons_completed) || 0,
+            last_lesson_date: prog?.last_lesson_date ?? null,
+            streak: Number(game?.streak) || 0,
+            streak_freeze_count: Number(game?.streak_freeze_count) || 0,
+            hearts: game?.hearts !== undefined && game?.hearts !== null ? Number(game.hearts) : 5,
+            gems: game?.gems !== undefined && game?.gems !== null ? Number(game.gems) : 50,
+          };
+        });
       }
     }
 
