@@ -1,7 +1,12 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRive, Layout, Fit, Alignment } from "@rive-app/react-webgl2";
+import { useRive, Layout, Fit, Alignment, RuntimeLoader } from "@rive-app/react-webgl2";
+
+if (typeof window !== "undefined") {
+  RuntimeLoader.setWasmUrl("/rive.wasm");
+  RuntimeLoader.setWasmFallbackUrl("/rive_fallback.wasm");
+}
 
 interface FiveStreakRiveProps {
   onContinue: () => void;
@@ -13,7 +18,7 @@ export default function FiveStreakRive({ onContinue }: FiveStreakRiveProps) {
   const { RiveComponent, setContainerRef, rive } = useRive(
     {
       src: "/emoji/5streak.riv",
-      stateMachines: "State Machine 1",
+      stateMachine: "State Machine 1",
       autoplay: true,
       layout: new Layout({
         fit: Fit.Contain,
@@ -67,7 +72,7 @@ export default function FiveStreakRive({ onContinue }: FiveStreakRiveProps) {
   }, [showButton, onContinue]);
 
   return (
-    <div className="fixed inset-0 z-[150] bg-black flex flex-col items-center justify-center overflow-hidden animate-[fadeIn_0.25s_ease-out]">
+    <div className="fixed inset-0 h-[100dvh] w-full z-[150] bg-black flex flex-col items-center justify-center overflow-hidden animate-[fadeIn_0.25s_ease-out]">
       {/* Whole screen Rive canvas */}
       <div
         ref={setContainerRef}
@@ -78,11 +83,11 @@ export default function FiveStreakRive({ onContinue }: FiveStreakRiveProps) {
 
       {/* Continue button at the bottom of the screen in mobile UI */}
       {showButton && (
-        <div className="absolute bottom-0 left-0 right-0 p-4 pb-6 md:pb-8 flex justify-center z-50 bg-gradient-to-t from-black/90 via-black/50 to-transparent animate-[slideUp_0.35s_ease-out]">
-          <div className="w-full max-w-md px-2 pb-[max(0.5rem,env(safe-area-inset-bottom,0px))]">
+        <div className="absolute bottom-0 left-0 right-0 p-4 pb-[max(1.25rem,env(safe-area-inset-bottom,20px))] flex justify-center z-50 bg-gradient-to-t from-black/90 via-black/50 to-transparent animate-[slideUp_0.35s_ease-out]">
+          <div className="w-full max-w-md px-2">
             <button
               onClick={onContinue}
-              className="w-full h-12 md:h-14 bg-[#00FFFA] hover:brightness-110 active:translate-y-1 active:shadow-none text-white font-din-round font-extrabold text-[16px] md:text-[18px] tracking-wider uppercase rounded-2xl shadow-[0_4px_0_#3f8f01] transition-all flex items-center justify-center cursor-pointer select-none"
+              className="w-full h-14 min-h-[56px] bg-[#00FFFA] hover:brightness-110 active:translate-y-1 active:shadow-none text-white font-din-round font-extrabold text-[16px] md:text-[18px] tracking-wider uppercase rounded-2xl shadow-[0_4px_0_#00c2bb] transition-all flex items-center justify-center cursor-pointer select-none"
             >
               Continue
             </button>

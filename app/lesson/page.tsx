@@ -1352,6 +1352,7 @@ function LessonContent() {
                 alt="50/50"
                 width={20}
                 height={20}
+                style={{ width: "auto", height: "auto" }}
                 className="object-contain shrink-0"
               />
               <span>50/50</span>
@@ -1369,6 +1370,7 @@ function LessonContent() {
                 alt="Skip"
                 width={20}
                 height={20}
+                style={{ width: "auto", height: "auto" }}
                 className="object-contain shrink-0"
               />
               <span>Skip</span>
@@ -1386,6 +1388,7 @@ function LessonContent() {
                 alt="Hint"
                 width={20}
                 height={20}
+                style={{ width: "auto", height: "auto" }}
                 className="object-contain shrink-0"
               />
               <span>Hint</span>
