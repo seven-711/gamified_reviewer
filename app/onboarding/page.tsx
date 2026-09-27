@@ -346,18 +346,6 @@ export default function OnboardingPage() {
 
     return (
       <div className="flex flex-col gap-4 animate-[slideIn_0.3s_ease-out]">
-        {topicPath.length > 0 && (
-          <button
-            type="button"
-            onClick={() => {
-              setTopicPath(topicPath.slice(0, -1));
-              setSubTopic("");
-            }}
-            className="flex items-center gap-1.5 text-sm font-bold text-sky-blue hover:underline cursor-pointer self-start"
-          >
-            <span>← Back to {topicPath.length > 1 ? topicPath[topicPath.length - 2] : category}</span>
-          </button>
-        )}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {keys.map((topic) => {
             const isLeaf = currentNode![topic] === null;
