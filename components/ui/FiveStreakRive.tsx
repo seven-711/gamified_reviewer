@@ -9,15 +9,16 @@ if (typeof window !== "undefined") {
 }
 
 interface FiveStreakRiveProps {
+  src?: string;
   onContinue: () => void;
 }
 
-export default function FiveStreakRive({ onContinue }: FiveStreakRiveProps) {
+export default function FiveStreakRive({ src = "/emoji/5streak.riv", onContinue }: FiveStreakRiveProps) {
   const [showButton, setShowButton] = useState(false);
 
   const { RiveComponent, setContainerRef, rive } = useRive(
     {
-      src: "/emoji/5streak.riv",
+      src,
       stateMachine: "State Machine 1",
       autoplay: true,
       layout: new Layout({

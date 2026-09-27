@@ -78,7 +78,7 @@ function LessonContent() {
   const [correctAnswers, setCorrectAnswers] = useState(0);
   const [consecutiveCorrect, setConsecutiveCorrect] = useState<number>(0);
   const [streakOverlay, setStreakOverlay] = useState<{ src: string; title: string; color: string } | null>(null);
-  const [showFiveStreakModal, setShowFiveStreakModal] = useState<boolean>(false);
+  const [streakRiveModal, setStreakRiveModal] = useState<string | null>(null);
 
   useEffect(() => {
     if (streakOverlay) {
@@ -91,13 +91,9 @@ function LessonContent() {
 
   const triggerStreakOverlay = (next: number) => {
     if (next === 3) {
-      setStreakOverlay({
-        src: "/img/gen_imgs/Streak/10_day_streak.webp",
-        title: "3 STRAIGHT!",
-        color: "text-[#ffc700]"
-      });
+      setStreakRiveModal("/emoji/3streak.riv");
     } else if (next === 5) {
-      setShowFiveStreakModal(true);
+      setStreakRiveModal("/emoji/5streak.riv");
     } else if (next === 10) {
       setStreakOverlay({
         src: "/img/gen_imgs/Streak/50_day_streak.webp",
@@ -680,7 +676,7 @@ function LessonContent() {
       // Ignore if user is typing in an input
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
 
-      if (showFiveStreakModal) {
+      if (streakRiveModal) {
         return;
       }
 
@@ -799,7 +795,7 @@ function LessonContent() {
     showExitModal,
     hearts,
     streakOverlay,
-    showFiveStreakModal
+    streakRiveModal
   ]);
 
   const handleOptionSelect = (index: number) => {
@@ -862,7 +858,7 @@ function LessonContent() {
     setStatus("none");
     setCorrectAnswers(0);
     setConsecutiveCorrect(0);
-    setShowFiveStreakModal(false);
+    setStreakRiveModal(null);
     setEliminatedOptions([]);
     setHintRevealed(false);
     scoreSavedRef.current = false;
@@ -1578,10 +1574,11 @@ function LessonContent() {
         </div>
       )}
 
-      {showFiveStreakModal && (
+      {streakRiveModal && (
         <FiveStreakRive
+          src={streakRiveModal}
           onContinue={() => {
-            setShowFiveStreakModal(false);
+            setStreakRiveModal(null);
             handleContinue();
           }}
         />
