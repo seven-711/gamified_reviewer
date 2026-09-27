@@ -280,7 +280,7 @@ export default function RightSidebar() {
             streak={streak}
             width={28}
             height={28}
-            className="object-contain mb-8"
+            className="object-contain"
           />
           <span>{streak}</span>
         </div>
