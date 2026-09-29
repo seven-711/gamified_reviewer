@@ -43,10 +43,10 @@ export default function StreakRive({
   return (
     <div
       ref={setContainerRef}
-      className={fill ? `relative w-full h-full ${className}` : `relative inline-flex items-center justify-center shrink-0 ${className}`}
+      className={fill ? `relative w-full h-full flex items-center justify-center ${className}` : `relative inline-flex items-center justify-center shrink-0 ${className}`}
       style={{
-        width: width ? `${width}px` : undefined,
-        height: height ? `${height}px` : undefined,
+        width: !fill && width ? `${width}px` : undefined,
+        height: !fill && height ? `${height}px` : undefined,
         ...style,
       }}
     >

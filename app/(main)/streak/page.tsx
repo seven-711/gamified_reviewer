@@ -3,10 +3,14 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import { useStats } from "@/components/ui/StatsContext";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
-import { StreakAsset } from "@/components/ui/StreakAsset";
+
+const DayStreakRive = dynamic(() => import("@/components/ui/DayStreakRive"), {
+  ssr: false,
+});
 
 export default function StreakPage() {
   const router = useRouter();
@@ -104,29 +108,18 @@ export default function StreakPage() {
         </div>
 
         <div className="flex items-center gap-6 mb-4">
-          <div className="flex flex-col items-center">
-            <span className="text-6xl font-feather font-black text-white drop-shadow-md tracking-tighter">
-              {streak}
-            </span>
-            <span className="text-xl font-bold font-feather tracking-wide">
-              day streak!
-            </span>
-          </div>
-          <div className="w-24 h-24 relative drop-shadow-xl animate-[pulse_3s_infinite]">
-            <StreakAsset
+          <div className="w-28 h-28 relative drop-shadow-xl flex items-center justify-center">
+            <DayStreakRive
               streak={streak}
-              lastLessonDate={lastLessonDate}
-              fill
-              className="object-contain"
+              width={142}
+              height={142}
             />
-            {/* Visual fallback flame icon if image not found */}
-            <div className="absolute inset-0 bg-orange-400 rounded-full blur-xl opacity-50 z-[-1]" />
+            <div className="absolute inset-0 bg-orange-400 rounded-full blur-xl opacity-30 z-[-1]" />
           </div>
         </div>
 
         {/* Milestone Card */}
         <div className="bg-[#18252d] w-full rounded-2xl p-4 mt-2 flex items-center gap-3 border border-[#35454e] shadow-xl transform translate-y-8 relative z-20">
-          <div className="text-2xl">🌟</div>
           <p className="text-sm font-semibold text-gray-200">
             You've extended your streak consistently! Keep up the great work this week!
           </p>

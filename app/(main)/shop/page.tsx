@@ -64,6 +64,59 @@ function getLeagueInfo(xp: number, lessonsCompleted: number, rank: number): Leag
   };
 }
 
+function formatFriendlyPurchaseError(
+  errorMsg?: string | null,
+  cost?: number,
+  currentGems?: number
+): { title: string; message: string; emoji: string } {
+  const safeMsg = errorMsg || "Transaction rejected";
+  const lower = safeMsg.toLowerCase();
+
+  if (
+    lower.includes("insufficient gem balance") ||
+    lower.includes("gem") ||
+    lower.includes("negative")
+  ) {
+    const match = safeMsg.match(/(-?\d+)/);
+    let needed = 0;
+    if (match) {
+      needed = Math.abs(parseInt(match[1], 10));
+    } else if (cost !== undefined && currentGems !== undefined) {
+      needed = Math.max(0, cost - currentGems);
+    }
+
+    const shortageText = needed > 0 ? ` (You need ${needed} more 💎 Gems)` : "";
+
+    return {
+      title: "Not Enough Gems!",
+      emoji: "💎",
+      message: `You don't have enough Gems to complete this purchase.`,
+    };
+  }
+
+  if (lower.includes("streak freeze") || lower.includes("cannot equip more than 2")) {
+    return {
+      title: "Capacity Limit Reached",
+      emoji: "❄️",
+      message: "You can only equip up to 2 Streak Freezes at a time.\n\n🛡️ Database Validation Trigger: Maximum capacity of 2 reached.",
+    };
+  }
+
+  if (lower.includes("heart capacity") || lower.includes("heart")) {
+    return {
+      title: "Heart Capacity Reached",
+      emoji: "❤️",
+      message: "Hearts cannot exceed the maximum capacity of 5.\n\n🛡️ Database Validation Trigger: Heart limit enforced.",
+    };
+  }
+
+  return {
+    title: "Purchase Failed",
+    emoji: "❌",
+    message: safeMsg,
+  };
+}
+
 export default function ShopPage() {
   const { showAlert } = useAlert();
   const { user, isLoaded, isSignedIn } = useAuth();
@@ -300,20 +353,17 @@ export default function ShopPage() {
     updateState: () => void,
     onSuccessMsg: string
   ) => {
-    if (gems < cost) {
-      await showAlert(`❌ Not enough Gems! You need ${cost} Gems.`);
-      return;
-    }
-
     setPurchasingItemId(itemId);
     let profileId: string | null = null;
     if (user) {
       profileId = user.id;
+    } else if (typeof window !== "undefined") {
+      profileId = localStorage.getItem("guest_session_id");
     }
 
     if (profileId) {
       try {
-        const nextGems = Math.max(0, gems - cost);
+        const nextGems = gems - cost;
         const { error } = await supabase
           .from("profile_game_state")
           .update({
@@ -330,7 +380,8 @@ export default function ShopPage() {
           }
           await showAlert(`🎉 ${onSuccessMsg}`);
         } else {
-          await showAlert("❌ Purchase failed: " + error.message);
+          const formatted = formatFriendlyPurchaseError(error.message, cost, gems);
+          await showAlert(formatted.message, { title: formatted.title, emoji: formatted.emoji });
         }
       } catch (err: any) {
         await showAlert("❌ An error occurred: " + err.message);
@@ -380,31 +431,25 @@ export default function ShopPage() {
         }
         await showAlert("❤️ Hearts refilled successfully!");
       } else {
-        await showAlert("❌ Purchase failed: " + res.error);
+        const formatted = formatFriendlyPurchaseError(res.error, heartCost, gems);
+        await showAlert(formatted.message, { title: formatted.title, emoji: formatted.emoji });
       }
     }
     setPurchasingHeart(false);
   };
 
   const handleBuyFreeze = async () => {
-    if (gems < streakFreezeCost) {
-      await showAlert(`❌ Not enough Gems! You need ${streakFreezeCost} Gems to buy a Streak Freeze.`);
-      return;
-    }
-    if (streakFreezeCount >= 2) {
-      await showAlert("❄️ You can only equip a maximum of 2 Streak Freezes!");
-      return;
-    }
-
     setPurchasingFreeze(true);
     let profileId: string | null = null;
     if (user) {
       profileId = user.id;
+    } else if (typeof window !== "undefined") {
+      profileId = localStorage.getItem("guest_session_id");
     }
 
     if (profileId) {
       try {
-        const nextGems = Math.max(0, gems - streakFreezeCost);
+        const nextGems = gems - streakFreezeCost;
         const nextFreeze = streakFreezeCount + 1;
         const { error } = await supabase
           .from("profile_game_state")
@@ -423,11 +468,14 @@ export default function ShopPage() {
           }
           await showAlert("❄️ Streak Freeze purchased! Equipped.");
         } else {
-          await showAlert("❌ Purchase failed: " + error.message);
+          const formatted = formatFriendlyPurchaseError(error.message, streakFreezeCost, gems);
+          await showAlert(formatted.message, { title: formatted.title, emoji: formatted.emoji });
         }
       } catch (err: any) {
         await showAlert("❌ An error occurred: " + err.message);
       }
+    } else {
+      await showAlert("❌ You must be signed in to purchase items.");
     }
     setPurchasingFreeze(false);
   };

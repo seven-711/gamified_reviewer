@@ -132,11 +132,12 @@ export default function AdminDashboard() {
 
   // ── INITIAL FETCH ──────────────────────────────────────────────────────────
   useEffect(() => {
+    if (!isUserLoaded || !checkIsAdmin(user)) return;
     fetchEconomy();
     fetchTestIds();
     fetchUsers();
     fetchSubqueryStats();
-  }, []);
+  }, [isUserLoaded, user]);
 
   const fetchEconomy = async () => {
     try {
@@ -213,10 +214,11 @@ export default function AdminDashboard() {
   };
 
   useEffect(() => {
+    if (!isUserLoaded || !checkIsAdmin(user)) return;
     if (selectedTestId && viewMode === "single") {
       fetchQuestions(selectedTestId);
     }
-  }, [selectedTestId, viewMode]);
+  }, [selectedTestId, viewMode, isUserLoaded, user]);
 
   // ── UNION ALL: /api/admin/tests?mode=all ──────────────────────────────────
   const fetchAllQuestions = useCallback(async (catFilter?: string, typeFilter?: FilterType) => {
@@ -238,10 +240,11 @@ export default function AdminDashboard() {
   }, [filterType]);
 
   useEffect(() => {
+    if (!isUserLoaded || !checkIsAdmin(user)) return;
     if (viewMode === "all") {
       fetchAllQuestions(selectedCategory !== "all" ? selectedCategory : undefined, filterType);
     }
-  }, [viewMode, filterType]);
+  }, [viewMode, filterType, isUserLoaded, user, fetchAllQuestions, selectedCategory]);
 
   // ── QUESTION CRUD HANDLERS ─────────────────────────────────────────────────
   const handleEditQuestionClick = (q: Question) => {

@@ -2,6 +2,8 @@
 
 import React, { useState, Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { Button } from "@/components/ui/Button";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { QuizFooter } from "@/components/ui/QuizFooter";
 import { StreakAsset } from "@/components/ui/StreakAsset";
@@ -62,7 +64,7 @@ function LessonContent() {
   const searchParams = useSearchParams();
   const testId = searchParams.get("testId") || "abstract_reasoning_test1";
 
-  const { user, isSignedIn } = useAuth();
+  const { user, isSignedIn, isLoaded: authLoaded } = useAuth();
 
   const [questions, setQuestions] = useState<any[]>([]);
   const [shuffledIndices, setShuffledIndices] = useState<number[]>([]);
@@ -314,6 +316,12 @@ function LessonContent() {
   // Fetch data and load state from localStorage on mount
   useEffect(() => {
     async function init() {
+      if (!authLoaded) return;
+      if (!isSignedIn) {
+        setIsLoaded(true);
+        setLoadingData(false);
+        return;
+      }
       setLoadingData(true);
       setError(null);
       try {
@@ -437,7 +445,7 @@ function LessonContent() {
       }
     }
     init();
-  }, [testId, isSignedIn, user]);
+  }, [testId, isSignedIn, user, authLoaded]);
 
   // Synchronize hearts changes during the quiz back to Supabase
   useEffect(() => {
@@ -486,7 +494,7 @@ function LessonContent() {
 
   // Timer logic
   useEffect(() => {
-    if (!isLoaded || status === "completed" || phase !== "quiz" || showOutOfHeartsModal || hearts === 0) return;
+    if (!isLoaded || !isSignedIn || status === "completed" || phase !== "quiz" || showOutOfHeartsModal || hearts === 0) return;
 
     const interval = setInterval(() => {
       setTimeLeft(prev => {
@@ -500,7 +508,7 @@ function LessonContent() {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [isLoaded, status, phase, showOutOfHeartsModal, hearts]);
+  }, [isLoaded, isSignedIn, status, phase, showOutOfHeartsModal, hearts]);
 
   // Automatically transition to quiz phase if example index goes out of bounds or examples are empty
   useEffect(() => {
@@ -508,6 +516,13 @@ function LessonContent() {
       setPhase("quiz");
     }
   }, [currentExampleIndex, testExamples.length, phase]);
+
+  // Automatically transition to completed status if questions are done
+  useEffect(() => {
+    if (questions.length > 0 && currentIndex >= questions.length && status !== "completed") {
+      setStatus("completed");
+    }
+  }, [currentIndex, questions.length, status]);
 
   // Save highest score when test is completed
   useEffect(() => {
@@ -876,6 +891,99 @@ function LessonContent() {
     );
   }
 
+  if (authLoaded && !isSignedIn) {
+    return (
+      <div className="dark-mode min-h-screen flex flex-col bg-snow-white font-din-round text-almost-black">
+        {/* Top Minimal Bar */}
+        <header className="border-b-2 border-cloud-gray bg-white py-4 px-6">
+          <div className="max-w-[900px] w-full mx-auto flex items-center justify-between">
+            <button
+              onClick={() => router.push("/")}
+              className="text-silver hover:text-charcoal font-bold text-xl p-2 transition-colors cursor-pointer"
+              aria-label="Exit"
+            >
+              ✕
+            </button>
+            <span className="font-feather font-black text-duo-green text-xl tracking-wide">
+              REVIEWQO
+            </span>
+            <Link href="/login" className="text-xs font-bold text-sky-blue hover:underline uppercase tracking-wider">
+              LOG IN
+            </Link>
+          </div>
+        </header>
+
+        {/* Blocker Card */}
+        <main className="grow flex flex-col items-center justify-center px-6 py-12 max-w-[500px] w-full mx-auto text-center">
+          <div className="w-24 h-24 sm:w-28 sm:h-28 relative mb-4">
+            <Image
+              src="/emoji/profile.webp"
+              alt="Mascot"
+              fill
+              className="object-cover scale-[1.3] drop-shadow-md"
+              unoptimized
+            />
+          </div>
+
+          <div className="inline-flex items-center gap-1.5 bg-amber-50 border border-amber-200 text-amber-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-3">
+            <span>🔒</span>
+            <span>Account Required</span>
+          </div>
+
+          <h1 className="font-feather text-2xl sm:text-3xl font-black text-charcoal mb-3 leading-tight">
+            Create an Account to Take Practice Tests
+          </h1>
+
+          <p className="text-graphite text-sm sm:text-base leading-relaxed mb-6 font-medium">
+            You must sign up or create an account before taking practice tests so all your test scores, XP, daily streaks, and answers are permanently saved!
+          </p>
+
+          <div className="w-full bg-white border-2 border-cloud-gray rounded-2xl p-5 mb-6 text-left shadow-sm flex flex-col gap-3">
+            <div className="flex items-center gap-3">
+              <span className="text-xl">📊</span>
+              <span className="text-xs sm:text-sm font-bold text-charcoal">Save your test scores and track exam readiness</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-xl">🔥</span>
+              <span className="text-xs sm:text-sm font-bold text-charcoal">Maintain daily study streaks and level up</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-xl">💎</span>
+              <span className="text-xs sm:text-sm font-bold text-charcoal">Earn gems and compete on the leaderboard</span>
+            </div>
+          </div>
+
+          <div className="w-full flex flex-col gap-3">
+            <Button
+              onClick={() => router.push("/onboarding")}
+              variant="primary"
+              fullWidth
+              className="h-[52px] text-body tracking-normal shadow-[0_4px_0_#3f8f01]"
+            >
+              CREATE ACCOUNT / GET STARTED
+            </Button>
+
+            <Button
+              onClick={() => router.push("/login")}
+              variant="secondary"
+              fullWidth
+              className="h-[50px] border-2 border-cloud-gray text-sky-blue shadow-[0_4px_0_var(--color-cloud-gray)]"
+            >
+              I ALREADY HAVE AN ACCOUNT
+            </Button>
+
+            <button
+              onClick={() => router.push("/")}
+              className="mt-2 text-xs font-bold text-silver hover:text-graphite uppercase tracking-wider cursor-pointer"
+            >
+              ← Return to Home
+            </button>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   if (error) {
     return (
       <div className="dark-mode min-h-screen flex flex-col items-center justify-center bg-snow-white font-din-round text-almost-black px-6 text-center">
@@ -1087,13 +1195,60 @@ function LessonContent() {
   if (phase === "quiz" && !question) {
     if (typeof window !== "undefined") {
       localStorage.removeItem(`quiz_state_${testId}`);
-      window.location.reload();
+    }
+    if (questions.length > 0 && currentIndex >= questions.length) {
+      return (
+        <div className="dark-mode min-h-screen flex flex-col items-center justify-center font-din-round bg-snow-white p-6 text-center">
+          <div className="flex flex-col items-center gap-4 max-w-md">
+            <div className="w-20 h-20 relative mb-2">
+              <Image src="/emoji/naysu.webp" alt="Done" fill sizes="80px" className="object-contain drop-shadow" />
+            </div>
+            <h2 className="font-feather text-2xl font-bold text-charcoal">Drill Completed!</h2>
+            <p className="text-graphite text-body leading-relaxed">
+              You have finished all questions in this session.
+            </p>
+            <button
+              onClick={() => {
+                setStatus("completed");
+                setPhase("completed");
+              }}
+              className="mt-4 bg-duo-green text-white font-bold py-3.5 px-8 rounded-2xl shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none transition-all cursor-pointer"
+            >
+              VIEW RESULTS
+            </button>
+          </div>
+        </div>
+      );
     }
     return (
-      <div className="dark-mode min-h-screen flex items-center justify-center font-din-round bg-snow-white">
-        <div className="flex flex-col items-center gap-4">
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-cloud-gray border-t-duo-green"></div>
-          <p className="text-graphite font-bold">Resetting corrupted session...</p>
+      <div className="dark-mode min-h-screen flex flex-col items-center justify-center font-din-round bg-snow-white p-6 text-center">
+        <div className="flex flex-col items-center gap-4 max-w-md">
+          <div className="w-20 h-20 relative mb-2">
+            <Image src="/emoji/wahhh.webp" alt="Notice" fill sizes="80px" className="object-contain drop-shadow" />
+          </div>
+          <h2 className="font-feather text-2xl font-bold text-charcoal">Session Completed or Reset</h2>
+          <p className="text-graphite text-body leading-relaxed">
+            The questions for this drill session are ready to be retaken or reviewed.
+          </p>
+          <div className="flex flex-col sm:flex-row items-center gap-3 w-full mt-4">
+            <button
+              onClick={() => {
+                setCurrentIndex(0);
+                setSelectedOption(null);
+                setStatus("none");
+                setPhase(testExamples.length > 0 ? "examples" : "quiz");
+              }}
+              className="w-full sm:flex-1 bg-duo-green text-white font-bold py-3 px-6 rounded-2xl shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none transition-all cursor-pointer"
+            >
+              START DRILL
+            </button>
+            <button
+              onClick={() => router.push("/dashboard")}
+              className="w-full sm:flex-1 bg-white border-2 border-cloud-gray text-charcoal font-bold py-3 px-6 rounded-2xl shadow-[0_4px_0_var(--color-cloud-gray)] active:translate-y-[4px] active:shadow-none transition-all cursor-pointer"
+            >
+              DASHBOARD
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -1148,7 +1303,7 @@ function LessonContent() {
                 <div className="flex justify-between items-center text-amber-500">
                   <span className="opacity-70">Double XP Boost:</span>
                   <span className="font-extrabold flex items-center gap-1">
-                    <span>⚡ x2 Active</span>
+                    <span>x2 Active</span>
                   </span>
                 </div>
               )}
@@ -1252,7 +1407,19 @@ function LessonContent() {
             className="text-silver hover:text-charcoal font-bold text-xl p-2 transition-colors cursor-pointer flex items-center justify-center min-w-[40px]"
             title={soundEnabled ? "Disable SFX" : "Enable SFX"}
           >
-            {soundEnabled ? "🔊" : "🔇"}
+            {soundEnabled ? (
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor" opacity="0.15" stroke="currentColor" />
+                <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+                <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+              </svg>
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor" opacity="0.15" stroke="currentColor" />
+                <line x1="23" y1="9" x2="17" y2="15" />
+                <line x1="17" y1="9" x2="23" y2="15" />
+              </svg>
+            )}
           </button>
 
           <div className="grow max-w-[800px]">
@@ -1689,6 +1856,7 @@ function StreakPage({ streak, weekProgress, onContinue }: StreakPageProps) {
         <div className="relative w-84 h-84 md:w-72 md:h-72 flex items-center justify-center">
           <DotLottiePlayer
             src={streak >= 10 ? "/img/gen_imgs/Streak/Fire.lottie" : "/img/gen_imgs/Streak/Flame - Streak.lottie"}
+            activeAnimationId={streak >= 10 ? "f198971c-ebb7-4dfc-93f1-f15d4ac3fa73" : "9de27f01-998e-415c-8faa-78045c132088"}
             autoplay
             loop
             className="w-full h-full object-contain"
@@ -1735,13 +1903,14 @@ function StreakPage({ streak, weekProgress, onContinue }: StreakPageProps) {
                   {/* Icon Checkmark Container */}
                   <div className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center relative shrink-0">
                     {isToday && isCompleted ? (
-                      /* Today Completed: Flame outline with streak.webp checkmark inside */
-                      <>
-                        <StreakAsset
-                          streak={1}
-                          className="absolute w-90 h-90 md:w-28 md:h-28 object-contain shrink-0 scale-120 md:scale-510 pointer-events-none z-10"
-                        />
-                      </>
+                      /* Today Completed: Flame outline with streak checkmark inside */
+                      <StreakAsset
+                        streak={1}
+                        forceActive
+                        width={36}
+                        height={36}
+                        className="w-9 h-9 md:w-10 md:h-10 object-contain shrink-0 pointer-events-none"
+                      />
                     ) : isCompleted ? (
                       /* Previous Day Completed: Gold circle with checkmark */
                       <div className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-[#f89e1b] border-2 border-[#d77800] flex items-center justify-center shadow-lg shrink-0">

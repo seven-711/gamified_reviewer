@@ -9,6 +9,27 @@ import RightSidebar from "@/components/ui/RightSidebar";
 import { getOrCreateGuestSessionId, refillHeartsInDb, upsertFullProfile, fetchFullProfile } from "@/lib/session";
 import { useAlert } from "@/components/ui/AlertContext";
 import { useStats } from "@/components/ui/StatsContext";
+import { getCadetRankInfo } from "@/lib/cadetRank";
+import dynamic from "next/dynamic";
+
+const DotLottiePlayer = dynamic(
+  () => import("@dotlottie/react-player").then((mod) => mod.DotLottiePlayer),
+  { ssr: false }
+);
+
+function getRankLottieConfig(level: number): { src: string; activeAnimationId: string } {
+  switch (level) {
+    case 1:
+      return { src: "/firstRank.lottie", activeAnimationId: "Main Scene" };
+    case 2:
+      return { src: "/secondRank.lottie", activeAnimationId: "Main Scene" };
+    case 3:
+      return { src: "/thirdRank.lottie", activeAnimationId: "Main Scene" };
+    default:
+      return { src: "/fourthRankBeyond.lottie", activeAnimationId: "12345" };
+  }
+}
+
 // Data metadata fetched via API
 
 interface UserProfile {
@@ -183,7 +204,8 @@ async function checkHeartsRegeneration(dbProfile: any): Promise<{ hearts: number
 export default function DashboardPage() {
   const { showAlert } = useAlert();
   const router = useRouter();
-  const { streak, xp, gems, hearts, refreshStats, updateStatsLocally } = useStats();
+  const { streak, xp, gems, hearts, currentLevel, refreshStats, updateStatsLocally } = useStats();
+  const rankInfo = getCadetRankInfo(currentLevel);
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<UserProfile | null>(() => {
     if (typeof window !== "undefined") {
@@ -235,6 +257,7 @@ export default function DashboardPage() {
     return null;
   });
   const [showHeartsBlocker, setShowHeartsBlocker] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const [refillingHearts, setRefillingHearts] = useState(false);
 
   useEffect(() => {
@@ -581,6 +604,10 @@ export default function DashboardPage() {
   }, [profile, testCount, quantSection]);
 
   const handleTopicClick = (topicName: string, testId?: string) => {
+    if (!isSignedIn) {
+      setShowAuthModal(true);
+      return;
+    }
     if (testId) {
       if (profile && profile.hearts === 0) {
         setShowHeartsBlocker(true);
@@ -602,6 +629,10 @@ export default function DashboardPage() {
 
   const startTestWithTimer = async () => {
     if (!selectedTestForTimer) return;
+    if (!isSignedIn) {
+      setShowAuthModal(true);
+      return;
+    }
     if (profile && profile.hearts === 0) {
       setShowHeartsBlocker(true);
       return;
@@ -694,6 +725,39 @@ export default function DashboardPage() {
     <>
       <main className="flex-1 w-full max-w-[600px] mx-auto pb-24">
         <div className="flex flex-col gap-6 pt-2 items-center w-full">
+          {/* Guest Mode Banner */}
+          {!isSignedIn && (
+            <div className="w-full px-4 md:px-0">
+              <div className="w-full bg-[#f0f9ff] border-2 border-[#bae6fd] rounded-2xl p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3 text-left">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl shrink-0">💡</span>
+                  <div>
+                    <h4 className="font-feather font-bold text-charcoal text-sm">
+                      Guest Preview Mode
+                    </h4>
+                    <p className="text-xs text-graphite font-medium">
+                      Create an account or sign in to take practice tests and save your progress!
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
+                  <button
+                    onClick={() => router.push("/onboarding")}
+                    className="bg-duo-green hover:bg-duo-green/90 text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow-[0_3px_0_#3f8f01] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer w-full sm:w-auto text-center"
+                  >
+                    CREATE ACCOUNT
+                  </button>
+                  <button
+                    onClick={() => router.push("/login")}
+                    className="border-2 border-cloud-gray hover:bg-white text-graphite text-xs font-bold px-3 py-2 rounded-xl transition-all cursor-pointer w-full sm:w-auto text-center"
+                  >
+                    LOG IN
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Section Header */}
           <div className="w-full px-4 md:px-0 sticky top-3 md:top-6 z-30">
             <div className="w-full bg-duo-green rounded-2xl p-3 md:p-5 flex items-center justify-between shadow-[0_4px_0_#3f8f01]">
@@ -712,6 +776,50 @@ export default function DashboardPage() {
                   )}
                 </h2>
               </div>
+            </div>
+          </div>
+
+          {/* Cadet Rank Level Progression Card (Trigger 2 Verification) */}
+          <div className="w-full px-4 md:px-0">
+            <div className="w-full bg-snow-white border-2 border-cloud-gray dark:border-cloud-gray/20 rounded-2xl p-4 md:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
+              <div className="flex items-center gap-4 w-full sm:w-auto">
+                <div className="w-16 h-16 md:w-28 md:h-28 rounded-2xl flex items-center justify-center shrink-0 overflow-hidden">
+                  <DotLottiePlayer
+                    {...getRankLottieConfig(currentLevel)}
+                    autoplay
+                    loop
+                    className="w-16 h-16 md:w-28 md:h-28"
+                  />
+                </div>
+                <div className="flex flex-col text-left min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs font-bold uppercase tracking-wider text-silver">Cadet Rank</span>
+                  </div>
+                  <h3 className="font-feather text-lg md:text-xl font-bold text-charcoal dark:text-white leading-snug">
+                    Level {currentLevel}: {rankInfo.title}
+                  </h3>
+                </div>
+              </div>
+
+              {rankInfo.nextLevelXp && (
+                <div className="w-full sm:w-56 flex flex-col gap-1.5 shrink-0">
+                  <div className="flex justify-between text-[11px] font-bold text-silver">
+                    <span>Lvl {currentLevel} ({rankInfo.badgeName})</span>
+                    <span>Lvl {currentLevel + 1}</span>
+                  </div>
+                  <div className="h-3 w-full bg-cloud-gray dark:bg-slate-700 rounded-full overflow-hidden relative">
+                    <div
+                      className="h-full bg-gradient-to-r from-duo-green to-duo-green-dark rounded-full transition-all duration-500"
+                      style={{
+                        width: `${Math.min(100, Math.max(0, ((xp - rankInfo.minXp) / (rankInfo.nextLevelXp - rankInfo.minXp)) * 100))}%`
+                      }}
+                    />
+                  </div>
+                  <span className="text-[10px] text-right font-semibold text-silver">
+                    {xp} / {rankInfo.nextLevelXp} XP
+                  </span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -1344,6 +1452,74 @@ export default function DashboardPage() {
                 className="w-full bg-snow-white text-[#1cb0f6] border-2 border-cloud-gray font-bold py-3 rounded-2xl shadow-[0_4px_0_var(--color-cloud-gray)] active:translate-y-[4px] active:shadow-none hover:bg-cloud-gray/25 transition-all text-sm uppercase tracking-wide cursor-pointer"
               >
                 Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showAuthModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center z-50 p-4 animate-[fadeIn_0.2s_ease-out]">
+          <div className="bg-snow-white border-2 border-cloud-gray border-b-8 rounded-[24px] w-full max-w-[440px] p-6 md:p-8 flex flex-col gap-6 shadow-none animate-[scaleIn_0.2s_ease-out] relative">
+            <button
+              onClick={() => setShowAuthModal(false)}
+              className="absolute top-4 right-4 text-silver hover:text-charcoal font-bold text-xl p-2 cursor-pointer"
+            >
+              ✕
+            </button>
+
+            <div className="flex flex-col items-center text-center gap-4">
+              <div className="w-[84px] h-[84px] rounded-full overflow-hidden border-2 border-cloud-gray relative bg-duo-green-light shrink-0">
+                <Image
+                  src="/emoji/profile.webp"
+                  alt="Mascot"
+                  fill
+                  className="object-cover scale-[1.5] translate-y-1"
+                  unoptimized
+                />
+              </div>
+
+              <div className="inline-flex items-center gap-1.5 bg-amber-50 border border-amber-200 text-amber-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                <span>🔒</span>
+                <span>Account Required</span>
+              </div>
+
+              <div className="flex flex-col gap-2 font-din-round">
+                <h3 className="font-feather text-2xl text-charcoal font-bold leading-tight tracking-wide">
+                  Create an Account to Start Tests
+                </h3>
+                <p className="text-graphite text-sm leading-relaxed max-w-[340px] mx-auto">
+                  To ensure your test scores, XP, review streak, and completed lessons are recorded and saved, please sign up or log in first.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-3 font-din-round">
+              <button
+                onClick={() => {
+                  setShowAuthModal(false);
+                  router.push("/onboarding");
+                }}
+                className="w-full bg-duo-green hover:bg-duo-green/90 text-white font-bold py-3.5 rounded-2xl shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none transition-all text-sm uppercase tracking-wide cursor-pointer text-center"
+              >
+                CREATE ACCOUNT / GET STARTED
+              </button>
+
+              <button
+                onClick={() => {
+                  setShowAuthModal(false);
+                  router.push("/login");
+                }}
+                className="w-full bg-snow-white text-sky-blue border-2 border-cloud-gray font-bold py-3 rounded-2xl shadow-[0_4px_0_var(--color-cloud-gray)] active:translate-y-[4px] active:shadow-none hover:bg-cloud-gray/20 transition-all text-sm uppercase tracking-wide cursor-pointer text-center"
+              >
+                I ALREADY HAVE AN ACCOUNT
+              </button>
+
+              <button
+                onClick={() => setShowAuthModal(false)}
+                className="text-xs font-bold text-silver hover:text-graphite cursor-pointer text-center mt-1"
+              >
+                Maybe Later
               </button>
             </div>
           </div>

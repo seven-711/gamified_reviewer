@@ -372,11 +372,8 @@ export async function refillHeartsInDb(profileId: string, cost = 50): Promise<{ 
       return { success: false, error: error.message };
     }
 
-    const currentGems = data?.gems !== undefined && data?.gems !== null ? data.gems : 50;
-    if (currentGems < cost) {
-      return { success: false, error: `Not enough gems (Have: ${currentGems}, Need: ${cost})` };
-    }
-    const newGems = Math.max(0, currentGems - cost);
+    const currentGems = data?.gems !== undefined && data?.gems !== null ? data.gems : 0;
+    const newGems = currentGems - cost;
 
     // Ensure profiles record exists in case it's a new guest profile (do not overwrite registered user names)
     const { data: existingProfile } = await supabase

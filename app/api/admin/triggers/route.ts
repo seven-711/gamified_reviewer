@@ -1,19 +1,127 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 
-// ─── SQL Triggers Metadata ───────────────────────────────────────────────────
+// ─── SQL Triggers Metadata (DBMS Laboratory Requirement) ─────────────────────
 
 export const TRIGGERS_METADATA = [
   {
-    id: 'trg_calculate_cadet_level',
-    name: 'trg_calculate_cadet_level',
-    functionName: 'fn_trg_calculate_cadet_level',
+    id: 'trg_validate_game_economy',
+    name: 'trg_validate_game_economy',
+    functionName: 'fn_trg_validate_game_economy',
+    table: 'profile_game_state',
+    timing: 'BEFORE',
+    event: 'INSERT OR UPDATE',
+    category: '1. Validation Trigger (Prevents Invalid Quantity / Negative Balance)',
+    purpose: 'Guards against illegal student economy state: rejects negative gems balance (insufficient funds in shop), invalid hearts (> 5 or < 0), and streak freeze capacity (> 2) with exception code P0001.',
+    postgresSql: `-- 1. Drop any legacy triggers that silently clamp values and interfere with validation
+DROP TRIGGER IF EXISTS trg_enforce_game_state_rules ON profile_game_state;
+DROP TRIGGER IF EXISTS trg_before_update_game_state ON profile_game_state;
+DROP FUNCTION IF EXISTS fn_trg_enforce_game_state_rules();
+
+-- 2. Create the validation trigger function
+CREATE OR REPLACE FUNCTION fn_trg_validate_game_economy()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    -- 1. Validate Gems: Reject negative balance (cannot spend more than owned)
+    IF NEW.gems < 0 THEN
+        RAISE EXCEPTION 'Validation Trigger Error: Insufficient gem balance (short by % gems). Transaction rejected by database.', ABS(NEW.gems);
+    END IF;
+
+    -- 2. Validate Hearts: Cannot exceed maximum capacity of 5
+    IF NEW.hearts > 5 THEN
+        RAISE EXCEPTION 'Validation Trigger Error: Heart capacity cannot exceed 5 (attempted: %). Transaction rejected by database.', NEW.hearts;
+    END IF;
+
+    -- 3. Validate Hearts: Cannot be negative
+    IF NEW.hearts < 0 THEN
+        RAISE EXCEPTION 'Validation Trigger Error: Hearts cannot be negative (attempted: %). Transaction rejected by database.', NEW.hearts;
+    END IF;
+
+    -- 4. Validate Streak Freezes: Cannot equip more than 2
+    IF NEW.streak_freeze_count > 2 THEN
+        RAISE EXCEPTION 'Validation Trigger Error: Cannot equip more than 2 Streak Freezes (attempted: %). Transaction rejected by database.', NEW.streak_freeze_count;
+    END IF;
+
+    -- Automatic timestamp management for heart regeneration
+    IF NEW.hearts < 5 THEN
+        IF NEW.last_heart_lost_at IS NULL THEN
+            NEW.last_heart_lost_at := TO_CHAR(NOW(), 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"');
+        END IF;
+    ELSE
+        NEW.last_heart_lost_at := NULL;
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_validate_game_economy ON profile_game_state;
+CREATE TRIGGER trg_validate_game_economy
+BEFORE INSERT OR UPDATE ON profile_game_state
+FOR EACH ROW
+EXECUTE FUNCTION fn_trg_validate_game_economy();`,
+    mysqlSql: `DELIMITER $$
+DROP TRIGGER IF EXISTS trg_validate_game_economy_insert$$
+CREATE TRIGGER trg_validate_game_economy_insert
+BEFORE INSERT ON profile_game_state
+FOR EACH ROW
+BEGIN
+    IF NEW.gems < 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Validation Trigger Error: Insufficient gem balance (cannot be negative).';
+    END IF;
+    IF NEW.hearts > 5 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Validation Trigger Error: Heart capacity cannot exceed 5.';
+    END IF;
+    IF NEW.hearts < 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Validation Trigger Error: Hearts cannot be negative.';
+    END IF;
+    IF NEW.streak_freeze_count > 2 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Validation Trigger Error: Cannot equip more than 2 Streak Freezes.';
+    END IF;
+END$$
+
+DROP TRIGGER IF EXISTS trg_validate_game_economy_update$$
+CREATE TRIGGER trg_validate_game_economy_update
+BEFORE UPDATE ON profile_game_state
+FOR EACH ROW
+BEGIN
+    IF NEW.gems < 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Validation Trigger Error: Insufficient gem balance (cannot be negative).';
+    END IF;
+    IF NEW.hearts > 5 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Validation Trigger Error: Heart capacity cannot exceed 5.';
+    END IF;
+    IF NEW.hearts < 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Validation Trigger Error: Hearts cannot be negative.';
+    END IF;
+    IF NEW.streak_freeze_count > 2 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Validation Trigger Error: Cannot equip more than 2 Streak Freezes.';
+    END IF;
+END$$
+DELIMITER ;`,
+    sampleDml: `UPDATE profile_game_state SET gems = -200 WHERE profile_id = (SELECT id FROM profiles LIMIT 1);`,
+    expectedOutcome: 'ERROR: Validation Trigger Error: Insufficient gem balance (short by 200 gems). Transaction rejected by database.',
+  },
+  {
+    id: 'trg_enforce_cadet_progression_rules',
+    name: 'trg_enforce_cadet_progression_rules',
+    functionName: 'fn_trg_enforce_cadet_progression_rules',
     table: 'profile_progress',
     timing: 'BEFORE',
     event: 'INSERT OR UPDATE',
-    category: 'Business Logic & Data Integrity',
-    purpose: 'Guards against negative score/lesson inputs, automatically derives the gamified Cadet Level from cumulative XP (total_score) milestone thresholds, and synchronizes last_lesson_date.',
-    postgresSql: `CREATE OR REPLACE FUNCTION fn_trg_calculate_cadet_level()
+    category: '2. Enforcing Business Rules (Automatic Cadet Rank & Date Sync)',
+    purpose: 'Automatically calculates cadet rank level (1-7+) from cumulative XP milestones and synchronizes last_lesson_date when lessons are completed.',
+    postgresSql: `CREATE OR REPLACE FUNCTION fn_trg_enforce_cadet_progression_rules()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 AS $$
@@ -48,14 +156,14 @@ BEGIN
 END;
 $$;
 
-DROP TRIGGER IF EXISTS trg_calculate_cadet_level ON profile_progress;
-CREATE TRIGGER trg_calculate_cadet_level
+DROP TRIGGER IF EXISTS trg_enforce_cadet_progression_rules ON profile_progress;
+CREATE TRIGGER trg_enforce_cadet_progression_rules
 BEFORE INSERT OR UPDATE ON profile_progress
 FOR EACH ROW
-EXECUTE FUNCTION fn_trg_calculate_cadet_level();`,
+EXECUTE FUNCTION fn_trg_enforce_cadet_progression_rules();`,
     mysqlSql: `DELIMITER $$
-DROP TRIGGER IF EXISTS trg_before_update_profile_progress$$
-CREATE TRIGGER trg_before_update_profile_progress
+DROP TRIGGER IF EXISTS trg_enforce_cadet_progression_rules_update$$
+CREATE TRIGGER trg_enforce_cadet_progression_rules_update
 BEFORE UPDATE ON profile_progress
 FOR EACH ROW
 BEGIN
@@ -83,136 +191,8 @@ BEGIN
     END IF;
 END$$
 DELIMITER ;`,
-    sampleDml: `UPDATE profile_progress SET total_score = 3250 WHERE profile_id = 'usr_001';`,
+    sampleDml: `UPDATE profile_progress SET total_score = 3250 WHERE profile_id = (SELECT id FROM profiles LIMIT 1);`,
     expectedOutcome: 'Total score becomes 3250; current_level automatically set to 4 (Officer Cadet).',
-  },
-  {
-    id: 'trg_sync_lesson_event_to_progress',
-    name: 'trg_sync_lesson_event_to_progress',
-    functionName: 'fn_trg_sync_lesson_event_to_progress',
-    table: 'lesson_events',
-    timing: 'AFTER',
-    event: 'INSERT',
-    category: 'Real-time Data Synchronization & Cascading Trigger',
-    purpose: 'Automatically updates profile_progress upon inserting a lesson completion event, incrementing total XP and completed lessons, which immediately cascades into trg_calculate_cadet_level.',
-    postgresSql: `CREATE OR REPLACE FUNCTION fn_trg_sync_lesson_event_to_progress()
-RETURNS TRIGGER
-LANGUAGE plpgsql
-AS $$
-DECLARE
-    v_xp INT := GREATEST(0, COALESCE(NEW.score_delta, 0));
-    v_is_lesson BOOLEAN := (COALESCE(NEW.event_type, 'lesson_completed') = 'lesson_completed');
-    v_lesson_inc INT := CASE WHEN v_is_lesson THEN 1 ELSE 0 END;
-    v_today TEXT := TO_CHAR(CURRENT_DATE, 'YYYY-MM-DD');
-BEGIN
-    INSERT INTO profile_progress (
-        profile_id,
-        total_score,
-        current_level,
-        lessons_completed,
-        last_lesson_date
-    )
-    VALUES (
-        NEW.profile_id,
-        v_xp,
-        1,
-        v_lesson_inc,
-        v_today
-    )
-    ON CONFLICT (profile_id) DO UPDATE SET
-        total_score = profile_progress.total_score + EXCLUDED.total_score,
-        lessons_completed = profile_progress.lessons_completed + EXCLUDED.lessons_completed,
-        last_lesson_date = v_today;
-
-    RETURN NEW;
-END;
-$$;
-
-DROP TRIGGER IF EXISTS trg_sync_lesson_event_to_progress ON lesson_events;
-CREATE TRIGGER trg_sync_lesson_event_to_progress
-AFTER INSERT ON lesson_events
-FOR EACH ROW
-EXECUTE FUNCTION fn_trg_sync_lesson_event_to_progress();`,
-    mysqlSql: `DELIMITER $$
-DROP TRIGGER IF EXISTS trg_after_insert_lesson_events$$
-CREATE TRIGGER trg_after_insert_lesson_events
-AFTER INSERT ON lesson_events
-FOR EACH ROW
-BEGIN
-    DECLARE v_xp INT;
-    DECLARE v_inc INT;
-    SET v_xp = GREATEST(0, COALESCE(NEW.score_delta, 0));
-    SET v_inc = IF(COALESCE(NEW.event_type, 'lesson_completed') = 'lesson_completed', 1, 0);
-
-    INSERT INTO profile_progress (profile_id, total_score, current_level, lessons_completed, last_lesson_date)
-    VALUES (NEW.profile_id, v_xp, 1, v_inc, CURDATE())
-    ON DUPLICATE KEY UPDATE
-        total_score = total_score + VALUES(total_score),
-        lessons_completed = lessons_completed + VALUES(lessons_completed),
-        last_lesson_date = CURDATE();
-END$$
-DELIMITER ;`,
-    sampleDml: `INSERT INTO lesson_events (profile_id, score_delta, event_type, level_delta) VALUES ('usr_001', 500, 'lesson_completed', 0);`,
-    expectedOutcome: 'profile_progress total_score increments by 500, lessons_completed increments by 1, and cascading level triggers.',
-  },
-  {
-    id: 'trg_enforce_game_state_rules',
-    name: 'trg_enforce_game_state_rules',
-    functionName: 'fn_trg_enforce_game_state_rules',
-    table: 'profile_game_state',
-    timing: 'BEFORE',
-    event: 'INSERT OR UPDATE',
-    category: 'Game State Economy & Health Invariant Guard',
-    purpose: 'Enforces gameplay invariants: clamps hearts between [0, 5], prevents negative gems or streak counters, and automatically records heart depletion timestamps for regenerative heart refills.',
-    postgresSql: `CREATE OR REPLACE FUNCTION fn_trg_enforce_game_state_rules()
-RETURNS TRIGGER
-LANGUAGE plpgsql
-AS $$
-BEGIN
-    NEW.hearts := LEAST(5, GREATEST(0, COALESCE(NEW.hearts, 5)));
-    NEW.gems := GREATEST(0, COALESCE(NEW.gems, 0));
-    NEW.streak := GREATEST(0, COALESCE(NEW.streak, 0));
-    NEW.streak_freeze_count := GREATEST(0, COALESCE(NEW.streak_freeze_count, 0));
-
-    IF NEW.hearts < 5 THEN
-        IF NEW.last_heart_lost_at IS NULL THEN
-            NEW.last_heart_lost_at := TO_CHAR(NOW(), 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"');
-        END IF;
-    ELSE
-        NEW.last_heart_lost_at := NULL;
-    END IF;
-
-    RETURN NEW;
-END;
-$$;
-
-DROP TRIGGER IF EXISTS trg_enforce_game_state_rules ON profile_game_state;
-CREATE TRIGGER trg_enforce_game_state_rules
-BEFORE INSERT OR UPDATE ON profile_game_state
-FOR EACH ROW
-EXECUTE FUNCTION fn_trg_enforce_game_state_rules();`,
-    mysqlSql: `DELIMITER $$
-DROP TRIGGER IF EXISTS trg_before_update_game_state$$
-CREATE TRIGGER trg_before_update_game_state
-BEFORE UPDATE ON profile_game_state
-FOR EACH ROW
-BEGIN
-    SET NEW.hearts = LEAST(5, GREATEST(0, COALESCE(NEW.hearts, 5)));
-    SET NEW.gems = GREATEST(0, COALESCE(NEW.gems, 0));
-    SET NEW.streak = GREATEST(0, COALESCE(NEW.streak, 0));
-    SET NEW.streak_freeze_count = GREATEST(0, COALESCE(NEW.streak_freeze_count, 0));
-
-    IF NEW.hearts < 5 THEN
-        IF NEW.last_heart_lost_at IS NULL THEN
-            SET NEW.last_heart_lost_at = NOW();
-        END IF;
-    ELSE
-        SET NEW.last_heart_lost_at = NULL;
-    END IF;
-END$$
-DELIMITER ;`,
-    sampleDml: `UPDATE profile_game_state SET hearts = 99, gems = -100 WHERE profile_id = 'usr_001';`,
-    expectedOutcome: 'Hearts is clamped to 5; gems is clamped to 0; last_heart_lost_at is cleared.',
   },
   {
     id: 'trg_audit_score_adjustments',
@@ -221,8 +201,8 @@ DELIMITER ;`,
     table: 'profile_progress -> score_audit_logs',
     timing: 'AFTER',
     event: 'UPDATE OF total_score',
-    category: 'Security & Administrative Audit Logging',
-    purpose: 'Automatically logs every score change into the score_audit_logs ledger with old_score, new_score, delta, rank levels, and timestamp.',
+    category: '3. Auditing Database Changes (Immutable Score Ledger)',
+    purpose: 'Maintains an immutable historical audit log in score_audit_logs whenever cadet score updates, capturing old score, new score, delta, and timestamps.',
     postgresSql: `CREATE TABLE IF NOT EXISTS score_audit_logs (
     id BIGSERIAL PRIMARY KEY,
     profile_id VARCHAR(100) NOT NULL,
@@ -237,6 +217,8 @@ DELIMITER ;`,
 CREATE OR REPLACE FUNCTION fn_trg_audit_score_adjustments()
 RETURNS TRIGGER
 LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
 AS $$
 BEGIN
     IF OLD.total_score IS DISTINCT FROM NEW.total_score THEN
@@ -268,11 +250,17 @@ DROP TRIGGER IF EXISTS trg_audit_score_adjustments ON profile_progress;
 CREATE TRIGGER trg_audit_score_adjustments
 AFTER UPDATE OF total_score ON profile_progress
 FOR EACH ROW
-EXECUTE FUNCTION fn_trg_audit_score_adjustments();`,
+EXECUTE FUNCTION fn_trg_audit_score_adjustments();
+
+-- RLS policies for score_audit_logs
+ALTER TABLE score_audit_logs ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow all users to read score audit logs" ON score_audit_logs;
+CREATE POLICY "Allow all users to read score audit logs" ON score_audit_logs FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Allow system and triggers to insert score audit logs" ON score_audit_logs;
+CREATE POLICY "Allow system and triggers to insert score audit logs" ON score_audit_logs FOR INSERT WITH CHECK (true);`,
     mysqlSql: `DELIMITER $$
--- In MySQL, created via AFTER UPDATE trigger on profile_progress
-DROP TRIGGER IF EXISTS trg_after_update_audit_score$$
-CREATE TRIGGER trg_after_update_audit_score
+DROP TRIGGER IF EXISTS trg_audit_score_adjustments_mysql$$
+CREATE TRIGGER trg_audit_score_adjustments_mysql
 AFTER UPDATE ON profile_progress
 FOR EACH ROW
 BEGIN
@@ -284,6 +272,86 @@ END$$
 DELIMITER ;`,
     sampleDml: `SELECT * FROM score_audit_logs ORDER BY changed_at DESC LIMIT 5;`,
     expectedOutcome: 'Returns immutable historical audit records capturing all cadet XP adjustments.',
+  },
+  {
+    id: 'trg_auto_log_cadet_activity',
+    name: 'trg_auto_log_cadet_activity',
+    functionName: 'fn_trg_auto_log_cadet_activity',
+    table: 'lesson_events -> cadet_activity_logs',
+    timing: 'AFTER',
+    event: 'INSERT',
+    category: '4. Automatic Data Logging (Cadet Activity Logs)',
+    purpose: 'Automatically parses lesson completion events and inserts formatted activity records into cadet_activity_logs for student profile feeds.',
+    postgresSql: `CREATE TABLE IF NOT EXISTS cadet_activity_logs (
+    id BIGSERIAL PRIMARY KEY,
+    profile_id VARCHAR(100) NOT NULL,
+    event_type VARCHAR(50) NOT NULL,
+    activity_description TEXT NOT NULL,
+    xp_gained INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE OR REPLACE FUNCTION fn_trg_auto_log_cadet_activity()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+    v_xp INT := GREATEST(0, COALESCE(NEW.score_delta, 0));
+    v_desc TEXT;
+BEGIN
+    IF NEW.event_type = 'lesson_completed' THEN
+        v_desc := 'Completed CSE Practice Drill (+' || v_xp || ' XP)';
+    ELSIF NEW.event_type = 'mock_exam' THEN
+        v_desc := 'Completed Full Mock Exam Simulation (+' || v_xp || ' XP)';
+    ELSE
+        v_desc := 'Reviewer Drill Activity: ' || COALESCE(NEW.event_type, 'General Drill') || ' (+' || v_xp || ' XP)';
+    END IF;
+
+    INSERT INTO cadet_activity_logs (
+        profile_id,
+        event_type,
+        activity_description,
+        xp_gained,
+        created_at
+    )
+    VALUES (
+        NEW.profile_id,
+        COALESCE(NEW.event_type, 'lesson_completed'),
+        v_desc,
+        v_xp,
+        NOW()
+    );
+
+    RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_auto_log_cadet_activity ON lesson_events;
+CREATE TRIGGER trg_auto_log_cadet_activity
+AFTER INSERT ON lesson_events
+FOR EACH ROW
+EXECUTE FUNCTION fn_trg_auto_log_cadet_activity();
+
+-- RLS policies for cadet_activity_logs
+ALTER TABLE cadet_activity_logs ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow all users to read cadet activity logs" ON cadet_activity_logs;
+CREATE POLICY "Allow all users to read cadet activity logs" ON cadet_activity_logs FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Allow system and triggers to insert cadet activity logs" ON cadet_activity_logs;
+CREATE POLICY "Allow system and triggers to insert cadet activity logs" ON cadet_activity_logs FOR INSERT WITH CHECK (true);`,
+    mysqlSql: `DELIMITER $$
+DROP TRIGGER IF EXISTS trg_auto_log_cadet_activity_mysql$$
+CREATE TRIGGER trg_auto_log_cadet_activity_mysql
+AFTER INSERT ON lesson_events
+FOR EACH ROW
+BEGIN
+    INSERT INTO cadet_activity_logs (profile_id, event_type, activity_description, xp_gained, created_at)
+    VALUES (NEW.profile_id, NEW.event_type, CONCAT('Completed CSE Practice Drill (+', NEW.score_delta, ' XP)'), NEW.score_delta, NOW());
+END$$
+DELIMITER ;`,
+    sampleDml: `INSERT INTO lesson_events (profile_id, score_delta, event_type, level_delta) VALUES ('usr_001', 500, 'lesson_completed', 0);`,
+    expectedOutcome: 'Row automatically inserted into cadet_activity_logs with description: Completed CSE Practice Drill (+500 XP).',
   },
 ];
 
@@ -320,11 +388,41 @@ export function evalCadetRankTitle(level: number): string {
   }
 }
 
-export function evalClampedGameState(hearts: number, gems: number) {
-  const clampedHearts = Math.min(5, Math.max(0, hearts ?? 5));
-  const clampedGems = Math.max(0, gems ?? 0);
-  const heartLostAt = clampedHearts < 5 ? new Date().toISOString() : null;
-  return { hearts: clampedHearts, gems: clampedGems, last_heart_lost_at: heartLostAt };
+export function evalValidateEconomy(gems: number, hearts: number, streakFreezeCount: number = 0) {
+  if (gems < 0) {
+    const shortage = Math.abs(gems);
+    return {
+      success: false,
+      code: 'P0001',
+      error: `Validation Trigger Error: Insufficient gem balance (short by ${shortage} gems). Transaction rejected by database.`,
+    };
+  }
+  if (hearts > 5) {
+    return {
+      success: false,
+      code: 'P0001',
+      error: `Validation Trigger Error: Heart capacity cannot exceed 5 (attempted: ${hearts}). Transaction rejected by database.`,
+    };
+  }
+  if (hearts < 0) {
+    return {
+      success: false,
+      code: 'P0001',
+      error: `Validation Trigger Error: Hearts cannot be negative (attempted: ${hearts}). Transaction rejected by database.`,
+    };
+  }
+  if (streakFreezeCount > 2) {
+    return {
+      success: false,
+      code: 'P0001',
+      error: `Validation Trigger Error: Cannot equip more than 2 Streak Freezes (attempted: ${streakFreezeCount}). Transaction rejected by database.`,
+    };
+  }
+  return {
+    success: true,
+    code: 'SUCCESS',
+    data: { gems, hearts, streak_freeze_count: streakFreezeCount },
+  };
 }
 
 // ─── GET /api/admin/triggers ──────────────────────────────────────────────────
@@ -334,7 +432,6 @@ export async function GET() {
     let auditLogs: any[] = [];
     let progressRecords: any[] = [];
 
-    // Attempt to read live database status if available
     try {
       const { data: logs } = await supabase
         .from('score_audit_logs')
@@ -357,7 +454,6 @@ export async function GET() {
       // fallback
     }
 
-    // Default mock audit records if empty
     if (auditLogs.length === 0) {
       auditLogs = [
         { id: 1, profile_id: 'usr_001', old_score: 2950, new_score: 3450, score_delta: 500, old_level: 4, new_level: 4, changed_at: new Date(Date.now() - 3600000).toISOString() },
@@ -388,7 +484,31 @@ export async function POST(request: Request) {
 
     let simulationResult: any = null;
 
-    if (action === 'simulate_level_calc') {
+    if (action === 'simulate_economy_validation' || action === 'simulate_game_state') {
+      const rawGems = Number(params?.gems);
+      const rawHearts = Number(params?.hearts ?? 5);
+      const rawFreezes = Number(params?.streak_freeze_count ?? 1);
+
+      const val = evalValidateEconomy(rawGems, rawHearts, rawFreezes);
+
+      if (!val.success) {
+        simulationResult = {
+          action: 'trg_validate_game_economy',
+          input: { gems: rawGems, hearts: rawHearts, streak_freeze_count: rawFreezes },
+          output: { rejected: true, code: val.code, error: val.error },
+          sqlFired: `BEFORE UPDATE ON profile_game_state -> fn_trg_validate_game_economy() -> RAISE EXCEPTION`,
+          explanation: `DATABASE TRANSACTION ROLLED BACK: ${val.error}`,
+        };
+      } else {
+        simulationResult = {
+          action: 'trg_validate_game_economy',
+          input: { gems: rawGems, hearts: rawHearts, streak_freeze_count: rawFreezes },
+          output: { rejected: false, code: 'COMMIT', data: val.data },
+          sqlFired: `BEFORE UPDATE ON profile_game_state -> fn_trg_validate_game_economy() -> RETURN NEW`,
+          explanation: `VALIDATION PASSED: Quantities and balances are within allowed constraints. Transaction committed.`,
+        };
+      }
+    } else if (action === 'simulate_level_calc') {
       const rawScore = Number(params?.total_score) || 0;
       const rawLessons = Number(params?.lessons_completed) || 0;
       const safeScore = Math.max(0, rawScore);
@@ -398,17 +518,17 @@ export async function POST(request: Request) {
       const todayStr = new Date().toISOString().split('T')[0];
 
       simulationResult = {
-        action: 'trg_calculate_cadet_level',
+        action: 'trg_enforce_cadet_progression_rules',
         input: { total_score: rawScore, lessons_completed: rawLessons },
         output: {
-          clamped_total_score: safeScore,
-          clamped_lessons_completed: safeLessons,
+          total_score: safeScore,
+          lessons_completed: safeLessons,
           current_level: calculatedLevel,
           rank_title: rankTitle,
           last_lesson_date: safeLessons > 0 ? todayStr : null,
         },
-        sqlFired: `BEFORE INSERT OR UPDATE ON profile_progress -> fn_trg_calculate_cadet_level()`,
-        explanation: `Score was clamped to ${safeScore} XP. Evaluated milestone: level ${calculatedLevel} (${rankTitle}). last_lesson_date synchronized to ${todayStr}.`,
+        sqlFired: `BEFORE INSERT OR UPDATE ON profile_progress -> fn_trg_enforce_cadet_progression_rules()`,
+        explanation: `XP milestone verified: level ${calculatedLevel} (${rankTitle}). last_lesson_date set to ${todayStr}.`,
       };
     } else if (action === 'simulate_lesson_sync') {
       const oldScore = Number(params?.old_score) || 1800;
@@ -421,12 +541,17 @@ export async function POST(request: Request) {
       const isLevelUp = newLevel > oldLevel;
 
       simulationResult = {
-        action: 'trg_sync_lesson_event_to_progress',
+        action: 'trg_auto_log_cadet_activity',
         input: { old_score: oldScore, old_lessons: oldLessons, score_delta: xpEarned },
         output: {
           previous_state: { total_score: oldScore, lessons_completed: oldLessons, current_level: oldLevel },
           updated_state: { total_score: newScore, lessons_completed: newLessons, current_level: newLevel },
           is_level_up: isLevelUp,
+          activity_log_inserted: {
+            event_type: 'lesson_completed',
+            activity_description: `Completed CSE Practice Drill (+${xpEarned} XP)`,
+            xp_gained: xpEarned,
+          },
           audit_logged: {
             old_score: oldScore,
             new_score: newScore,
@@ -435,20 +560,8 @@ export async function POST(request: Request) {
             new_level: newLevel,
           },
         },
-        sqlFired: `AFTER INSERT ON lesson_events -> trg_sync_lesson_event_to_progress -> CASCADES TO trg_calculate_cadet_level & trg_audit_score_adjustments`,
-        explanation: `Lesson completion logged (+${xpEarned} XP). Trigger updated profile_progress, which immediately activated the level-calc trigger (${oldLevel} -> ${newLevel}) and audit logging.`,
-      };
-    } else if (action === 'simulate_game_state') {
-      const rawHearts = Number(params?.hearts);
-      const rawGems = Number(params?.gems);
-      const clamped = evalClampedGameState(rawHearts, rawGems);
-
-      simulationResult = {
-        action: 'trg_enforce_game_state_rules',
-        input: { raw_hearts: rawHearts, raw_gems: rawGems },
-        output: clamped,
-        sqlFired: `BEFORE INSERT OR UPDATE ON profile_game_state -> fn_trg_enforce_game_state_rules()`,
-        explanation: `Hearts was clamped into valid [0, 5] range (${clamped.hearts}). Gems was clamped to non-negative (${clamped.gems}). Heart depletion timestamp: ${clamped.last_heart_lost_at || 'NULL (Full Hearts)'}.`,
+        sqlFired: `AFTER INSERT ON lesson_events -> trg_auto_log_cadet_activity & trg_audit_score_adjustments`,
+        explanation: `Lesson activity auto-logged to cadet_activity_logs (+${xpEarned} XP). Profile progress cascaded to level ${newLevel}.`,
       };
     } else {
       return NextResponse.json({ error: 'Unknown simulation action' }, { status: 400 });

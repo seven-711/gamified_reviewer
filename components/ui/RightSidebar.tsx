@@ -9,6 +9,26 @@ import { useStats } from "@/components/ui/StatsContext";
 import { StreakAsset } from "@/components/ui/StreakAsset";
 import { supabase } from "@/lib/supabase";
 import { useAlert } from "@/components/ui/AlertContext";
+import { getCadetRankInfo } from "@/lib/cadetRank";
+import dynamic from "next/dynamic";
+
+const DotLottiePlayer = dynamic(
+  () => import("@dotlottie/react-player").then((mod) => mod.DotLottiePlayer),
+  { ssr: false }
+);
+
+function getRankLottieConfig(level: number): { src: string; activeAnimationId: string } {
+  switch (level) {
+    case 1:
+      return { src: "/firstRank.lottie", activeAnimationId: "Main Scene" };
+    case 2:
+      return { src: "/secondRank.lottie", activeAnimationId: "Main Scene" };
+    case 3:
+      return { src: "/thirdRank.lottie", activeAnimationId: "Main Scene" };
+    default:
+      return { src: "/fourthRankBeyond.lottie", activeAnimationId: "12345" };
+  }
+}
 
 const playSound = (src: string) => {
   if (typeof window !== "undefined") {
@@ -80,7 +100,8 @@ function getLeagueInfo(xp: number, lessonsCompleted: number, rank: number): Leag
 export default function RightSidebar() {
   const router = useRouter();
   const { user, isLoaded, isSignedIn } = useAuth();
-  const { streak, xp, hearts, gems, lastLessonDate, refreshStats, updateStatsLocally } = useStats();
+  const { streak, xp, hearts, gems, currentLevel, lastLessonDate, refreshStats, updateStatsLocally } = useStats();
+  const rankInfo = getCadetRankInfo(currentLevel);
   const { showAlert } = useAlert();
   const todayStr = new Date().toLocaleDateString("en-CA");
 
@@ -295,6 +316,22 @@ export default function RightSidebar() {
           />
           <span>{gems}</span>
         </div>
+        {/* Cadet Rank Level (Database Trigger Verified) */}
+        <Link
+          href="/profile"
+          className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400 cursor-pointer hover:bg-duo-green-light p-2 rounded-xl transition-colors"
+          title={`Cadet Rank: Level ${currentLevel} ${rankInfo.title} (Enforced by Database Trigger)`}
+        >
+          <div className="w-7 h-7 flex items-center justify-center overflow-hidden shrink-0">
+            <DotLottiePlayer
+              {...getRankLottieConfig(currentLevel)}
+              autoplay
+              loop
+              className="w-7 h-7"
+            />
+          </div>
+          <span className="font-bold text-xs uppercase tracking-wider">Lvl {currentLevel}</span>
+        </Link>
         {/* Hearts */}
         <div className="flex items-center gap-2 text-red-500 cursor-pointer hover:bg-duo-green-light p-2 rounded-xl transition-colors">
           <Image

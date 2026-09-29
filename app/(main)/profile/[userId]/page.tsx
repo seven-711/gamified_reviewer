@@ -835,6 +835,7 @@ function UserProfileContent({ userId }: { userId: string }) {
                   return (
                     <DotLottiePlayer
                       src={streak >= 10 ? "/img/gen_imgs/Streak/Fire.lottie" : "/img/gen_imgs/Streak/Flame - Streak.lottie"}
+                      activeAnimationId={streak >= 10 ? "f198971c-ebb7-4dfc-93f1-f15d4ac3fa73" : "9de27f01-998e-415c-8faa-78045c132088"}
                       autoplay
                       loop
                       className="w-full h-full object-contain"

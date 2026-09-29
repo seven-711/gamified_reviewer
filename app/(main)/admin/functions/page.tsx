@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
+import { useAuth } from "@/lib/auth";
+import { checkIsAdmin } from "@/lib/admin";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -77,6 +79,9 @@ function CopyButton({ text, label = "Copy" }: { text: string; label?: string }) 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function ReviewerPerformancePage() {
+  const { user, isLoaded } = useAuth();
+  const isAdmin = checkIsAdmin(user);
+
   const [data, setData] = useState<FunctionsApiResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"performance" | "simulator" | "reference">("performance");
@@ -114,13 +119,14 @@ export default function ReviewerPerformancePage() {
   };
 
   useEffect(() => {
+    if (!isLoaded || !isAdmin) return;
     setLoading(true);
     fetch("/api/admin/functions")
       .then((res) => res.json())
       .then((d) => setData(d))
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, []);
+  }, [isLoaded, isAdmin]);
 
   // ── Compute summary stats from records ────────────────────────────────────
   const stats = useMemo(() => {

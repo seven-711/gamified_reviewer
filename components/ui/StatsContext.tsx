@@ -9,6 +9,7 @@ interface StatsContextProps {
   xp: number;
   gems: number;
   hearts: number;
+  currentLevel: number;
   streakFreezeCount: number;
   lessonsCompleted: number;
   lastLessonDate: string | null;
@@ -19,6 +20,7 @@ interface StatsContextProps {
     xp: number;
     gems: number;
     hearts: number;
+    currentLevel: number;
     streakFreezeCount: number;
     lessonsCompleted: number;
     lastLessonDate: string | null;
@@ -41,6 +43,7 @@ export const StatsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [xp, setXp] = useState(0);
   const [gems, setGems] = useState(50);
   const [hearts, setHearts] = useState(5);
+  const [currentLevel, setCurrentLevel] = useState(1);
   const [streakFreezeCount, setStreakFreezeCount] = useState(0);
   const [lessonsCompleted, setLessonsCompleted] = useState(0);
   const [lastLessonDate, setLastLessonDate] = useState<string | null>(null);
@@ -61,6 +64,7 @@ export const StatsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setXp(0);
       setGems(50);
       setHearts(5);
+      setCurrentLevel(1);
       setStreakFreezeCount(0);
       setLessonsCompleted(0);
       setIsLoaded(true);
@@ -76,7 +80,7 @@ export const StatsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           .maybeSingle(),
         supabase
           .from("profile_progress")
-          .select("total_score, lessons_completed, last_lesson_date")
+          .select("total_score, current_level, lessons_completed, last_lesson_date")
           .eq("profile_id", profileId)
           .maybeSingle(),
       ]);
@@ -104,6 +108,7 @@ export const StatsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
       if (progress) {
         setXp(progress.total_score || 0);
+        setCurrentLevel(progress.current_level || 1);
         setLessonsCompleted(progress.lessons_completed || 0);
         setLastLessonDate(progress.last_lesson_date || null);
       }
@@ -202,6 +207,7 @@ export const StatsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     xp: number;
     gems: number;
     hearts: number;
+    currentLevel: number;
     streakFreezeCount: number;
     lessonsCompleted: number;
     lastLessonDate: string | null;
@@ -210,6 +216,7 @@ export const StatsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (updates.xp !== undefined) setXp(updates.xp);
     if (updates.gems !== undefined) setGems(updates.gems);
     if (updates.hearts !== undefined) setHearts(updates.hearts);
+    if (updates.currentLevel !== undefined) setCurrentLevel(updates.currentLevel);
     if (updates.streakFreezeCount !== undefined) setStreakFreezeCount(updates.streakFreezeCount);
     if (updates.lessonsCompleted !== undefined) setLessonsCompleted(updates.lessonsCompleted);
     if (updates.lastLessonDate !== undefined) setLastLessonDate(updates.lastLessonDate);
@@ -222,6 +229,7 @@ export const StatsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         xp,
         gems,
         hearts,
+        currentLevel,
         streakFreezeCount,
         lessonsCompleted,
         lastLessonDate,

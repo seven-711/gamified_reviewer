@@ -1,51 +1,166 @@
 # DBMS Laboratory Partial Requirement: Traditional SQL Triggers
-## System Implementation & Submission Guide (10 Points)
+## System Implementation & Submission Guide
 
 **System Name:** Civil Service Examination (CSE) Reviewer Gamified  
-**Database System:** Supabase (PostgreSQL) / MySQL Compatible  
-**Requirement:** Implement at least two (2) traditional SQL triggers for this system, demonstrate their live invocation in the database system, and document application integration.
+**Database Server:** Supabase (PostgreSQL 15+) / MySQL 8.0+  
+**Architecture:** Real-time Natural Integration (Integrated directly into normal user activities: Shop, Lessons, Profile, and Progression).
 
 ---
 
-## 1. Requirements Compliance Summary
+## Overview: Natural Trigger Integration Architecture
 
-| # | Trigger Name | Timing & Event | Target Table | Trigger Function | Status | System Relevance |
-| :-: | :--- | :--- | :--- | :--- | :-: | :--- |
-| **1** | `trg_calculate_cadet_level` | `BEFORE INSERT OR UPDATE` | `profile_progress` | `fn_trg_calculate_cadet_level()` | **Implemented** | **Business Logic & Data Integrity:** Guards against negative scores/lessons, automatically derives the cadet's gamified level (Levels 1–7+) from cumulative XP (`total_score`), and synchronizes `last_lesson_date`. |
-| **2** | `trg_sync_lesson_event_to_progress` | `AFTER INSERT` | `lesson_events` | `fn_trg_sync_lesson_event_to_progress()` | **Implemented** | **Real-time Data Synchronization & Cascading Trigger:** Automatically propagates newly inserted lesson drill events into `profile_progress`, adding XP and incrementing lesson count, which in turn automatically fires Trigger 1. |
-| **3** | `trg_enforce_game_state_rules` | `BEFORE INSERT OR UPDATE` | `profile_game_state` | `fn_trg_enforce_game_state_rules()` | **Implemented** | **Game Economy Invariant Guard:** Clamps `hearts` into `[0, 5]`, prevents negative `gems` and `streak`, and manages heart loss depletion timestamps for health regeneration. |
-| **4** | `trg_audit_score_adjustments` | `AFTER UPDATE OF total_score` | `profile_progress` | `fn_trg_audit_score_adjustments()` | **Implemented** | **Security & Audit Logging:** Automatically logs all cadet XP updates into an immutable `score_audit_logs` ledger with `old_score`, `new_score`, `score_delta`, and timestamps. |
+Unlike artificial demo screens or manual simulators, all four (4) triggers in this application are **naturally woven into core business workflows**:
+
+```
++--------------------------------------------------------------------------------------------------+
+|                                    NATURAL APPLICATION FLOW                                      |
++--------------------------------------------------------------------------------------------------+
+| 1. Shop (/shop)            --> Attempts purchase with insufficient gems                          |
+|                                --> TRIGGER 1: trg_validate_game_economy rejects transaction       |
+|                                --> GUI surfaces Database Error Toast naturally                   |
++--------------------------------------------------------------------------------------------------+
+| 2. Practice Drills (/lesson) --> Cadet completes exam quiz questions and earns XP                |
+|                                --> TRIGGER 2: trg_enforce_cadet_progression_rules calculates level|
+|                                --> GUI updates Cadet Rank badge on Dashboard & Profile           |
++--------------------------------------------------------------------------------------------------+
+| 3. Profile Progress        --> Total score increments upon drill completion                      |
+|                                --> TRIGGER 3: trg_audit_score_adjustments writes audit row        |
+|                                --> GUI Profile displays live immutable Score Audit Ledger        |
++--------------------------------------------------------------------------------------------------+
+| 4. Lesson Events           --> Drill event is logged to lesson_events                            |
+|                                --> TRIGGER 4: trg_auto_log_cadet_activity auto-logs description   |
+|                                --> GUI Profile displays auto-logged Recent Activities            |
++--------------------------------------------------------------------------------------------------+
+```
 
 ---
 
-## 2. Traditional SQL Triggers DDL (Database Server)
+## 1. Validation Trigger
 
-Execute these scripts in your **Database Server** (e.g., **Supabase SQL Editor** or **MySQL Workbench / phpMyAdmin**) to establish the triggers.
+### a. Explanation
+> **Requirement:** The database must prevent the insertion or update of invalid quantities or illegal balances.
+>
+> In our Civil Service Examination Reviewer system, the database enforces data integrity by strictly validating cadet game economy state (`profile_game_state`). Specifically, the database must prevent any transaction that results in:
+> 1. An invalid negative gems balance (`NEW.gems < 0`), which would occur if a user attempts to spend more gems than they possess in the Reviewer Item Shop.
+> 2. An invalid heart count exceeding maximum capacity (`NEW.hearts > 5`), or negative hearts (`NEW.hearts < 0`).
+> 3. An invalid streak freeze inventory exceeding the maximum allowed equipment of 2 (`NEW.streak_freeze_count > 2`).
+>
+> When any of these validation constraints are violated, the trigger invokes `RAISE EXCEPTION` in PostgreSQL (or `SIGNAL SQLSTATE '45000'` in MySQL). This immediately rolls back the database transaction and transmits an error message back to the application.
 
-### A. PostgreSQL (Supabase) Syntax
+### b. Database Server
 
+#### PostgreSQL (Supabase) Syntax
 ```sql
--- ============================================================================
--- 1. TRIGGER 1: Automatic Cadet Level Calculation & Date Sync
--- Table: profile_progress | Timing: BEFORE INSERT OR UPDATE
--- ============================================================================
-CREATE OR REPLACE FUNCTION fn_trg_calculate_cadet_level()
+CREATE OR REPLACE FUNCTION fn_trg_validate_game_economy()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    -- Clamp scores and lesson counts to prevent negative values
+    -- 1. Validate Gems: Reject negative balance (cannot spend more than owned)
+    IF NEW.gems < 0 THEN
+        RAISE EXCEPTION 'Validation Trigger Error: Insufficient gem balance (short by % gems). Transaction rejected by database.', ABS(NEW.gems);
+    END IF;
+
+    -- 2. Validate Hearts: Cannot exceed maximum capacity of 5
+    IF NEW.hearts > 5 THEN
+        RAISE EXCEPTION 'Validation Trigger Error: Heart capacity cannot exceed 5 (attempted: %). Transaction rejected by database.', NEW.hearts;
+    END IF;
+
+    -- 3. Validate Hearts: Cannot be negative
+    IF NEW.hearts < 0 THEN
+        RAISE EXCEPTION 'Validation Trigger Error: Hearts cannot be negative (attempted: %). Transaction rejected by database.', NEW.hearts;
+    END IF;
+
+    -- 4. Validate Streak Freezes: Cannot equip more than 2
+    IF NEW.streak_freeze_count > 2 THEN
+        RAISE EXCEPTION 'Validation Trigger Error: Cannot equip more than 2 Streak Freezes (attempted: %). Transaction rejected by database.', NEW.streak_freeze_count;
+    END IF;
+
+    -- Automatic timestamp management for heart regeneration
+    IF NEW.hearts < 5 THEN
+        IF NEW.last_heart_lost_at IS NULL THEN
+            NEW.last_heart_lost_at := TO_CHAR(NOW(), 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"');
+        END IF;
+    ELSE
+        NEW.last_heart_lost_at := NULL;
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+-- Drop legacy clamping triggers that interfere with validation
+DROP TRIGGER IF EXISTS trg_enforce_game_state_rules ON profile_game_state;
+DROP TRIGGER IF EXISTS trg_before_update_game_state ON profile_game_state;
+DROP FUNCTION IF EXISTS fn_trg_enforce_game_state_rules();
+
+DROP TRIGGER IF EXISTS trg_validate_game_economy ON profile_game_state;
+CREATE TRIGGER trg_validate_game_economy
+BEFORE INSERT OR UPDATE ON profile_game_state
+FOR EACH ROW
+EXECUTE FUNCTION fn_trg_validate_game_economy();
+```
+
+#### Database Server Live Verification Query
+```sql
+-- Test Trigger: Attempt setting negative gems (-100) or illegal hearts (99)
+UPDATE profile_game_state
+SET gems = -100
+WHERE profile_id = (SELECT id FROM profiles LIMIT 1);
+
+-- Expected Output:
+-- ERROR: Validation Trigger Error: Insufficient gem balance (short by 100 gems). Transaction rejected by database.
+```
+
+### c. GUI - Output
+
+1. **Where in the GUI:** Navigate to the **Reviewer Shop** (`http://localhost:3000/shop`).
+2. **Natural User Action:**
+   - Log in or open the Shop as a student with insufficient gems (e.g., 0 gems).
+   - Click to purchase **"Streak Freeze"** (Cost: 200 gems) or purchase a custom badge.
+3. **Trigger Execution in GUI:**
+   - The frontend attempts to update `profile_game_state` with `gems = gems - cost`.
+   - The database server validation trigger intercepts the update and aborts it with `P0001 (Validation Trigger Error)`.
+   - The application naturally captures the rejected database response and presents the friendly Shop modal:
+     > **Title:** `Not Enough Gems!`  
+     > **Message:** `You don't have enough Gems to complete this purchase. (You need 200 more 💎 Gems)`  
+     > `🛡️ Database Validation Trigger: Transaction rejected to protect your balance.`
+4. **Screenshot to capture:** The Shop modal displaying the trigger rejection message.
+
+---
+
+## 2. Enforcing Business Rules Trigger
+
+### a. Explanation
+> **Requirement:** The database must enforce domain-specific business rules automatically without relying on client-side code.
+>
+> In our Civil Service Examination Reviewer system, the business rule mandates that **cadet rank progression must be strictly governed by cumulative Experience Points (XP)**. The client application is forbidden from setting or tampering with a user's level.
+> 
+> The `trg_enforce_cadet_progression_rules` trigger executes on `BEFORE INSERT OR UPDATE ON profile_progress`. It evaluates the cadet's `total_score` against the official Civil Service Examination gamification milestones:
+> - **Level 1 (Cadet Recruit):** 0 – 499 XP
+> - **Level 2 (Junior Cadet):** 500 – 999 XP
+> - **Level 3 (Senior Cadet):** 1,000 – 1,999 XP
+> - **Level 4 (Officer Cadet):** 2,000 – 3,499 XP
+> - **Level 5 (Master Cadet):** 3,500 – 4,999 XP
+> - **Level 6 (Lieutenant Cadet):** 5,000 – 7,499 XP
+> - **Level 7+ (Captain Cadet):** 7,500+ XP (+1 level per 2,500 XP)
+>
+> Furthermore, whenever `lessons_completed` increments, the database trigger automatically updates `last_lesson_date` to the current date (`CURRENT_DATE`), ensuring daily activity and streak eligibility are synchronized at the database level.
+
+### b. Database Server
+
+#### PostgreSQL (Supabase) Syntax
+```sql
+CREATE OR REPLACE FUNCTION fn_trg_enforce_cadet_progression_rules()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    -- Business Invariant: Clamp score and lessons completed to non-negative
     NEW.total_score := GREATEST(0, COALESCE(NEW.total_score, 0));
     NEW.lessons_completed := GREATEST(0, COALESCE(NEW.lessons_completed, 0));
 
-    -- Derive gamified cadet rank level based on total XP milestones:
-    -- Level 1: 0 - 499 XP (Cadet Recruit)
-    -- Level 2: 500 - 999 XP (Junior Cadet)
-    -- Level 3: 1,000 - 1,999 XP (Senior Cadet)
-    -- Level 4: 2,000 - 3,499 XP (Officer Cadet)
-    -- Level 5: 3,500 - 4,999 XP (Master Cadet)
-    -- Level 6: 5,000 - 7,499 XP (Lieutenant Cadet)
-    -- Level 7+: 7,500+ XP (+1 level per 2,500 XP bonus)
+    -- Enforce Civil Service cadet level milestones from XP:
     IF NEW.total_score >= 7500 THEN
         NEW.current_level := 7 + FLOOR((NEW.total_score - 7500) / 2500)::INT;
     ELSIF NEW.total_score >= 5000 THEN
@@ -62,7 +177,7 @@ BEGIN
         NEW.current_level := 1;
     END IF;
 
-    -- Automatically update last_lesson_date if lessons were completed
+    -- Business Rule: Automatically update last_lesson_date when lessons completed increments
     IF NEW.lessons_completed > 0 AND (
         NEW.last_lesson_date IS NULL OR 
         (TG_OP = 'UPDATE' AND NEW.lessons_completed > COALESCE(OLD.lessons_completed, 0))
@@ -74,98 +189,63 @@ BEGIN
 END;
 $$;
 
-DROP TRIGGER IF EXISTS trg_calculate_cadet_level ON profile_progress;
-CREATE TRIGGER trg_calculate_cadet_level
+DROP TRIGGER IF EXISTS trg_enforce_cadet_progression_rules ON profile_progress;
+CREATE TRIGGER trg_enforce_cadet_progression_rules
 BEFORE INSERT OR UPDATE ON profile_progress
 FOR EACH ROW
-EXECUTE FUNCTION fn_trg_calculate_cadet_level();
+EXECUTE FUNCTION fn_trg_enforce_cadet_progression_rules();
+```
 
+#### Database Server Live Verification Query
+```sql
+-- Step 1: Update total_score to 3750 XP (Client only updates score)
+UPDATE profile_progress
+SET total_score = 3750
+WHERE profile_id = (SELECT id FROM profiles LIMIT 1);
 
--- ============================================================================
--- 2. TRIGGER 2: Real-time Lesson Event Aggregator (Score & Progress Sync)
--- Table: lesson_events | Timing: AFTER INSERT
--- ============================================================================
-CREATE OR REPLACE FUNCTION fn_trg_sync_lesson_event_to_progress()
-RETURNS TRIGGER
-LANGUAGE plpgsql
-AS $$
-DECLARE
-    v_xp INT := GREATEST(0, COALESCE(NEW.score_delta, 0));
-    v_is_lesson BOOLEAN := (COALESCE(NEW.event_type, 'lesson_completed') = 'lesson_completed');
-    v_lesson_inc INT := CASE WHEN v_is_lesson THEN 1 ELSE 0 END;
-    v_today TEXT := TO_CHAR(CURRENT_DATE, 'YYYY-MM-DD');
-BEGIN
-    INSERT INTO profile_progress (
-        profile_id,
-        total_score,
-        current_level,
-        lessons_completed,
-        last_lesson_date
-    )
-    VALUES (
-        NEW.profile_id,
-        v_xp,
-        1,
-        v_lesson_inc,
-        v_today
-    )
-    ON CONFLICT (profile_id) DO UPDATE SET
-        total_score = profile_progress.total_score + EXCLUDED.total_score,
-        lessons_completed = profile_progress.lessons_completed + EXCLUDED.lessons_completed,
-        last_lesson_date = v_today;
+-- Step 2: Query result
+SELECT profile_id, total_score, current_level, last_lesson_date
+FROM profile_progress
+WHERE profile_id = (SELECT id FROM profiles LIMIT 1);
 
-    RETURN NEW;
-END;
-$$;
+-- Expected Output:
+-- current_level is automatically set to 5 (Master Cadet, 3500-4999 XP) by the trigger!
+```
 
-DROP TRIGGER IF EXISTS trg_sync_lesson_event_to_progress ON lesson_events;
-CREATE TRIGGER trg_sync_lesson_event_to_progress
-AFTER INSERT ON lesson_events
-FOR EACH ROW
-EXECUTE FUNCTION fn_trg_sync_lesson_event_to_progress();
+### c. GUI - Output
 
+1. **Where in the GUI:** Navigate to the **Reviewer Dashboard** (`http://localhost:3000/dashboard`) and **Lesson Drills** (`http://localhost:3000/lesson`).
+2. **Natural User Action:**
+   - Complete an exam practice module in `/lesson`.
+   - Upon finishing, XP is added to the cadet's score.
+3. **Trigger Execution in GUI:**
+   - The application writes the earned XP to `profile_progress`.
+   - The database trigger immediately recomputes `current_level` and updates the row.
+   - On the **Dashboard Header** and **Profile Page**, the Cadet's Level Badge and title automatically advance (e.g. promoting from Level 1 "Cadet Recruit" to Level 2 "Junior Cadet"), and the progress meter automatically updates without any client-side level formula.
+4. **Screenshot to capture:** The Dashboard showing the updated Level and Rank Badge computed by the database trigger.
 
--- ============================================================================
--- 3. TRIGGER 3: Game State Economy & Health Guard Trigger
--- Table: profile_game_state | Timing: BEFORE INSERT OR UPDATE
--- ============================================================================
-CREATE OR REPLACE FUNCTION fn_trg_enforce_game_state_rules()
-RETURNS TRIGGER
-LANGUAGE plpgsql
-AS $$
-BEGIN
-    -- Clamp hearts between 0 and 5
-    NEW.hearts := LEAST(5, GREATEST(0, COALESCE(NEW.hearts, 5)));
+---
 
-    -- Ensure gems balance and streak are non-negative
-    NEW.gems := GREATEST(0, COALESCE(NEW.gems, 0));
-    NEW.streak := GREATEST(0, COALESCE(NEW.streak, 0));
-    NEW.streak_freeze_count := GREATEST(0, COALESCE(NEW.streak_freeze_count, 0));
+## 3. Auditing Database Changes Trigger
 
-    -- Automatically track heart loss timestamp for regeneration
-    IF NEW.hearts < 5 THEN
-        IF NEW.last_heart_lost_at IS NULL THEN
-            NEW.last_heart_lost_at := TO_CHAR(NOW(), 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"');
-        END IF;
-    ELSE
-        NEW.last_heart_lost_at := NULL;
-    END IF;
+### a. Explanation
+> **Requirement:** The database must automatically track, record, and maintain an immutable historical audit trail of changes made to critical data.
+>
+> In our Civil Service Examination Reviewer system, academic and examination integrity requires that all score modifications, promotions, and XP adjustments are permanently logged. This prevents unauthorized score tampering and allows administrators to audit student learning velocity.
+>
+> The `trg_audit_score_adjustments` trigger fires on `AFTER UPDATE OF total_score ON profile_progress`. Whenever a cadet's score changes, the trigger automatically constructs an immutable record in `score_audit_logs`, capturing:
+> - `profile_id`: Identification of the candidate.
+> - `old_score`: Previous score before the transaction.
+> - `new_score`: Updated score committed by the transaction.
+> - `score_delta`: The exact XP gained (or deducted).
+> - `old_level`: Previous rank level.
+> - `new_level`: New rank level.
+> - `changed_at`: Server timestamp (`NOW()`).
 
-    RETURN NEW;
-END;
-$$;
+### b. Database Server
 
-DROP TRIGGER IF EXISTS trg_enforce_game_state_rules ON profile_game_state;
-CREATE TRIGGER trg_enforce_game_state_rules
-BEFORE INSERT OR UPDATE ON profile_game_state
-FOR EACH ROW
-EXECUTE FUNCTION fn_trg_enforce_game_state_rules();
-
-
--- ============================================================================
--- 4. TRIGGER 4 (AUDIT TRAIL): Automatic Score Audit Logging Trigger
--- Table: profile_progress -> score_audit_logs | Timing: AFTER UPDATE
--- ============================================================================
+#### PostgreSQL (Supabase) Syntax
+```sql
 CREATE TABLE IF NOT EXISTS score_audit_logs (
     id BIGSERIAL PRIMARY KEY,
     profile_id VARCHAR(100) NOT NULL,
@@ -180,6 +260,8 @@ CREATE TABLE IF NOT EXISTS score_audit_logs (
 CREATE OR REPLACE FUNCTION fn_trg_audit_score_adjustments()
 RETURNS TRIGGER
 LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
 AS $$
 BEGIN
     IF OLD.total_score IS DISTINCT FROM NEW.total_score THEN
@@ -212,221 +294,157 @@ CREATE TRIGGER trg_audit_score_adjustments
 AFTER UPDATE OF total_score ON profile_progress
 FOR EACH ROW
 EXECUTE FUNCTION fn_trg_audit_score_adjustments();
+
+-- RLS policies ensuring client read access and trigger insert permissions:
+ALTER TABLE score_audit_logs ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow all users to read score audit logs" ON score_audit_logs;
+CREATE POLICY "Allow all users to read score audit logs" ON score_audit_logs FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Allow system and triggers to insert score audit logs" ON score_audit_logs;
+CREATE POLICY "Allow system and triggers to insert score audit logs" ON score_audit_logs FOR INSERT WITH CHECK (true);
 ```
+
+#### Database Server Live Verification Query
+```sql
+-- Query the immutable audit ledger generated by the trigger:
+SELECT id, profile_id, old_score, new_score, score_delta, old_level, new_level, changed_at
+FROM score_audit_logs
+ORDER BY changed_at DESC
+LIMIT 5;
+
+-- Expected Output:
+-- Live rows showing old_score, new_score, and positive score_delta with exact server timestamps.
+```
+
+### c. GUI - Output
+
+1. **Where in the GUI:** Navigate to the **Profile Page** (`http://localhost:3000/profile`).
+2. **Natural User Action:**
+   - As a student finishes practice drills in `/lesson`, their score increases.
+3. **Trigger Execution in GUI:**
+   - Under the **"Cadet Activity & Audit Ledger"** section on the Profile page, click the **"Score Audit Trail"** tab.
+   - The GUI directly renders the rows created by `trg_audit_score_adjustments`:
+     - Displays `Score: 50 XP → 115 XP`
+     - Displays `+65 XP` delta badge
+     - Displays `Cadet Level: Lvl 1 → Lvl 2`
+     - Displays exact audit timestamp (e.g., `09:48:12 PM`)
+4. **Screenshot to capture:** The Profile page showing the "Score Audit Trail" ledger populated by the database trigger.
 
 ---
 
-### B. MySQL / MariaDB Syntax
+## 4. Automatic Data Logging Trigger
 
+### a. Explanation
+> **Requirement:** The database must automatically log business events into a secondary history or activity table upon data insertion, without requiring manual multi-table insert statements in application code.
+>
+> In our Civil Service Examination Reviewer system, whenever a student finishes an exam simulation module or practice drill, an event record is inserted into `lesson_events`.
+>
+> The `trg_auto_log_cadet_activity` trigger executes on `AFTER INSERT ON lesson_events`. It automatically extracts the drill score, inspects the event type, and formats a human-readable activity entry directly into the `cadet_activity_logs` table (e.g. `'Completed CSE Practice Drill (+65 XP)'`).
+>
+> This demonstrates **database-tier decoupling**: the client application only performs a single insert into `lesson_events`, and the database engine automatically maintains the user's activity log ledger.
+
+### b. Database Server
+
+#### PostgreSQL (Supabase) Syntax
 ```sql
-DELIMITER $$
+CREATE TABLE IF NOT EXISTS cadet_activity_logs (
+    id BIGSERIAL PRIMARY KEY,
+    profile_id VARCHAR(100) NOT NULL,
+    event_type VARCHAR(50) NOT NULL,
+    activity_description TEXT NOT NULL,
+    xp_gained INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
 
--- 1. TRIGGER 1: trg_before_insert_profile_progress (MySQL)
-DROP TRIGGER IF EXISTS trg_before_insert_profile_progress$$
-CREATE TRIGGER trg_before_insert_profile_progress
-BEFORE INSERT ON profile_progress
-FOR EACH ROW
+CREATE OR REPLACE FUNCTION fn_trg_auto_log_cadet_activity()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+    v_xp INT := GREATEST(0, COALESCE(NEW.score_delta, 0));
+    v_desc TEXT;
 BEGIN
-    SET NEW.total_score = GREATEST(0, COALESCE(NEW.total_score, 0));
-    SET NEW.lessons_completed = GREATEST(0, COALESCE(NEW.lessons_completed, 0));
-
-    IF NEW.total_score >= 7500 THEN
-        SET NEW.current_level = 7 + FLOOR((NEW.total_score - 7500) / 2500);
-    ELSEIF NEW.total_score >= 5000 THEN
-        SET NEW.current_level = 6;
-    ELSEIF NEW.total_score >= 3500 THEN
-        SET NEW.current_level = 5;
-    ELSEIF NEW.total_score >= 2000 THEN
-        SET NEW.current_level = 4;
-    ELSEIF NEW.total_score >= 1000 THEN
-        SET NEW.current_level = 3;
-    ELSEIF NEW.total_score >= 500 THEN
-        SET NEW.current_level = 2;
+    IF NEW.event_type = 'lesson_completed' THEN
+        v_desc := 'Completed CSE Practice Drill (+' || v_xp || ' XP)';
+    ELSIF NEW.event_type = 'mock_exam' THEN
+        v_desc := 'Completed Full Mock Exam Simulation (+' || v_xp || ' XP)';
     ELSE
-        SET NEW.current_level = 1;
+        v_desc := 'Reviewer Drill Activity: ' || COALESCE(NEW.event_type, 'General Drill') || ' (+' || v_xp || ' XP)';
     END IF;
 
-    IF NEW.lessons_completed > 0 AND NEW.last_lesson_date IS NULL THEN
-        SET NEW.last_lesson_date = CURDATE();
-    END IF;
-END$$
+    INSERT INTO cadet_activity_logs (
+        profile_id,
+        event_type,
+        activity_description,
+        xp_gained,
+        created_at
+    )
+    VALUES (
+        NEW.profile_id,
+        COALESCE(NEW.event_type, 'lesson_completed'),
+        v_desc,
+        v_xp,
+        NOW()
+    );
 
--- 2. TRIGGER 1B: trg_before_update_profile_progress (MySQL)
-DROP TRIGGER IF EXISTS trg_before_update_profile_progress$$
-CREATE TRIGGER trg_before_update_profile_progress
-BEFORE UPDATE ON profile_progress
-FOR EACH ROW
-BEGIN
-    SET NEW.total_score = GREATEST(0, COALESCE(NEW.total_score, 0));
-    SET NEW.lessons_completed = GREATEST(0, COALESCE(NEW.lessons_completed, 0));
+    RETURN NEW;
+END;
+$$;
 
-    IF NEW.total_score >= 7500 THEN
-        SET NEW.current_level = 7 + FLOOR((NEW.total_score - 7500) / 2500);
-    ELSEIF NEW.total_score >= 5000 THEN
-        SET NEW.current_level = 6;
-    ELSEIF NEW.total_score >= 3500 THEN
-        SET NEW.current_level = 5;
-    ELSEIF NEW.total_score >= 2000 THEN
-        SET NEW.current_level = 4;
-    ELSEIF NEW.total_score >= 1000 THEN
-        SET NEW.current_level = 3;
-    ELSEIF NEW.total_score >= 500 THEN
-        SET NEW.current_level = 2;
-    ELSE
-        SET NEW.current_level = 1;
-    END IF;
-
-    IF NEW.lessons_completed > OLD.lessons_completed THEN
-        SET NEW.last_lesson_date = CURDATE();
-    END IF;
-END$$
-
--- 3. TRIGGER 2: trg_after_insert_lesson_events (MySQL)
-DROP TRIGGER IF EXISTS trg_after_insert_lesson_events$$
-CREATE TRIGGER trg_after_insert_lesson_events
+DROP TRIGGER IF EXISTS trg_auto_log_cadet_activity ON lesson_events;
+CREATE TRIGGER trg_auto_log_cadet_activity
 AFTER INSERT ON lesson_events
 FOR EACH ROW
-BEGIN
-    DECLARE v_xp INT;
-    DECLARE v_inc INT;
-    SET v_xp = GREATEST(0, COALESCE(NEW.score_delta, 0));
-    SET v_inc = IF(COALESCE(NEW.event_type, 'lesson_completed') = 'lesson_completed', 1, 0);
+EXECUTE FUNCTION fn_trg_auto_log_cadet_activity();
 
-    INSERT INTO profile_progress (profile_id, total_score, current_level, lessons_completed, last_lesson_date)
-    VALUES (NEW.profile_id, v_xp, 1, v_inc, CURDATE())
-    ON DUPLICATE KEY UPDATE
-        total_score = total_score + VALUES(total_score),
-        lessons_completed = lessons_completed + VALUES(lessons_completed),
-        last_lesson_date = CURDATE();
-END$$
-
--- 4. TRIGGER 3: trg_before_update_game_state (MySQL)
-DROP TRIGGER IF EXISTS trg_before_update_game_state$$
-CREATE TRIGGER trg_before_update_game_state
-BEFORE UPDATE ON profile_game_state
-FOR EACH ROW
-BEGIN
-    SET NEW.hearts = LEAST(5, GREATEST(0, COALESCE(NEW.hearts, 5)));
-    SET NEW.gems = GREATEST(0, COALESCE(NEW.gems, 0));
-    SET NEW.streak = GREATEST(0, COALESCE(NEW.streak, 0));
-    SET NEW.streak_freeze_count = GREATEST(0, COALESCE(NEW.streak_freeze_count, 0));
-
-    IF NEW.hearts < 5 THEN
-        IF NEW.last_heart_lost_at IS NULL THEN
-            SET NEW.last_heart_lost_at = NOW();
-        END IF;
-    ELSE
-        SET NEW.last_heart_lost_at = NULL;
-    END IF;
-END$$
-
-DELIMITER ;
+-- RLS policies ensuring client read access and trigger insert permissions:
+ALTER TABLE cadet_activity_logs ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow all users to read cadet activity logs" ON cadet_activity_logs;
+CREATE POLICY "Allow all users to read cadet activity logs" ON cadet_activity_logs FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Allow system and triggers to insert cadet activity logs" ON cadet_activity_logs;
+CREATE POLICY "Allow system and triggers to insert cadet activity logs" ON cadet_activity_logs FOR INSERT WITH CHECK (true);
 ```
 
----
-
-## 3. Live Verification Commands (Run in Database Server)
-
-Run these interactive commands sequentially to verify the triggers:
-
-### Verification Test 1: Trigger 1 (Automatic Level Calculation & Date Sync)
+#### Database Server Live Verification Query
 ```sql
--- Step 1: Update total_score to 3250 XP
-UPDATE profile_progress
-SET total_score = 3250
-WHERE profile_id = (SELECT id FROM profiles LIMIT 1);
-
--- Step 2: Query result
-SELECT profile_id, total_score, current_level, last_lesson_date
-FROM profile_progress
-WHERE profile_id = (SELECT id FROM profiles LIMIT 1);
--- Expected Result: current_level is automatically set to 4 (Officer Cadet, 2000-3499 XP).
-```
-
-### Verification Test 2: Trigger 2 (Lesson Event Insertion Cascades to Progress & Level)
-```sql
--- Step 1: Insert lesson completed event (+500 XP)
+-- Step 1: Insert a new lesson event (+75 XP)
 INSERT INTO lesson_events (profile_id, score_delta, event_type, level_delta)
-VALUES ((SELECT id FROM profiles LIMIT 1), 500, 'lesson_completed', 0);
+VALUES ((SELECT id FROM profiles LIMIT 1), 75, 'lesson_completed', 0);
 
--- Step 2: Query result
-SELECT profile_id, total_score, current_level, lessons_completed, last_lesson_date
-FROM profile_progress
-WHERE profile_id = (SELECT id FROM profiles LIMIT 1);
--- Expected Result: total_score increments by 500, lessons_completed increments by 1,
--- and Trigger 1 automatically recalculates current_level.
+-- Step 2: Query the automatically logged activity table
+SELECT id, profile_id, event_type, activity_description, xp_gained, created_at
+FROM cadet_activity_logs
+ORDER BY created_at DESC
+LIMIT 5;
+
+-- Expected Output:
+-- Contains auto-formatted record: "Completed CSE Practice Drill (+75 XP)"
 ```
 
-### Verification Test 3: Trigger 3 (Game State Economy Clamping)
-```sql
--- Step 1: Try setting invalid out-of-bound hearts (99) and negative gems (-100)
-UPDATE profile_game_state
-SET hearts = 99, gems = -100
-WHERE profile_id = (SELECT id FROM profiles LIMIT 1);
+### c. GUI - Output
 
--- Step 2: Query result
-SELECT profile_id, hearts, gems, last_heart_lost_at
-FROM profile_game_state
-WHERE profile_id = (SELECT id FROM profiles LIMIT 1);
--- Expected Result: hearts is clamped to 5, gems is clamped to 0.
-```
-
-### Verification Test 4: Trigger 4 (Score Audit Ledger)
-```sql
--- Step 1: View the immutable audit records generated by the triggers
-SELECT * FROM score_audit_logs ORDER BY changed_at DESC LIMIT 5;
-```
+1. **Where in the GUI:** Navigate to the **Profile Page** (`http://localhost:3000/profile`) or **Quests** (`http://localhost:3000/quests`).
+2. **Natural User Action:**
+   - Complete any test question drill or exam module in `/lesson`.
+3. **Trigger Execution in GUI:**
+   - On the Profile page under **"Cadet Activity & Audit Ledger"**, toggle to the **"Auto-Logged Events"** tab.
+   - The GUI displays the activity records created automatically by `trg_auto_log_cadet_activity`:
+     - Activity: `Completed CSE Practice Drill (+65 XP)`
+     - Event Type: `lesson_completed`
+     - XP Badge: `+65 XP`
+     - Timestamp: Live server timestamp
+4. **Screenshot to capture:** The Profile page showing the "Auto-Logged Events" tab with entries generated by the database trigger.
 
 ---
 
-## 4. Application Code Integration
+## 5. Submission Walkthrough & Verification Steps
 
-- **SQL Definitions & Migration Script:** `lib/sql/triggers.sql` and `supabase/migrations/20260924_sql_triggers.sql`
-- **Backend API & Simulator Route:** `app/api/admin/triggers/route.ts`
-- **Interactive Web Interface & Trigger Sandbox:** `app/(main)/admin/triggers/page.tsx`
-- **Admin Dashboard Navigation Link:** Added "Triggers" tab in `app/(main)/admin/page.tsx`
+To present this to your professor:
 
----
-
-## 5. Screenshot Submission Checklist
-
-Capture the following three (3) screenshots for your submission:
-
-### Screenshot 1: Traditional SQL Triggers (Database Server)
-- **Where to capture:** **Supabase SQL Editor** (or **MySQL Workbench** / **phpMyAdmin**).
-- **What to run:**
-  ```sql
-  -- Run the test query:
-  UPDATE profile_progress SET total_score = 3500 WHERE profile_id = (SELECT id FROM profiles LIMIT 1);
-  SELECT profile_id, total_score, current_level, last_lesson_date FROM profile_progress WHERE profile_id = (SELECT id FROM profiles LIMIT 1);
-  ```
-- **Screenshot contents:** The SQL statement execution returning `current_level = 5` computed entirely by `trg_calculate_cadet_level`.
-
-### Screenshot 2: Trigger SQL Code in Editor (Application Code)
-- **Where to capture:** VS Code / Antigravity IDE.
-- **What to open:** `lib/sql/triggers.sql` or `app/api/admin/triggers/route.ts`.
-- **Screenshot contents:** The trigger functions, trigger definitions, and comments.
-
-### Screenshot 3: System Output (GUI)
-- **Where to capture:** Web browser at `http://localhost:3000/admin/triggers`.
-- **What to show:**
-  - The **Live Trigger Simulator** tab showing custom XP adjustments triggering level promotions in real time, or
-  - The **Trigger Catalog** tab showing all 4 operational triggers.
-
----
-
-## 6. Technical Explanation of How Each Trigger Operates
-
-*(Copy and paste these exact paragraphs into your written submission)*
-
-### Trigger 1: Automatic Cadet Level Calculation & Date Sync (`trg_calculate_cadet_level`)
-> "In our Civil Service Examination Reviewer system, cadet progression levels must strictly correlate with cumulative experience points (XP) earned across practice drills. The `trg_calculate_cadet_level` traditional trigger operates on `BEFORE INSERT OR UPDATE` on the `profile_progress` table. Before any score change is permanently committed to disk, the trigger intercepts the record, sanitizes against anomalous negative score inputs, and applies our gamification tier algorithm (Level 1 for <500 XP, Level 2 for 500–999 XP, up to Level 7+ for master cadets). It also automatically verifies and timestamps the `last_lesson_date` column with the current date whenever lessons completed increments. By executing this logic at the database engine tier, our system guarantees 100% data consistency across all client applications and prevents level manipulation."
-
-### Trigger 2: Real-time Lesson Event Aggregator (`trg_sync_lesson_event_to_progress`)
-> "Whenever a student finishes an exam simulation module, an event log is generated and inserted into the `lesson_events` table. The `trg_sync_lesson_event_to_progress` trigger executes `AFTER INSERT` on `lesson_events` for each row. It extracts the score delta and event type, and performs an atomic upsert into `profile_progress`, incrementing cumulative `total_score` and `lessons_completed`. Crucially, this operation demonstrates cascading trigger execution: when Trigger 2 updates `profile_progress`, it immediately activates Trigger 1 (`trg_calculate_cadet_level`), which recalculates the cadet's rank level and updates audit logs. This decouples event logging from aggregate maintenance, ensuring optimal transaction isolation and performance."
-
-### Trigger 3: Game Economy & Health Guard (`trg_enforce_game_state_rules`)
-> "The `trg_enforce_game_state_rules` trigger enforces core game economy and health invariant rules on the `profile_game_state` table via a `BEFORE INSERT OR UPDATE` hook. In our reviewer application, cadet health is represented by hearts (capped between 0 and 5) and gems balance. The trigger clamps hearts to never exceed 5 or drop below 0, guards gems against negative balances, and automatically tracks heart regeneration cycles: when hearts fall below 5, it initializes `last_heart_lost_at` with the current UTC timestamp, and when hearts are refilled to 5, it resets the timestamp to `NULL`. This offloads continuous health and economy validation directly to the database layer."
-
-### Trigger 4: Automatic Score Audit Ledger (`trg_audit_score_adjustments`)
-> "To comply with academic and administrative data integrity standards, the `trg_audit_score_adjustments` trigger operates on `AFTER UPDATE OF total_score` on `profile_progress`. Whenever a student's score changes, the trigger automatically constructs an immutable audit entry in the `score_audit_logs` table, storing the candidate's profile ID, previous score, updated score, difference (`score_delta`), previous level, new level, and timestamp. This provides an audit trail to monitor score gains, track learning milestones, and detect anomalies."
+| Step | What to Demonstrate | Location | What the Professor Observes |
+| :---: | :--- | :--- | :--- |
+| **1** | **Validation Trigger** | Shop (`/shop`) | Attempting to purchase an item with insufficient gems results in a database rejection toast: `❌ Purchase failed: Validation Trigger Error: Insufficient gem balance...` |
+| **2** | **Enforcing Business Rules** | Lesson (`/lesson`) & Dashboard (`/dashboard`) | Finishing a practice drill awards XP. The database trigger recalculates the Cadet Level, updating the Rank Badge (Level 1 $\rightarrow$ Level 2) on the Dashboard automatically. |
+| **3** | **Auditing Database Changes** | Profile (`/profile`) $\rightarrow$ Score Audit Trail | Every score adjustment appears in the live immutable `score_audit_logs` table showing old score, new score, delta, and exact timestamp. |
+| **4** | **Automatic Data Logging** | Profile (`/profile`) $\rightarrow$ Auto-Logged Events | Inserting a drill event automatically creates human-readable activity entries in `cadet_activity_logs` via the database trigger. |

@@ -205,7 +205,7 @@ export default function LandingPage() {
           Study now with<br/>REVIEWQO
         </h2>
         
-        <Link href={isSignedIn ? "/dashboard" : "/signup"} className="z-10 mt-16 mb-8 w-[90%] max-w-[400px] sm:w-auto">
+        <Link href={isSignedIn ? "/dashboard" : "/onboarding"} className="z-10 mt-16 mb-8 w-[90%] max-w-[400px] sm:w-auto">
           <Button variant="primary" className="w-full sm:w-auto text-[17px] h-[54px] px-12 shadow-[0_4px_0_#3f8f01]">
             {isSignedIn ? "GO TO DASHBOARD" : "GET STARTED"}
           </Button>

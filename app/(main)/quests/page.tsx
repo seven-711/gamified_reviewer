@@ -690,7 +690,7 @@ export default function QuestsPage() {
 
             {/* Card 3: Longest Streak */}
             <div className="col-span-2 md:col-span-1 p-4 bg-snow-white rounded-2xl flex flex-col items-center text-center">
-              <div className="w-25 h-25 relative">
+              <div className="w-25 h-25 relative mb-3 flex items-center justify-center">
                 <StreakAsset streak={streak} alt="Longest Streak" fill className="object-contain" unoptimized />
               </div>
               <span className={`text-xl md:text-2xl font-black ${isStreakActive ? "text-orange-500" : "text-silver"}`}>{streak}</span>

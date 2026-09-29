@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
+import { useAuth } from "@/lib/auth";
+import { checkIsAdmin } from "@/lib/admin";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -142,6 +144,9 @@ function CopyButton({ text }: { text: string }) {
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function SystemReportsPage() {
+  const { user, isLoaded } = useAuth();
+  const isAdmin = checkIsAdmin(user);
+
   const [data, setData] = useState<ViewsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [mainTab, setMainTab] = useState<"reports" | "definitions">("reports");
@@ -149,13 +154,14 @@ export default function SystemReportsPage() {
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
+    if (!isLoaded || !isAdmin) return;
     setLoading(true);
     fetch("/api/admin/views")
       .then((res) => res.json())
       .then((d) => setData(d))
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, []);
+  }, [isLoaded, isAdmin]);
 
   const currentMeta = REPORT_INFO[activeReport];
 

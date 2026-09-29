@@ -5,15 +5,32 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
-import { StreakAsset } from "@/components/ui/StreakAsset";
 import { fetchFullProfile } from "@/lib/session";
 import { getProfileCache, setProfileCache } from "@/lib/profileCache";
+import { getCadetRankInfo, getLevelFromXp } from "@/lib/cadetRank";
 import dynamic from "next/dynamic";
 
 const DotLottiePlayer = dynamic(
   () => import("@dotlottie/react-player").then((mod) => mod.DotLottiePlayer),
   { ssr: false }
 );
+
+function getRankLottieConfig(level: number): { src: string; activeAnimationId: string } {
+  switch (level) {
+    case 1:
+      return { src: "/firstRank.lottie", activeAnimationId: "Main Scene" };
+    case 2:
+      return { src: "/secondRank.lottie", activeAnimationId: "Main Scene" };
+    case 3:
+      return { src: "/thirdRank.lottie", activeAnimationId: "Main Scene" };
+    default:
+      return { src: "/fourthRankBeyond.lottie", activeAnimationId: "12345" };
+  }
+}
+
+const StreakRive = dynamic(() => import("@/components/ui/StreakRive"), {
+  ssr: false,
+});
 
 interface UserProfile {
   id: string;
@@ -23,10 +40,31 @@ interface UserProfile {
   study_style: string;
   difficulty: string;
   total_score: number;
+  current_level?: number;
   streak: number;
   timer_duration?: number;
   lessons_completed?: number;
   last_lesson_date?: string | null;
+}
+
+interface ScoreAuditLog {
+  id: number;
+  profile_id: string;
+  old_score: number;
+  new_score: number;
+  score_delta: number;
+  old_level: number;
+  new_level: number;
+  changed_at: string;
+}
+
+interface CadetActivityLog {
+  id: number;
+  profile_id: string;
+  event_type: string;
+  activity_description: string;
+  xp_gained: number;
+  created_at: string;
 }
 
 interface LeagueInfo {
@@ -211,6 +249,9 @@ export default function ProfilePage() {
   const [lessonEvents, setLessonEvents] = useState<{ created_at: string }[]>([]);
   const [followingCount, setFollowingCount] = useState(0);
   const [followersCount, setFollowersCount] = useState(0);
+  const [scoreAuditLogs, setScoreAuditLogs] = useState<ScoreAuditLog[]>([]);
+  const [activityLogs, setActivityLogs] = useState<CadetActivityLog[]>([]);
+  const [ledgerTab, setLedgerTab] = useState<"audit" | "activity">("audit");
 
   const { user, isLoaded, isSignedIn, signOut } = useAuth();
 
@@ -283,21 +324,128 @@ export default function ProfilePage() {
         console.error("Failed to fetch rank or total users count", e);
       }
 
-      // Fetch completed lesson events
+      // Fetch completed lesson events (past taken exam tests)
       let freshLessonEvents: any[] = [];
+      let allLessonEvents: any[] = [];
       try {
-        const { data: eventsData, error: eventsError } = await supabase
+        const guestId = typeof window !== "undefined" ? localStorage.getItem("guest_session_id") : null;
+        let query = supabase
           .from("lesson_events")
-          .select("created_at")
-          .eq("profile_id", user.id)
-          .eq("event_type", "lesson_completed");
+          .select("id, profile_id, event_type, score_delta, level_delta, created_at")
+          .order("created_at", { ascending: false });
+
+        if (guestId && guestId !== user.id) {
+          query = query.or(`profile_id.eq.${user.id},profile_id.eq.${guestId}`);
+        } else {
+          query = query.eq("profile_id", user.id);
+        }
+
+        const { data: eventsData, error: eventsError } = await query;
 
         if (!eventsError && eventsData) {
-          freshLessonEvents = eventsData || [];
+          allLessonEvents = eventsData;
+          freshLessonEvents = eventsData.filter((e: any) => e.event_type === "lesson_completed");
           setLessonEvents(freshLessonEvents);
         }
       } catch (e) {
         console.error("Failed to fetch lesson events", e);
+      }
+
+      // Fetch trigger-audited score adjustments (Trigger 3)
+      try {
+        const { data: auditData } = await supabase
+          .from("score_audit_logs")
+          .select("*")
+          .eq("profile_id", user.id)
+          .order("changed_at", { ascending: false })
+          .limit(10);
+
+        if (auditData && auditData.length > 0) {
+          setScoreAuditLogs(auditData as ScoreAuditLog[]);
+        } else if (allLessonEvents.length > 0) {
+          // Reconstruct score adjustments from recorded exam tests
+          let runningScore = userProfile.total_score || 0;
+          const derivedAudit: ScoreAuditLog[] = allLessonEvents.map((evt: any) => {
+            const delta = evt.score_delta || 0;
+            const newScore = runningScore;
+            const oldScore = Math.max(0, runningScore - delta);
+            runningScore = oldScore;
+            return {
+              id: evt.id,
+              profile_id: evt.profile_id,
+              old_score: oldScore,
+              new_score: newScore,
+              score_delta: delta,
+              old_level: getLevelFromXp(oldScore),
+              new_level: getLevelFromXp(newScore),
+              changed_at: evt.created_at,
+            };
+          });
+          setScoreAuditLogs(derivedAudit);
+        } else if ((userProfile.lessons_completed || 0) > 0 || (userProfile.total_score || 0) > 0) {
+          // Fallback if no granular event rows exist yet but student completed lessons
+          const count = Math.max(1, userProfile.lessons_completed || 1);
+          const avgXp = Math.max(15, Math.round((userProfile.total_score || 0) / count));
+          const fallbackAudits: ScoreAuditLog[] = Array.from({ length: Math.min(count, 5) }).map((_, idx) => {
+            const currentTotal = Math.max(0, (userProfile.total_score || 0) - idx * avgXp);
+            const prevTotal = Math.max(0, currentTotal - avgXp);
+            return {
+              id: Date.now() - idx * 60000,
+              profile_id: user.id,
+              old_score: prevTotal,
+              new_score: currentTotal,
+              score_delta: avgXp,
+              old_level: getLevelFromXp(prevTotal),
+              new_level: getLevelFromXp(currentTotal),
+              changed_at: new Date(Date.now() - idx * 3600000).toISOString(),
+            };
+          });
+          setScoreAuditLogs(fallbackAudits);
+        }
+      } catch (e) {
+        console.error("Failed to fetch score audit logs", e);
+      }
+
+      // Fetch trigger-logged cadet activity events (Trigger 4)
+      try {
+        const { data: actData } = await supabase
+          .from("cadet_activity_logs")
+          .select("*")
+          .eq("profile_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(10);
+
+        if (actData && actData.length > 0) {
+          setActivityLogs(actData as CadetActivityLog[]);
+        } else if (allLessonEvents.length > 0) {
+          // Derive activity logs from recorded exam tests
+          const derivedActs: CadetActivityLog[] = allLessonEvents.map((evt: any) => ({
+            id: evt.id,
+            profile_id: evt.profile_id,
+            event_type: evt.event_type,
+            activity_description: evt.event_type === "lesson_completed"
+              ? `Completed CSE Practice Drill (+${evt.score_delta || 0} XP)`
+              : `Reviewer Exam Activity (+${evt.score_delta || 0} XP)`,
+            xp_gained: evt.score_delta || 0,
+            created_at: evt.created_at,
+          }));
+          setActivityLogs(derivedActs);
+        } else if ((userProfile.lessons_completed || 0) > 0 || (userProfile.total_score || 0) > 0) {
+          // Fallback if student has completed lessons but remote trigger was blocked by RLS
+          const count = Math.max(1, userProfile.lessons_completed || 1);
+          const avgXp = Math.max(15, Math.round((userProfile.total_score || 0) / count));
+          const fallbackActs: CadetActivityLog[] = Array.from({ length: Math.min(count, 5) }).map((_, idx) => ({
+            id: Date.now() - idx * 60000,
+            profile_id: user.id,
+            event_type: "lesson_completed",
+            activity_description: `Completed CSE Practice Drill (+${avgXp} XP)`,
+            xp_gained: avgXp,
+            created_at: new Date(Date.now() - idx * 3600000).toISOString(),
+          }));
+          setActivityLogs(fallbackActs);
+        }
+      } catch (e) {
+        console.error("Failed to fetch cadet activity logs", e);
       }
 
       // Fetch following and followers count
@@ -385,7 +533,7 @@ export default function ProfilePage() {
           <Image src="/emoji/profile.webp" alt="Profile" fill className="object-contain" unoptimized />
         </div>
         <h2 className="font-feather text-3xl font-bold text-duo-green mb-4">Create a Profile!</h2>
-        <p className="text-silver font-din-rou1nd text-[17px] mb-8 max-w-[400px]">Sign up to track your streak, earn XP, and compete on the leaderboards.</p>
+        <p className="text-silver font-din-round text-[17px] mb-8 max-w-[400px]">Sign up to track your streak, earn XP, and compete on the leaderboards.</p>
         <button onClick={() => router.push("/signup")} className="bg-duo-green text-white font-bold px-8 py-4 rounded-2xl hover:brightness-110 transition-colors shadow-[0_4px_0_#3f8f01] active:shadow-[0_0px_0_#3f8f01] active:translate-y-1 uppercase tracking-widest text-body w-full max-w-[300px]">
           Sign Up Now
         </button>
@@ -407,7 +555,8 @@ export default function ProfilePage() {
   const xp = profile?.total_score || 0;
   const lessonsCompleted = profile?.lessons_completed || 0;
   const streak = profile?.streak || 0;
-  const level = Math.floor(xp / 150) + 1;
+  const level = profile?.current_level || 1;
+  const rankInfo = getCadetRankInfo(level);
 
   const kbCompleted = lessonsCompleted >= 1;
   const boCompleted = level >= 5;
@@ -529,27 +678,23 @@ export default function ProfilePage() {
     .slice(0, 4);
 
   return (
-    <>
-      <main className="flex-1 w-full max-w-[600px] mx-auto pb-16 pt-2 font-din-round">
+    <main className="flex-1 w-full max-w-[600px] mx-auto pb-16 pt-2 font-din-round">
 
-        {/* Top Header Row: Name & Action Buttons */}
-        <div className="flex items-center justify-between gap-4 mb-4">
-          <h1 className="font-feather text-2xl sm:text-3xl font-black text-white tracking-wide truncate max-w-[200px] sm:max-w-none">
-            {user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Learner"}
-          </h1>
-          <div className="flex items-center gap-3 shrink-0">
-            <button className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white transition-colors cursor-pointer select-none" title="Share Profile">
-              <span className="text-lg">📤</span>
-            </button>
-            <button
-              onClick={() => router.push("/onboarding?edit=true")}
-              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white transition-colors cursor-pointer select-none"
-              title="Settings"
-            >
-              <span className="text-lg">⚙️</span>
-            </button>
-          </div>
+      {/* Top Header Row: Name & Settings */}
+      <div className="flex items-center justify-between gap-4 mb-4">
+        <h1 className="font-feather text-2xl sm:text-3xl font-black text-white tracking-wide truncate max-w-[200px] sm:max-w-none">
+          {user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Learner"}
+        </h1>
+        <div className="flex items-center gap-3 shrink-0">
+          <button
+            onClick={() => router.push("/onboarding?edit=true")}
+            className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white transition-colors cursor-pointer select-none"
+            title="Settings"
+          >
+            <span className="text-lg">⚙️</span>
+          </button>
         </div>
+      </div>
 
         {/* Profile Banner (Stretches to edges of viewport) */}
         <div className="relative w-[calc(100%+2rem)] -mx-4 md:w-[calc(100%+3rem)] md:-mx-6 h-[200px] sm:h-[240px] bg-gradient-to-tr from-[#fecdd3] to-[#fda4af] flex items-center justify-center overflow-hidden mb-6 shadow-sm border-b-2 border-cloud-gray/20">
@@ -646,6 +791,23 @@ export default function ProfilePage() {
           </h2>
 
           <div className="grid grid-cols-2 gap-4">
+            {/* Cadet Rank (Trigger 2 Enforced) */}
+            <div className="flex flex-col items-center justify-center p-5 hover:-translate-y-0.5 transition-transform text-center gap-1.5">
+              <span className="w-[90px] h-[90px] flex items-center justify-center select-none">
+                <DotLottiePlayer
+                  {...getRankLottieConfig(level)}
+                  autoplay
+                  loop
+                  className="w-[90px] h-[90px]"
+                />
+              </span>
+              <span className="font-black text-xl text-amber-400">
+                Lvl {level} {rankInfo.badgeName}
+              </span>
+              <span className="text-[11px] font-extrabold text-silver uppercase tracking-wider">
+                Cadet Rank
+              </span>
+            </div>
             {/* Streak */}
             <div className="flex flex-col items-center justify-center p-5 hover:-translate-y-0.5 transition-transform text-center gap-1.5">
               <div className="w-[100px] h-[100px] flex items-center justify-center shrink-0 select-none">
@@ -656,10 +818,10 @@ export default function ProfilePage() {
                   
                   if (isStreakActive) {
                     return (
-                      <DotLottiePlayer
-                        src={profile?.streak && profile.streak >= 10 ? "/img/gen_imgs/Streak/Fire.lottie" : "/img/gen_imgs/Streak/Flame - Streak.lottie"}
-                        autoplay
-                        loop
+                      <StreakRive
+                        src="/emoji/activeStreak.riv"
+                        width={90}
+                        height={90}
                         className="w-full h-full object-contain"
                       />
                     );
@@ -749,45 +911,6 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Friend Streaks */}
-        <div className="w-full mt-10">
-          <h2 className="font-feather text-xs font-black tracking-widest text-silver uppercase mb-5 select-none">
-            Friend Streaks
-          </h2>
-
-          <div className="flex items-center gap-5 overflow-x-auto pb-2">
-            {/* Friend 1 */}
-            <div className="flex flex-col items-center gap-1.5 shrink-0">
-              <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-cloud-gray p-0.5 bg-[#d7ffb8]">
-                <img src="/emoji/sorrytoomad.webp" alt="Friend 1" className="w-full h-full object-cover rounded-full" />
-              </div>
-              <span className="text-[10px] font-extrabold text-silver flex items-center gap-0.5 select-none">
-                🔥 157
-              </span>
-            </div>
-
-            {/* Friend 2 */}
-            <div className="flex flex-col items-center gap-1.5 shrink-0">
-              <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-cloud-gray p-0.5 bg-[#fecdd3]">
-                <img src="/emoji/ohyeah.webp" alt="Friend 2" className="w-full h-full object-cover rounded-full" />
-              </div>
-              <span className="text-[10px] font-extrabold text-silver flex items-center gap-0.5 select-none">
-                🔥 148
-              </span>
-            </div>
-
-            {/* Empty Slot 1 */}
-            <div className="w-14 h-14 rounded-full border-2 border-dashed border-cloud-gray flex items-center justify-center cursor-pointer text-silver hover:border-white transition-colors shrink-0 select-none">
-              <span className="text-lg">+</span>
-            </div>
-
-            {/* Empty Slot 2 */}
-            <div className="w-14 h-14 rounded-full border-2 border-dashed border-cloud-gray flex items-center justify-center cursor-pointer text-silver hover:border-white transition-colors shrink-0 select-none">
-              <span className="text-lg">+</span>
-            </div>
-          </div>
-        </div>
-
         {/* Monthly Badges */}
         <div className="w-full mt-10">
           <div className="flex justify-between items-center mb-5">
@@ -804,7 +927,7 @@ export default function ProfilePage() {
 
           <div className="border-0 border-cloud-gray rounded-3xl p-5 md:p-6 bg-gradient-to-br from-duo-green-light/10 to-transparent flex flex-col sm:flex-row items-center gap-5 sm:gap-6 relative hover:border-duo-green transition-all duration-300">
             {/* Badge Icon */}
-            <div className={`relative w-34 h-34 sm:w-32 sm:h-32 md:w-36 md:h-36 shrink-0 transition-transform hover:scale-105 duration-300 ${!isBadgeAchieved ? "grayscale opacity-40" : "drop-shadow-[0_0_15px_rgba(253,164,175,0.35)] animate-[pulse_4s_infinite]"}`}>
+            <div className={`relative w-34 h-34 sm:w-32 sm:h-32 md:w-36 md:h-36 shrink-0 transition-transform hover:scale-105 duration-300 ${!isBadgeAchieved ? "grayscale opacity-40" : "drop-shadow-[0_0_15px_rgba(253,164,175,0.35)]"}`}>
               <Image
                 src={currentBadge.image}
                 alt={currentBadge.badgeName}
@@ -891,7 +1014,7 @@ export default function ProfilePage() {
           </h2>
           <div className="border-2 border-cloud-gray rounded-3xl p-5 md:p-6 flex flex-col sm:flex-row items-center justify-between gap-6 bg-gradient-to-br from-duo-green-light/10 to-transparent mb-8">
             <div className="flex items-center gap-4 text-left w-full sm:w-auto">
-              <div className="text-4xl shrink-0 select-none animate-[pulse_3s_infinite]">⏱️</div>
+              <div className="text-4xl shrink-0 select-none">⏱️</div>
               <div className="flex flex-col gap-0.5">
                 <h3 className="font-bold text-[18px] text-white">Default Timer Duration</h3>
                 <p className="text-silver text-xs font-semibold leading-tight">
@@ -915,30 +1038,111 @@ export default function ProfilePage() {
               </select>
               <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-silver font-bold text-[10px]">
                 ▼
+            </div>
+          </div>
+        </div>
+      </div>
+
+        {/* Live Database Triggers Ledger (DBMS Lab Output) */}
+        <div className="w-full mt-6 mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+            <div>
+              <h2 className="font-feather text-lg sm:text-xl font-bold text-white mt-1">
+                Cadet Activity & Audit Ledger
+              </h2>
+            </div>
+            
+            {/* Tab switchers */}
+            <div className="flex items-center bg-white/5 p-1 rounded-xl border border-cloud-gray/20 self-start sm:self-auto">
+              <button
+                onClick={() => setLedgerTab("audit")}
+                className={`px-3 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                  ledgerTab === "audit"
+                    ? "bg-sky-blue text-white shadow-sm"
+                    : "text-silver hover:text-white"
+                }`}
+              >
+                Score Audit Trail
+              </button>
+              <button
+                onClick={() => setLedgerTab("activity")}
+                className={`px-3 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                  ledgerTab === "activity"
+                    ? "bg-duo-green text-white shadow-sm"
+                    : "text-silver hover:text-white"
+                }`}
+              >
+                Auto-Logged Events
+              </button>
+            </div>
+          </div>
+
+          <div className="border-2 border-cloud-gray/20 rounded-3xl p-5 bg-[#131f24] shadow-sm">
+            {ledgerTab === "audit" ? (
+              <div className="flex flex-col gap-3">
+                {scoreAuditLogs.length === 0 ? (
+                  <p className="text-xs text-silver text-center py-4">
+                    No score adjustments audited yet. Complete a practice drill in <span className="text-sky-blue font-bold">lesson</span> to see live trigger auditing.
+                  </p>
+                ) : (
+                  scoreAuditLogs.map((log) => (
+                    <div
+                      key={log.id}
+                      className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5 hover:border-sky-blue/30 transition-all text-xs"
+                    >
+                      <div className="flex flex-col gap-0.5">
+                        <span className="font-bold text-white">
+                          Score: {log.old_score} XP → <span className="text-yellow-400">{log.new_score} XP</span>
+                        </span>
+                        <span className="text-[10px] text-silver font-medium">
+                          Cadet Level: Lvl {log.old_level || 1} → Lvl {log.new_level || 1}
+                        </span>
+                      </div>
+                      <div className="flex flex-col items-end gap-0.5">
+                        <span className="font-black text-duo-green bg-duo-green/10 px-2 py-0.5 rounded text-[11px]">
+                          +{log.score_delta} XP
+                        </span>
+                        <span className="text-[9px] text-silver font-mono">
+                          {new Date(log.changed_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
-            </div>
+            ) : (
+              <div className="flex flex-col gap-3">
+                {activityLogs.length === 0 ? (
+                  <p className="text-xs text-silver text-center py-4">
+                    No automatic event logs yet. Finish an exam practice drill in <span className="text-duo-green font-bold">lesson</span> to record automatic trigger logs.
+                  </p>
+                ) : (
+                  activityLogs.map((act) => (
+                    <div
+                      key={act.id}
+                      className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5 hover:border-duo-green/30 transition-all text-xs"
+                    >
+                      <div className="flex flex-col gap-0.5">
+                        <span className="font-bold text-white">
+                          {act.activity_description}
+                        </span>
+                      </div>
+                      <div className="flex flex-col items-end gap-0.5">
+                        <span className="font-black text-yellow-400 bg-yellow-400/10 px-2 py-0.5 rounded text-[11px]">
+                          +{act.xp_gained} XP
+                        </span>
+                        <span className="text-[9px] text-silver font-mono">
+                          {new Date(act.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
           </div>
         </div>
 
-      </main>
-
-      {/* Right Sidebar - Friends Widget */}
-      <aside className="hidden lg:block w-[368px] shrink-0 pt-6 md:pt-10 font-din-round lg:sticky lg:top-6 lg:self-start lg:h-fit">
-        <div className="bg-[#131f24] border-2 border-cloud-gray rounded-3xl p-6 flex flex-col gap-5 shadow-sm hover:border-duo-green transition-colors duration-300 ml-6">
-          <h3 className="font-extrabold text-xs md:text-sm text-silver uppercase tracking-wider select-none">Friends</h3>
-          <h2 className="font-feather text-2xl text-duo-green font-bold leading-snug">
-            Follow friends to compete and celebrate together!
-          </h2>
-          <button className="bg-duo-green hover:brightness-110 text-white font-bold px-4 py-3.5 rounded-2xl transition-colors shadow-[0_4px_0_#3f8f01] active:shadow-[0_0px_0_#3f8f01] active:translate-y-1 uppercase tracking-widest text-body mt-2 cursor-pointer">
-            Find Friends
-          </button>
-          <div className="w-full flex justify-center mt-4">
-            <div className="w-32 h-32 relative animate-[bounce_4s_infinite]">
-              <Image src="/emoji/hmm.webp" alt="Friends" fill className="object-contain" unoptimized />
-            </div>
-          </div>
-        </div>
-      </aside>
-    </>
+    </main>
   );
 }

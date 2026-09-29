@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useAuth } from "@/lib/auth";
+import { checkIsAdmin } from "@/lib/admin";
 
 interface TriggerMeta {
   id: string;
@@ -46,35 +48,41 @@ function CopyButton({ text, label = "Copy SQL" }: { text: string; label?: string
 }
 
 export default function AdminTriggersPage() {
+  const { user, isLoaded } = useAuth();
+  const isAdmin = checkIsAdmin(user);
+
   const [triggers, setTriggers] = useState<TriggerMeta[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"catalog" | "simulator" | "ddl" | "audit">("catalog");
   const [sqlDialect, setSqlDialect] = useState<"postgres" | "mysql">("postgres");
-  const [expandedTrigger, setExpandedTrigger] = useState<string | null>("trg_calculate_cadet_level");
+  const [expandedTrigger, setExpandedTrigger] = useState<string | null>("trg_validate_game_economy");
 
-  // Simulator 1: Level calculation
-  const [simScore, setSimScore] = useState<number>(3250);
-  const [simLessons, setSimLessons] = useState<number>(15);
+  // Simulator 1: Economy Validation Trigger (trg_validate_game_economy)
+  const [simGems, setSimGems] = useState<number>(-200);
+  const [simHearts, setSimHearts] = useState<number>(5);
+  const [simFreezes, setSimFreezes] = useState<number>(1);
   const [sim1Result, setSim1Result] = useState<any>(null);
   const [sim1Loading, setSim1Loading] = useState(false);
 
-  // Simulator 2: Lesson event sync
-  const [simOldScore, setSimOldScore] = useState<number>(1800);
-  const [simOldLessons, setSimOldLessons] = useState<number>(8);
-  const [simDelta, setSimDelta] = useState<number>(500);
+  // Simulator 2: Cadet Rank Level Calculation (trg_enforce_cadet_progression_rules)
+  const [simScore, setSimScore] = useState<number>(3250);
+  const [simLessons, setSimLessons] = useState<number>(15);
   const [sim2Result, setSim2Result] = useState<any>(null);
   const [sim2Loading, setSim2Loading] = useState(false);
 
-  // Simulator 3: Game state clamping
-  const [simHearts, setSimHearts] = useState<number>(12);
-  const [simGems, setSimGems] = useState<number>(-50);
+  // Simulator 3: Automatic Lesson Activity Log & Cascade (trg_auto_log_cadet_activity)
+  const [simOldScore, setSimOldScore] = useState<number>(1800);
+  const [simOldLessons, setSimOldLessons] = useState<number>(8);
+  const [simDelta, setSimDelta] = useState<number>(500);
   const [sim3Result, setSim3Result] = useState<any>(null);
   const [sim3Loading, setSim3Loading] = useState(false);
 
   useEffect(() => {
-    fetchTriggers();
-  }, []);
+    if (isLoaded && isAdmin) {
+      fetchTriggers();
+    }
+  }, [isLoaded, isAdmin]);
 
   const fetchTriggers = async () => {
     setLoading(true);
@@ -97,8 +105,8 @@ export default function AdminTriggersPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          action: "simulate_level_calc",
-          params: { total_score: simScore, lessons_completed: simLessons },
+          action: "simulate_economy_validation",
+          params: { gems: simGems, hearts: simHearts, streak_freeze_count: simFreezes },
         }),
       });
       const data = await res.json();
@@ -117,8 +125,8 @@ export default function AdminTriggersPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          action: "simulate_lesson_sync",
-          params: { old_score: simOldScore, old_lessons: simOldLessons, score_delta: simDelta },
+          action: "simulate_level_calc",
+          params: { total_score: simScore, lessons_completed: simLessons },
         }),
       });
       const data = await res.json();
@@ -137,8 +145,8 @@ export default function AdminTriggersPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          action: "simulate_game_state",
-          params: { hearts: simHearts, gems: simGems },
+          action: "simulate_lesson_sync",
+          params: { old_score: simOldScore, old_lessons: simOldLessons, score_delta: simDelta },
         }),
       });
       const data = await res.json();
@@ -179,7 +187,7 @@ export default function AdminTriggersPage() {
             Traditional SQL Triggers
           </h1>
           <p className="text-graphite text-sm leading-relaxed">
-            Automated database-tier business rules, cascading state synchronization, game economy invariants, and audit trail logging for the Civil Service Examination Reviewer.
+            Automated database-tier validation triggers (preventing negative balances/quantities), cadet rank business rules, immutable audit ledgers, and automated activity logging for the Civil Service Examination Reviewer.
           </p>
         </div>
 
@@ -296,19 +304,114 @@ export default function AdminTriggersPage() {
       {/* ══════════════════════════ TAB 2: LIVE SIMULATOR ══════════════════════════ */}
       {activeTab === "simulator" && (
         <div className="flex flex-col gap-8 animate-fadeIn">
-          {/* SIMULATOR 1 */}
+          {/* SIMULATOR 1: VALIDATION TRIGGER */}
+          <div className="bg-snow-white border-2 border-cloud-gray rounded-3xl p-6 flex flex-col gap-5">
+            <div className="flex flex-col gap-1 border-b border-cloud-gray pb-3">
+              <div className="flex items-center gap-2">
+                <span className="px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-red-500/20 text-red-600">
+                  TRIGGER 1
+                </span>
+                <h3 className="font-extrabold text-lg text-almost-black">
+                  Validation Trigger: Prevent Invalid Quantities & Balances
+                </h3>
+              </div>
+              <p className="text-graphite text-xs">
+                Tests <code>trg_validate_game_economy</code> on <code>profile_game_state</code>: Enter negative gems (e.g. -200 from shop purchase), hearts overflow (&gt; 5), or streak freeze overflow (&gt; 2). Verifies database aborts with <code>P0001 (Validation Trigger Error)</code>.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-extrabold text-silver uppercase tracking-wider">
+                  Attempted Gems Balance
+                </label>
+                <input
+                  type="number"
+                  value={simGems}
+                  onChange={(e) => setSimGems(Number(e.target.value))}
+                  className="border-2 border-cloud-gray focus:border-red-500 rounded-xl p-3 font-bold text-almost-black text-sm outline-none"
+                  placeholder="e.g. -200"
+                />
+                <span className="text-[10px] text-silver font-bold">Negative = insufficient shop funds</span>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-extrabold text-silver uppercase tracking-wider">
+                  Attempted Hearts
+                </label>
+                <input
+                  type="number"
+                  value={simHearts}
+                  onChange={(e) => setSimHearts(Number(e.target.value))}
+                  className="border-2 border-cloud-gray focus:border-red-500 rounded-xl p-3 font-bold text-almost-black text-sm outline-none"
+                  placeholder="e.g. 5"
+                />
+                <span className="text-[10px] text-silver font-bold">Max allowed: 5</span>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-extrabold text-silver uppercase tracking-wider">
+                  Equipped Streak Freezes
+                </label>
+                <input
+                  type="number"
+                  value={simFreezes}
+                  onChange={(e) => setSimFreezes(Number(e.target.value))}
+                  className="border-2 border-cloud-gray focus:border-red-500 rounded-xl p-3 font-bold text-almost-black text-sm outline-none"
+                  placeholder="e.g. 1"
+                />
+                <span className="text-[10px] text-silver font-bold">Max allowed: 2</span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <button
+                onClick={runSim1}
+                disabled={sim1Loading}
+                className="bg-red-500 hover:bg-red-600 text-white font-extrabold px-6 py-3 rounded-2xl shadow-[0_4px_0_#b91c1c] active:translate-y-1 active:shadow-none transition-all uppercase text-xs tracking-wider cursor-pointer"
+              >
+                {sim1Loading ? "Triggering..." : "⚡ Execute Validation Trigger"}
+              </button>
+            </div>
+
+            {sim1Result && (
+              <div className={`border-2 rounded-2xl p-5 flex flex-col gap-3 animate-fadeIn ${sim1Result.output.rejected ? "bg-red-50/70 border-red-300" : "bg-[#f0fdf4] border-duo-green/30"}`}>
+                <div className="flex items-center justify-between">
+                  <span className={`font-extrabold text-xs uppercase tracking-wider ${sim1Result.output.rejected ? "text-red-600" : "text-duo-green"}`}>
+                    Database Trigger Execution Status
+                  </span>
+                  <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-extrabold ${sim1Result.output.rejected ? "bg-red-600 text-white" : "bg-duo-green text-white"}`}>
+                    {sim1Result.output.rejected ? "❌ EXCEPTION P0001 (ABORTED)" : "✅ TRANSACTION COMMITTED"}
+                  </span>
+                </div>
+
+                <div className="p-4 rounded-xl bg-white border border-cloud-gray/40 font-mono text-xs flex flex-col gap-2">
+                  <span className="text-silver text-[10px] uppercase font-bold tracking-wider">Database Response to GUI:</span>
+                  <p className={sim1Result.output.rejected ? "text-red-600 font-bold" : "text-duo-green font-bold"}>
+                    {sim1Result.output.rejected ? `❌ ${sim1Result.output.error}` : "✅ Transaction committed successfully: data integrity validated."}
+                  </p>
+                </div>
+
+                <p className="text-graphite text-xs mt-1">
+                  <strong>Trigger Pipeline:</strong> {sim1Result.explanation}
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* SIMULATOR 2: BUSINESS RULES TRIGGER */}
           <div className="bg-snow-white border-2 border-cloud-gray rounded-3xl p-6 flex flex-col gap-5">
             <div className="flex flex-col gap-1 border-b border-cloud-gray pb-3">
               <div className="flex items-center gap-2">
                 <span className="px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-sky-blue/20 text-sky-blue">
-                  TRIGGER 1
+                  TRIGGER 2
                 </span>
                 <h3 className="font-extrabold text-lg text-almost-black">
-                  Cadet Level & Date Synchronization Test
+                  Enforcing Business Rules: Cadet Rank Calculation & Date Sync
                 </h3>
               </div>
               <p className="text-graphite text-xs">
-                Tests <code>trg_calculate_cadet_level</code>: Adjust total score (XP) to verify automatic derivation of gamified rank level and last lesson date synchronization.
+                Tests <code>trg_enforce_cadet_progression_rules</code> on <code>profile_progress</code>: Cumulative total score (XP) determines Cadet Rank Tier without client-side calculation.
               </p>
             </div>
 
@@ -342,64 +445,64 @@ export default function AdminTriggersPage() {
 
             <div className="flex items-center gap-3">
               <button
-                onClick={runSim1}
-                disabled={sim1Loading}
+                onClick={runSim2}
+                disabled={sim2Loading}
                 className="bg-sky-blue text-white font-extrabold px-6 py-3 rounded-2xl shadow-[0_4px_0_#0f9cdb] active:translate-y-1 active:shadow-none transition-all uppercase text-xs tracking-wider cursor-pointer"
               >
-                {sim1Loading ? "Triggering..." : "⚡ Execute BEFORE Trigger"}
+                {sim2Loading ? "Triggering..." : "⚡ Execute Business Rules Trigger"}
               </button>
             </div>
 
-            {sim1Result && (
+            {sim2Result && (
               <div className="bg-[#f0f9ff] border-2 border-sky-blue/30 rounded-2xl p-5 flex flex-col gap-3 animate-fadeIn">
                 <div className="flex items-center justify-between">
                   <span className="font-extrabold text-xs text-sky-blue uppercase tracking-wider">
-                    Trigger Output (Simulated BEFORE INSERT/UPDATE)
+                    Trigger Output (BEFORE INSERT OR UPDATE ON profile_progress)
                   </span>
                   <span className="text-[11px] font-mono font-bold text-silver">
-                    {sim1Result.sqlFired}
+                    {sim2Result.sqlFired}
                   </span>
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 font-bold text-sm">
                   <div className="bg-snow-white p-3 rounded-xl border border-sky-blue/20">
                     <span className="text-[10px] text-silver block uppercase">Score Evaluated</span>
-                    <span className="text-almost-black">{sim1Result.output.clamped_total_score} XP</span>
+                    <span className="text-almost-black">{sim2Result.output.total_score} XP</span>
                   </div>
                   <div className="bg-snow-white p-3 rounded-xl border border-sky-blue/20">
-                    <span className="text-[10px] text-silver block uppercase">Current Level</span>
-                    <span className="text-duo-green text-base">Level {sim1Result.output.current_level}</span>
+                    <span className="text-[10px] text-silver block uppercase">Calculated Level</span>
+                    <span className="text-duo-green text-base">Level {sim2Result.output.current_level}</span>
                   </div>
                   <div className="bg-snow-white p-3 rounded-xl border border-sky-blue/20">
-                    <span className="text-[10px] text-silver block uppercase">Rank Badge</span>
-                    <span className="text-[#a570ff] text-xs">{sim1Result.output.rank_title}</span>
+                    <span className="text-[10px] text-silver block uppercase">Cadet Rank Title</span>
+                    <span className="text-[#a570ff] text-xs">{sim2Result.output.rank_title}</span>
                   </div>
                   <div className="bg-snow-white p-3 rounded-xl border border-sky-blue/20">
                     <span className="text-[10px] text-silver block uppercase">Date Synced</span>
-                    <span className="text-charcoal font-mono text-xs">{sim1Result.output.last_lesson_date}</span>
+                    <span className="text-charcoal font-mono text-xs">{sim2Result.output.last_lesson_date}</span>
                   </div>
                 </div>
 
                 <p className="text-graphite text-xs mt-1">
-                  <strong>Explanation:</strong> {sim1Result.explanation}
+                  <strong>Explanation:</strong> {sim2Result.explanation}
                 </p>
               </div>
             )}
           </div>
 
-          {/* SIMULATOR 2 */}
+          {/* SIMULATOR 3: AUTOMATIC ACTIVITY LOGGING & CASCADE */}
           <div className="bg-snow-white border-2 border-cloud-gray rounded-3xl p-6 flex flex-col gap-5">
             <div className="flex flex-col gap-1 border-b border-cloud-gray pb-3">
               <div className="flex items-center gap-2">
                 <span className="px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-duo-green/20 text-duo-green">
-                  TRIGGER 2
+                  TRIGGER 4
                 </span>
                 <h3 className="font-extrabold text-lg text-almost-black">
-                  Lesson Event Cascade & Audit Test
+                  Automatic Data Logging: Lesson Activity Logging & Ledger Sync
                 </h3>
               </div>
               <p className="text-graphite text-xs">
-                Tests <code>trg_sync_lesson_event_to_progress</code>: Inserting a new lesson completion event atomically updates total score, increments lesson count, and cascades into the level calculation and audit log triggers.
+                Tests <code>trg_auto_log_cadet_activity</code> on <code>lesson_events</code>: Automatically writes human-readable activity records to <code>cadet_activity_logs</code> and triggers the audit ledger cascade.
               </p>
             </div>
 
@@ -437,21 +540,21 @@ export default function AdminTriggersPage() {
 
             <div className="flex items-center gap-3">
               <button
-                onClick={runSim2}
-                disabled={sim2Loading}
+                onClick={runSim3}
+                disabled={sim3Loading}
                 className="bg-duo-green text-white font-extrabold px-6 py-3 rounded-2xl shadow-[0_4px_0_#3f8f01] active:translate-y-1 active:shadow-none transition-all uppercase text-xs tracking-wider cursor-pointer"
               >
-                {sim2Loading ? "Triggering..." : "⚡ Execute AFTER INSERT Cascade"}
+                {sim3Loading ? "Triggering..." : "⚡ Execute AFTER INSERT Activity Logging"}
               </button>
             </div>
 
-            {sim2Result && (
+            {sim3Result && (
               <div className="bg-[#f0fdf4] border-2 border-duo-green/30 rounded-2xl p-5 flex flex-col gap-3 animate-fadeIn">
                 <div className="flex items-center justify-between">
                   <span className="font-extrabold text-xs text-duo-green uppercase tracking-wider">
                     Cascading Output (AFTER INSERT ON lesson_events)
                   </span>
-                  {sim2Result.output.is_level_up && (
+                  {sim3Result.output.is_level_up && (
                     <span className="px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-[#ffc700] text-almost-black animate-pulse">
                       🎉 Level Up Triggered!
                     </span>
@@ -460,106 +563,28 @@ export default function AdminTriggersPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 font-bold text-sm">
                   <div className="bg-snow-white p-3 rounded-xl border border-duo-green/20">
-                    <span className="text-[10px] text-silver block uppercase">Previous State</span>
-                    <span className="text-charcoal block">{sim2Result.output.previous_state.total_score} XP</span>
-                    <span className="text-xs text-silver">Level {sim2Result.output.previous_state.current_level} ({sim2Result.output.previous_state.lessons_completed} lessons)</span>
+                    <span className="text-[10px] text-silver block uppercase">Activity Auto-Logged</span>
+                    <span className="text-almost-black text-xs block font-bold mt-1">
+                      {sim3Result.output.activity_log_inserted.activity_description}
+                    </span>
+                    <span className="text-[11px] text-silver">Table: cadet_activity_logs</span>
                   </div>
 
                   <div className="bg-snow-white p-3 rounded-xl border border-duo-green/20">
                     <span className="text-[10px] text-silver block uppercase">New State (Updated by Trigger)</span>
-                    <span className="text-duo-green block">{sim2Result.output.updated_state.total_score} XP</span>
-                    <span className="text-xs text-charcoal">Level {sim2Result.output.updated_state.current_level} ({sim2Result.output.updated_state.lessons_completed} lessons)</span>
+                    <span className="text-duo-green block">{sim3Result.output.updated_state.total_score} XP</span>
+                    <span className="text-xs text-charcoal">Level {sim3Result.output.updated_state.current_level} ({sim3Result.output.updated_state.lessons_completed} lessons)</span>
                   </div>
 
                   <div className="bg-snow-white p-3 rounded-xl border border-duo-green/20">
                     <span className="text-[10px] text-silver block uppercase">Audit Trail Ledger</span>
-                    <span className="text-sky-blue block">+{sim2Result.output.audit_logged.score_delta} XP Delta</span>
-                    <span className="text-xs text-silver">Logged to score_audit_logs</span>
+                    <span className="text-sky-blue block">+{sim3Result.output.audit_logged.score_delta} XP Delta</span>
+                    <span className="text-xs text-silver">Table: score_audit_logs</span>
                   </div>
                 </div>
 
                 <p className="text-graphite text-xs mt-1">
-                  <strong>Cascading Flow:</strong> {sim2Result.explanation}
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* SIMULATOR 3 */}
-          <div className="bg-snow-white border-2 border-cloud-gray rounded-3xl p-6 flex flex-col gap-5">
-            <div className="flex flex-col gap-1 border-b border-cloud-gray pb-3">
-              <div className="flex items-center gap-2">
-                <span className="px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-[#a570ff]/20 text-[#a570ff]">
-                  TRIGGER 3
-                </span>
-                <h3 className="font-extrabold text-lg text-almost-black">
-                  Game Economy Invariant Clamping Test
-                </h3>
-              </div>
-              <p className="text-graphite text-xs">
-                Tests <code>trg_enforce_game_state_rules</code>: Clamps hearts into [0, 5], prevents negative gems balance, and stamps heart loss timestamp.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-extrabold text-silver uppercase tracking-wider">Attempted Hearts Value</label>
-                <input
-                  type="number"
-                  value={simHearts}
-                  onChange={(e) => setSimHearts(Number(e.target.value))}
-                  className="border-2 border-cloud-gray focus:border-[#a570ff] rounded-xl p-3 font-bold text-almost-black text-sm outline-none"
-                  placeholder="e.g. 12 or -3"
-                />
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-extrabold text-silver uppercase tracking-wider">Attempted Gems Value</label>
-                <input
-                  type="number"
-                  value={simGems}
-                  onChange={(e) => setSimGems(Number(e.target.value))}
-                  className="border-2 border-cloud-gray focus:border-[#a570ff] rounded-xl p-3 font-bold text-almost-black text-sm outline-none"
-                  placeholder="e.g. -50"
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <button
-                onClick={runSim3}
-                disabled={sim3Loading}
-                className="bg-[#a570ff] text-white font-extrabold px-6 py-3 rounded-2xl shadow-[0_4px_0_#7b3fe4] active:translate-y-1 active:shadow-none transition-all uppercase text-xs tracking-wider cursor-pointer"
-              >
-                {sim3Loading ? "Triggering..." : "⚡ Execute Boundary Trigger"}
-              </button>
-            </div>
-
-            {sim3Result && (
-              <div className="bg-[#faf5ff] border-2 border-[#a570ff]/30 rounded-2xl p-5 flex flex-col gap-3 animate-fadeIn">
-                <span className="font-extrabold text-xs text-[#a570ff] uppercase tracking-wider">
-                  Trigger Output (Enforced Invariants)
-                </span>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 font-bold text-sm">
-                  <div className="bg-snow-white p-3 rounded-xl border border-[#a570ff]/20">
-                    <span className="text-[10px] text-silver block uppercase">Hearts Clamped</span>
-                    <span className="text-almost-black text-base">❤️ {sim3Result.output.hearts} / 5</span>
-                  </div>
-                  <div className="bg-snow-white p-3 rounded-xl border border-[#a570ff]/20">
-                    <span className="text-[10px] text-silver block uppercase">Gems Clamped</span>
-                    <span className="text-[#ffc700] text-base">💎 {sim3Result.output.gems}</span>
-                  </div>
-                  <div className="bg-snow-white p-3 rounded-xl border border-[#a570ff]/20">
-                    <span className="text-[10px] text-silver block uppercase">Heart Depletion Stamp</span>
-                    <span className="text-charcoal font-mono text-xs block truncate">
-                      {sim3Result.output.last_heart_lost_at || "NULL (Full Hearts)"}
-                    </span>
-                  </div>
-                </div>
-
-                <p className="text-graphite text-xs mt-1">
-                  <strong>Enforcement:</strong> {sim3Result.explanation}
+                  <strong>Cascading Flow:</strong> {sim3Result.explanation}
                 </p>
               </div>
             )}
