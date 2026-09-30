@@ -2,7 +2,10 @@
 
 import React, { createContext, useContext, useState, useCallback } from "react";
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/Button";
+
+const Rive = dynamic(() => import("@rive-app/react-canvas"), { ssr: false });
 
 interface AlertOptions {
   title?: string;
@@ -65,7 +68,7 @@ function getMascotForMessage(message: string, emoji?: string): string {
     msgLower.includes("refilled") ||
     msgLower.includes("purchased")
   ) {
-    return "/emoji/ohyeah.webp";
+    return "/emoji/reviewqo.riv";
   }
   if (
     emoji === "❤️" ||
@@ -153,15 +156,24 @@ export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             
             {/* Mascot and Emoji Header */}
             <div className="flex flex-col items-center gap-5">
-              <div className="w-[110px] h-[110px] relative shrink-0">
-                <Image 
-                  src={mascot} 
-                  alt="Mascot Alert" 
-                  fill 
-                  sizes="110px"
-                  className="object-contain drop-shadow-md"
-                  unoptimized
-                />
+              <div className="w-[110px] h-[110px] relative shrink-0 flex items-center justify-center">
+                {mascot.endsWith(".riv") ? (
+                  <div className="w-full h-full relative flex items-center justify-center">
+                    <Rive
+                      src={mascot}
+                      style={{ width: "100%", height: "100%" }}
+                    />
+                  </div>
+                ) : (
+                  <Image 
+                    src={mascot} 
+                    alt="Mascot Alert" 
+                    fill 
+                    sizes="110px"
+                    className="object-contain drop-shadow-md"
+                    unoptimized
+                  />
+                )}
                 {alertState.emoji && (
                   <span className="absolute -bottom-2 -right-2 text-3xl bg-snow-white dark:bg-[#131f24] p-2 rounded-full border-2 border-cloud-gray dark:border-cloud-gray/15 shadow-sm flex items-center justify-center min-w-[48px] min-h-[48px]">
                     {alertState.emoji === "❤️" ? (

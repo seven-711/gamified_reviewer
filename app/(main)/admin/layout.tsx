@@ -4,6 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth";
 import { checkIsAdmin } from "@/lib/admin";
+import Rive from "@rive-app/react-canvas";
 
 export default function AdminLayout({
   children,
@@ -22,21 +23,16 @@ export default function AdminLayout({
   if (!isAdmin) {
     return (
       <div className="flex-1 w-full min-h-[60vh] flex flex-col items-center justify-center text-center px-4 font-din-round">
-        <h1 className="text-6xl font-black text-charcoal tracking-tight font-feather">
+        
+        <h1 className="text-4xl md:text-6xl font-black text-charcoal tracking-tight font-feather mt-[-2rem]">
           403
         </h1>
-        <h2 className="text-xl font-bold text-graphite mt-2">
+        <h2 className="text-xl md:text-2xl font-bold text-graphite mt-2">
           Forbidden
         </h2>
-        <p className="text-sm text-silver mt-1">
+        <p className="text-sm md:text-base text-silver mt-1">
           Access to this page is restricted.
         </p>
-        <Link
-          href="/dashboard"
-          className="mt-6 inline-flex items-center text-xs font-bold text-sky-blue hover:underline uppercase tracking-wider"
-        >
-          ← Return to Dashboard
-        </Link>
       </div>
     );
   }

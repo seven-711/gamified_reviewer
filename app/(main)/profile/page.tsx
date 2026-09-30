@@ -10,21 +10,26 @@ import { getProfileCache, setProfileCache } from "@/lib/profileCache";
 import { getCadetRankInfo, getLevelFromXp } from "@/lib/cadetRank";
 import dynamic from "next/dynamic";
 
-const DotLottiePlayer = dynamic(
-  () => import("@dotlottie/react-player").then((mod) => mod.DotLottiePlayer),
+const DotLottieReact = dynamic(
+  () => import("@lottiefiles/dotlottie-react").then((mod) => {
+    if (typeof window !== "undefined" && mod.setWasmUrl) {
+      mod.setWasmUrl("/dotlottie-player.wasm");
+    }
+    return mod.DotLottieReact;
+  }),
   { ssr: false }
 );
 
-function getRankLottieConfig(level: number): { src: string; activeAnimationId: string } {
+function getRankLottieConfig(level: number): { src: string; animationId: string } {
   switch (level) {
     case 1:
-      return { src: "/firstRank.lottie", activeAnimationId: "Main Scene" };
+      return { src: "/firstRank.lottie", animationId: "Main Scene" };
     case 2:
-      return { src: "/secondRank.lottie", activeAnimationId: "Main Scene" };
+      return { src: "/secondRank.lottie", animationId: "Main Scene" };
     case 3:
-      return { src: "/thirdRank.lottie", activeAnimationId: "Main Scene" };
+      return { src: "/thirdRank.lottie", animationId: "Main Scene" };
     default:
-      return { src: "/fourthRankBeyond.lottie", activeAnimationId: "12345" };
+      return { src: "/fourthRankBeyond.lottie", animationId: "12345" };
   }
 }
 
@@ -794,7 +799,7 @@ export default function ProfilePage() {
             {/* Cadet Rank (Trigger 2 Enforced) */}
             <div className="flex flex-col items-center justify-center p-5 hover:-translate-y-0.5 transition-transform text-center gap-1.5">
               <span className="w-[90px] h-[90px] flex items-center justify-center select-none">
-                <DotLottiePlayer
+                <DotLottieReact
                   {...getRankLottieConfig(level)}
                   autoplay
                   loop

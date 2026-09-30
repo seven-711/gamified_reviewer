@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -10,6 +10,9 @@ import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 import { upsertFullProfile } from "@/lib/session";
 import { useAlert } from "@/components/ui/AlertContext";
+import { RiveScreenLoader } from "@/components/ui/RiveLoader";
+
+type EmailStatus = "idle" | "checking" | "available" | "taken" | "invalid";
 
 interface StepOption {
   id: string;
@@ -32,6 +35,11 @@ export default function OnboardingPage() {
   const [authError, setAuthError] = useState<string | null>(null);
   const [authLoading, setAuthLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
+
+  // Live email validation state
+  const [emailStatus, setEmailStatus] = useState<EmailStatus>("idle");
+  const [emailMessage, setEmailMessage] = useState("");
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
   // Preference Phase State (Steps 1 to 3)
   const [currentStep, setCurrentStep] = useState(1);
@@ -171,10 +179,142 @@ export default function OnboardingPage() {
     checkSession();
   }, [router, user, isLoaded, isSignedIn]);
 
+  /** Validate email format client-side */
+  const isValidEmail = (val: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim());
+
+  /** Debounced check for duplicate email via Supabase RPC */
+  const checkEmailExists = useCallback(async (emailToCheck: string) => {
+    const trimmed = emailToCheck.trim().toLowerCase();
+
+    if (!trimmed || !isValidEmail(trimmed)) {
+      if (trimmed.length > 0) {
+        setEmailStatus("invalid");
+        setEmailMessage("Please enter a valid email address.");
+      } else {
+        setEmailStatus("idle");
+        setEmailMessage("");
+      }
+      return;
+    }
+
+    setEmailStatus("checking");
+    setEmailMessage("Checking availability\u2026");
+
+    try {
+      const { data, error } = await supabase.rpc("check_email_exists", {
+        email_input: trimmed,
+      });
+
+      if (error) {
+        console.error("check_email_exists RPC error:", error.message);
+        setEmailStatus("idle");
+        setEmailMessage("");
+        return;
+      }
+
+      if (data === true) {
+        setEmailStatus("taken");
+        setEmailMessage("An account with this email already exists.");
+      } else {
+        setEmailStatus("available");
+        setEmailMessage("Email is available!");
+      }
+    } catch {
+      setEmailStatus("idle");
+      setEmailMessage("");
+    }
+  }, []);
+
+  /** Debounce email input — wait 600ms after the user stops typing */
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+
+    if (!email.trim()) {
+      setEmailStatus("idle");
+      setEmailMessage("");
+      return;
+    }
+
+    if (email.trim().length > 0 && !isValidEmail(email)) {
+      if (email.includes("@") && email.split("@")[1]?.length > 0) {
+        setEmailStatus("invalid");
+        setEmailMessage("Please enter a valid email address.");
+      } else {
+        setEmailStatus("idle");
+        setEmailMessage("");
+      }
+      return;
+    }
+
+    debounceRef.current = setTimeout(() => {
+      checkEmailExists(email);
+    }, 600);
+
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, [email, checkEmailExists]);
+
+
+
+  /** Email input border color based on validation status */
+  const emailBorderClass = (() => {
+    switch (emailStatus) {
+      case "checking": return "border-[#f5a623]";
+      case "available": return "border-[#58cc02]";
+      case "taken": case "invalid": return "border-[#ff4b4b]";
+      default: return "border-[#2e4057]";
+    }
+  })();
+
+  const emailMessageColor = (() => {
+    switch (emailStatus) {
+      case "checking": return "text-[#f5a623]";
+      case "available": return "text-[#58cc02]";
+      case "taken": case "invalid": return "text-[#ff4b4b]";
+      default: return "text-[#6b7f94]";
+    }
+  })();
+
+  const emailStatusIcon = (() => {
+    switch (emailStatus) {
+      case "checking":
+        return (
+          <svg className="animate-spin h-4 w-4 text-[#f5a623]" viewBox="0 0 24 24" fill="none">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+          </svg>
+        );
+      case "available":
+        return (
+          <svg className="h-4 w-4 text-[#58cc02]" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+          </svg>
+        );
+      case "taken": case "invalid":
+        return (
+          <svg className="h-4 w-4 text-[#ff4b4b]" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+          </svg>
+        );
+      default: return null;
+    }
+  })();
+
   // Handle Signup (Same logic as app/signup/page.tsx)
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault();
     setAuthError(null);
+
+    // Block submission if email is already taken
+    if (emailStatus === "taken") {
+      setAuthError(null);
+      return;
+    }
+
+    // Block submission if email format is invalid
+    if (emailStatus === "invalid") {
+      setAuthError("Please enter a valid email address.");
+      return;
+    }
 
     if (password !== confirmPassword) {
       setAuthError("Passwords do not match.");
@@ -196,6 +336,18 @@ export default function OnboardingPage() {
       });
 
       if (signUpError) {
+        // Check if the error indicates user already exists
+        if (
+          signUpError.message.toLowerCase().includes("user already registered") ||
+          signUpError.message.toLowerCase().includes("already been registered")
+        ) {
+          setEmailStatus("taken");
+          setEmailMessage("An account with this email already exists.");
+          setAuthError(null);
+          setAuthLoading(false);
+          return;
+        }
+
         // If rate limit error occurs, attempt direct sign-in in case the user already exists
         if (signUpError.message.toLowerCase().includes("rate limit") || signUpError.message.toLowerCase().includes("over_email_send_rate_limit")) {
           const { data: loginData } = await supabase.auth.signInWithPassword({
@@ -219,6 +371,19 @@ export default function OnboardingPage() {
         }
 
         setAuthError(signUpError.message);
+        setAuthLoading(false);
+        return;
+      }
+
+      // Detect existing account: Supabase returns an empty identities array
+      if (
+        data.user &&
+        Array.isArray(data.user.identities) &&
+        data.user.identities.length === 0
+      ) {
+        setEmailStatus("taken");
+        setEmailMessage("An account with this email already exists.");
+        setAuthError(null);
         setAuthLoading(false);
         return;
       }
@@ -482,14 +647,7 @@ export default function OnboardingPage() {
   };
 
   if (checkingSession) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-[#131f2e] font-din-round text-white">
-        <div className="flex flex-col items-center gap-4">
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#2e4057] border-t-[#1cb0f6]"></div>
-          <p className="text-[#6b7f94] font-bold">Verifying details...</p>
-        </div>
-      </div>
-    );
+    return <RiveScreenLoader text="Verifying details..." className="bg-[#131f2e]" />;
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -618,64 +776,6 @@ export default function OnboardingPage() {
                   {authLoading ? "LOGGING IN…" : "LOG IN"}
                 </button>
               </form>
-
-              {/* OR divider */}
-              <div className="flex items-center gap-3 w-full my-1">
-                <div className="flex-1 h-px bg-[#2e4057]" />
-                <span className="text-[#6b7f94] text-xs font-bold uppercase tracking-widest">OR</span>
-                <div className="flex-1 h-px bg-[#2e4057]" />
-              </div>
-
-              {/* Social Buttons */}
-              <div className="w-full flex flex-col gap-2">
-                <div className="flex items-center justify-center gap-1.5 text-[#6b7f94] text-[11px] font-bold uppercase tracking-wider">
-                  <span>Social Login</span>
-                  <span className="bg-[#2e4057] text-[#afafaf] text-[9px] px-2 py-0.5 rounded-full font-extrabold">
-                    Not Functional Yet
-                  </span>
-                </div>
-
-                <div className="flex gap-3 w-full">
-                  <button
-                    type="button"
-                    className="flex-1 flex items-center justify-center gap-2 h-[48px] bg-transparent border-2 border-[#2e4057] rounded-xl text-[#6b7f94] font-bold text-xs tracking-wide cursor-not-allowed opacity-60 select-none"
-                    disabled
-                  >
-                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" className="opacity-60">
-                      <path d="M17.64 9.205c0-.638-.057-1.252-.164-1.841H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>
-                      <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/>
-                      <path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
-                      <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
-                    </svg>
-                    GOOGLE
-                  </button>
-                  <button
-                    type="button"
-                    className="flex-1 flex items-center justify-center gap-2 h-[48px] bg-transparent border-2 border-[#2e4057] rounded-xl text-[#6b7f94] font-bold text-xs tracking-wide cursor-not-allowed opacity-60 select-none"
-                    disabled
-                  >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="#1877F2" className="opacity-60">
-                      <path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.97h-1.513c-1.491 0-1.956.93-1.956 1.886v2.267h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/>
-                    </svg>
-                    FACEBOOK
-                  </button>
-                </div>
-              </div>
-
-              {/* Legal */}
-              <p className="text-center text-[#6b7f94] text-xs leading-relaxed mt-1">
-                By signing in to REVIEWQO, you agree to our{" "}
-                <Link href="/terms" className="text-[#1cb0f6] hover:underline">Terms</Link>{" "}
-                and{" "}
-                <Link href="/privacy" className="text-[#1cb0f6] hover:underline">Privacy Policy</Link>.
-              </p>
-              <p className="text-center text-[#6b7f94] text-xs leading-relaxed">
-                This site is protected by reCAPTCHA Enterprise and the Google{" "}
-                <Link href="https://policies.google.com/privacy" className="text-[#1cb0f6] hover:underline">Privacy Policy</Link>{" "}
-                and{" "}
-                <Link href="https://policies.google.com/terms" className="text-[#1cb0f6] hover:underline">Terms of Service</Link>{" "}
-                apply.
-              </p>
             </div>
           </div>
         </div>
@@ -734,17 +834,53 @@ export default function OnboardingPage() {
                 className="w-full bg-[#1f2f40] border-2 border-[#2e4057] text-white placeholder-[#6b7f94] rounded-xl px-4 h-[52px] text-[15px] font-semibold outline-none focus:border-[#1cb0f6] transition-colors"
               />
 
-              {/* Email */}
-              <input
-                id="signup-email"
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                autoComplete="email"
-                className="w-full bg-[#1f2f40] border-2 border-[#2e4057] text-white placeholder-[#6b7f94] rounded-xl px-4 h-[52px] text-[15px] font-semibold outline-none focus:border-[#1cb0f6] transition-colors"
-              />
+              {/* Email — with live validation */}
+              <div className="flex flex-col gap-1">
+                <div className="relative">
+                  <input
+                    id="signup-email"
+                    type="email"
+                    placeholder="Email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    autoComplete="email"
+                    className={`w-full bg-[#1f2f40] border-2 ${emailBorderClass} text-white placeholder-[#6b7f94] rounded-xl px-4 pr-10 h-[52px] text-[15px] font-semibold outline-none focus:border-[#1cb0f6] transition-colors`}
+                  />
+                  {/* Status icon inside the input */}
+                  {emailStatusIcon && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                      {emailStatusIcon}
+                    </div>
+                  )}
+                </div>
+                {/* Validation message below the input */}
+                {emailMessage && emailStatus !== "taken" && (
+                  <div className={`flex items-center gap-1.5 px-1 ${emailMessageColor}`}>
+                    <span className="text-xs font-semibold leading-tight">{emailMessage}</span>
+                  </div>
+                )}
+                {/* Prominent banner when email is already taken */}
+                {emailStatus === "taken" && (
+                  <div className="w-full bg-[#ff4b4b]/10 border border-[#ff4b4b]/30 rounded-xl px-4 py-3 flex flex-col gap-2 mt-1">
+                    <div className="flex items-center gap-2">
+                      <svg className="h-4 w-4 text-[#ff4b4b] flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                      <span className="text-[#ff4b4b] text-xs font-bold">
+                        An account with this email already exists.
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => { setAuthView("login"); setAuthError(null); setEmailStatus("idle"); setEmailMessage(""); }}
+                      className="w-full h-[38px] bg-[#ff4b4b] hover:bg-[#e03e3e] text-white font-extrabold text-xs tracking-[0.08em] uppercase rounded-lg transition-all cursor-pointer"
+                    >
+                      LOG IN INSTEAD
+                    </button>
+                  </div>
+                )}
+              </div>
 
               {/* Password */}
               <div className="relative">
@@ -783,70 +919,12 @@ export default function OnboardingPage() {
               <button
                 id="signup-submit"
                 type="submit"
-                disabled={authLoading}
+                disabled={authLoading || emailStatus === "taken" || emailStatus === "checking"}
                 className="w-full h-[52px] bg-[#1cb0f6] hover:bg-[#18a0e0] active:translate-y-[2px] text-white font-extrabold text-[15px] tracking-[0.08em] uppercase rounded-xl shadow-[0_4px_0_#0e7ab5] active:shadow-none transition-all disabled:opacity-60 disabled:cursor-not-allowed mt-1 cursor-pointer"
               >
                 {authLoading ? "CREATING ACCOUNT…" : "GET STARTED"}
               </button>
             </form>
-
-            {/* OR divider */}
-            <div className="flex items-center gap-3 w-full my-1">
-              <div className="flex-1 h-px bg-[#2e4057]" />
-              <span className="text-[#6b7f94] text-xs font-bold uppercase tracking-widest">OR</span>
-              <div className="flex-1 h-px bg-[#2e4057]" />
-            </div>
-
-            {/* Social Buttons */}
-            <div className="w-full flex flex-col gap-2">
-              <div className="flex items-center justify-center gap-1.5 text-[#6b7f94] text-[11px] font-bold uppercase tracking-wider">
-                <span>Social Signup</span>
-                <span className="bg-[#2e4057] text-[#afafaf] text-[9px] px-2 py-0.5 rounded-full font-extrabold">
-                  Not Functional Yet
-                </span>
-              </div>
-
-              <div className="flex gap-3 w-full">
-                <button
-                  type="button"
-                  className="flex-1 flex items-center justify-center gap-2 h-[48px] bg-transparent border-2 border-[#2e4057] rounded-xl text-[#6b7f94] font-bold text-xs tracking-wide cursor-not-allowed opacity-60 select-none"
-                  disabled
-                >
-                  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" className="opacity-60">
-                    <path d="M17.64 9.205c0-.638-.057-1.252-.164-1.841H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>
-                    <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/>
-                    <path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
-                    <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
-                  </svg>
-                  GOOGLE
-                </button>
-                <button
-                  type="button"
-                  className="flex-1 flex items-center justify-center gap-2 h-[48px] bg-transparent border-2 border-[#2e4057] rounded-xl text-[#6b7f94] font-bold text-xs tracking-wide cursor-not-allowed opacity-60 select-none"
-                  disabled
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="#1877F2" className="opacity-60">
-                    <path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.97h-1.513c-1.491 0-1.956.93-1.956 1.886v2.267h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/>
-                  </svg>
-                  FACEBOOK
-                </button>
-              </div>
-            </div>
-
-            {/* Legal */}
-            <p className="text-center text-[#6b7f94] text-xs leading-relaxed mt-1">
-              By signing up, you agree to our{" "}
-              <Link href="/terms" className="text-[#1cb0f6] hover:underline">Terms</Link>{" "}
-              and{" "}
-              <Link href="/privacy" className="text-[#1cb0f6] hover:underline">Privacy Policy</Link>.
-            </p>
-            <p className="text-center text-[#6b7f94] text-xs leading-relaxed">
-              This site is protected by reCAPTCHA Enterprise and the Google{" "}
-              <Link href="https://policies.google.com/privacy" className="text-[#1cb0f6] hover:underline">Privacy Policy</Link>{" "}
-              and{" "}
-              <Link href="https://policies.google.com/terms" className="text-[#1cb0f6] hover:underline">Terms of Service</Link>{" "}
-              apply.
-            </p>
           </div>
         </div>
       </div>

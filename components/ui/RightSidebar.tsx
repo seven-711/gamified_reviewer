@@ -11,37 +11,30 @@ import { supabase } from "@/lib/supabase";
 import { useAlert } from "@/components/ui/AlertContext";
 import { getCadetRankInfo } from "@/lib/cadetRank";
 import dynamic from "next/dynamic";
+import { playRewardSound } from "@/lib/sound";
 
-const DotLottiePlayer = dynamic(
-  () => import("@dotlottie/react-player").then((mod) => mod.DotLottiePlayer),
+const DotLottieReact = dynamic(
+  () => import("@lottiefiles/dotlottie-react").then((mod) => {
+    if (typeof window !== "undefined" && mod.setWasmUrl) {
+      mod.setWasmUrl("/dotlottie-player.wasm");
+    }
+    return mod.DotLottieReact;
+  }),
   { ssr: false }
 );
 
-function getRankLottieConfig(level: number): { src: string; activeAnimationId: string } {
+function getRankLottieConfig(level: number): { src: string; animationId: string } {
   switch (level) {
     case 1:
-      return { src: "/firstRank.lottie", activeAnimationId: "Main Scene" };
+      return { src: "/firstRank.lottie", animationId: "Main Scene" };
     case 2:
-      return { src: "/secondRank.lottie", activeAnimationId: "Main Scene" };
+      return { src: "/secondRank.lottie", animationId: "Main Scene" };
     case 3:
-      return { src: "/thirdRank.lottie", activeAnimationId: "Main Scene" };
+      return { src: "/thirdRank.lottie", animationId: "Main Scene" };
     default:
-      return { src: "/fourthRankBeyond.lottie", activeAnimationId: "12345" };
+      return { src: "/fourthRankBeyond.lottie", animationId: "12345" };
   }
 }
-
-const playSound = (src: string) => {
-  if (typeof window !== "undefined") {
-    try {
-      const audio = new Audio(src);
-      audio.play().catch(() => {
-        // Silently catch autoplay or unsupported format errors in browser
-      });
-    } catch {
-      // Ignore audio instantiation failures
-    }
-  }
-};
 
 interface LeagueInfo {
   name: string;
@@ -227,7 +220,7 @@ export default function RightSidebar() {
           .eq("profile_id", profileId);
 
         if (!error) {
-          playSound("/videos/claimed_reward.webm");
+          playRewardSound();
           localStorage.setItem(`quest_${questNum}_claimed`, "true");
           updateStatsLocally({ gems: gems + gemReward });
           await refreshStats();
@@ -323,7 +316,7 @@ export default function RightSidebar() {
           title={`Cadet Rank: Level ${currentLevel} ${rankInfo.title} (Enforced by Database Trigger)`}
         >
           <div className="w-7 h-7 flex items-center justify-center overflow-hidden shrink-0">
-            <DotLottiePlayer
+            <DotLottieReact
               {...getRankLottieConfig(currentLevel)}
               autoplay
               loop

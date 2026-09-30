@@ -8,7 +8,7 @@ import { supabase } from "@/lib/supabase";
 import { useStats } from "@/components/ui/StatsContext";
 import { getStreakImage } from "@/lib/streak";
 import { fetchFullProfile } from "@/lib/session";
-
+import { RiveLoader } from "@/components/ui/RiveLoader";
 interface MonthlyBadge {
   monthIndex: number;
   monthName: string;
@@ -402,8 +402,7 @@ function AchievementsContent() {
 
       {pageLoading ? (
         <div className="flex flex-col items-center justify-center py-20 gap-4">
-          <div className="w-12 h-12 border-4 border-sky-blue/30 border-t-sky-blue rounded-full animate-spin"></div>
-          <span className="text-silver font-bold">Loading achievements...</span>
+          <RiveLoader text="Loading achievements..." className="[&_p]:text-silver" />
         </div>
       ) : activeTab === "badges" ? (
         /* Monthly Badges Grid */
@@ -551,8 +550,7 @@ export default function AchievementsPage() {
   return (
     <Suspense fallback={
       <div className="flex flex-col items-center justify-center py-20 gap-4">
-        <div className="w-12 h-12 border-4 border-sky-blue/30 border-t-sky-blue rounded-full animate-spin"></div>
-        <span className="text-silver font-bold">Loading...</span>
+        <RiveLoader text="Loading..." className="[&_p]:text-silver" />
       </div>
     }>
       <AchievementsContent />

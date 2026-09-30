@@ -15,10 +15,17 @@ import { getOrCreateGuestSessionId, updateProfileStats, refillHeartsInDb, upsert
 import { supabase } from "@/lib/supabase";
 import { useAlert } from "@/components/ui/AlertContext";
 import { useStats } from "@/components/ui/StatsContext";
+import { RiveScreenLoader, RiveLoader } from "@/components/ui/RiveLoader";
+import { playSound, playCorrectSound, playWrongSound, isSoundEnabled, setSoundEnabledState } from "@/lib/sound";
 import dynamic from "next/dynamic";
 
-const DotLottiePlayer = dynamic(
-  () => import("@dotlottie/react-player").then((mod) => mod.DotLottiePlayer),
+const DotLottieReact = dynamic(
+  () => import("@lottiefiles/dotlottie-react").then((mod) => {
+    if (typeof window !== "undefined" && mod.setWasmUrl) {
+      mod.setWasmUrl("/dotlottie-player.wasm");
+    }
+    return mod.DotLottieReact;
+  }),
   { ssr: false }
 );
 
@@ -41,21 +48,6 @@ function generateShuffledIndices(length: number): number[] {
   }
   return indices;
 }
-
-const playSound = (src: string) => {
-  if (typeof window !== "undefined") {
-    const enabled = localStorage.getItem("lesson_sfx_enabled") !== "false";
-    if (!enabled) return;
-    try {
-      const audio = new Audio(src);
-      audio.play().catch(() => {
-        // Silently catch autoplay or unsupported format errors in browser
-      });
-    } catch {
-      // Ignore audio instantiation failures
-    }
-  }
-};
 
 function LessonContent() {
   const { showAlert } = useAlert();
@@ -129,20 +121,13 @@ function LessonContent() {
   const [soundEnabled, setSoundEnabled] = useState(true);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("lesson_sfx_enabled");
-      if (saved !== null) {
-        setSoundEnabled(saved === "true");
-      }
-    }
+    setSoundEnabled(isSoundEnabled());
   }, []);
 
   const toggleSound = () => {
     const nextVal = !soundEnabled;
     setSoundEnabled(nextVal);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("lesson_sfx_enabled", nextVal.toString());
-    }
+    setSoundEnabledState(nextVal);
   };
 
   const keyBufferRef = React.useRef<string>("");
@@ -633,6 +618,17 @@ function LessonContent() {
             endOfWeek.setDate(startOfWeek.getDate() + 6);
             endOfWeek.setHours(23, 59, 59, 999);
 
+            const progress = [false, false, false, false, false, false, false];
+
+            // Mark all consecutive streak days in current week as completed
+            const effectiveStreak = res.newStreak || 1;
+            for (let k = 0; k < effectiveStreak; k++) {
+              const dayOffset = currentDayOfWeek - k;
+              if (dayOffset >= 0) {
+                progress[dayOffset] = true;
+              }
+            }
+
             try {
               const { data, error: err } = await supabase
                 .from("lesson_events")
@@ -643,24 +639,17 @@ function LessonContent() {
                 .lte("created_at", endOfWeek.toISOString());
 
               if (!err && data) {
-                const progress = [false, false, false, false, false, false, false];
                 data.forEach((evt: any) => {
                   const d = new Date(evt.created_at);
                   progress[d.getDay()] = true;
                 });
-                progress[today.getDay()] = true; // Make sure today is checked since we just finished
-                setWeekProgress(progress);
-              } else {
-                // fallback: check only today as true
-                const progress = [false, false, false, false, false, false, false];
-                progress[today.getDay()] = true;
-                setWeekProgress(progress);
               }
             } catch (e) {
-              const progress = [false, false, false, false, false, false, false];
-              progress[today.getDay()] = true;
-              setWeekProgress(progress);
+              console.warn("Could not query weekly lesson_events:", e);
             }
+
+            progress[currentDayOfWeek] = true; // Ensure today is marked
+            setWeekProgress([...progress]);
 
             await refreshStats();
             if (typeof window !== "undefined") {
@@ -757,7 +746,7 @@ function LessonContent() {
         if (status === "selected" && selectedOption !== null) {
           // Equivalent to handleCheck logic, using functional state updates where possible
           if (selectedOption === question.correctIndex) {
-            playSound("/videos/correct.mp3");
+            playCorrectSound();
             setStatus("correct");
             setCorrectAnswers((prev) => prev + 1);
             setConsecutiveCorrect((prev) => {
@@ -766,7 +755,7 @@ function LessonContent() {
               return next;
             });
           } else {
-            playSound("/videos/wrong.mp3");
+            playWrongSound();
             setStatus("wrong");
             setConsecutiveCorrect(0);
             setHearts((prev) => {
@@ -824,7 +813,7 @@ function LessonContent() {
     if (selectedOption === null) return;
 
     if (selectedOption === question.correctIndex) {
-      playSound("/videos/correct.mp3");
+      playCorrectSound();
       setStatus("correct");
       setCorrectAnswers((prev) => prev + 1);
       setConsecutiveCorrect((prev) => {
@@ -833,7 +822,7 @@ function LessonContent() {
         return next;
       });
     } else {
-      playSound("/videos/wrong.mp3");
+      playWrongSound();
       setStatus("wrong");
       setConsecutiveCorrect(0);
       setHearts((prev) => {
@@ -1008,17 +997,7 @@ function LessonContent() {
   }
 
   if (!isLoaded || loadingData) return (
-    <div className="dark-mode min-h-screen flex items-center justify-center bg-snow-white font-din-round transition-colors duration-300">
-      <div className="flex flex-col items-center gap-4 text-center px-6 animate-[fadeIn_0.5s_ease-out]">
-        <div className="relative flex items-center justify-center">
-          <div className="absolute h-8 w-8 rounded-full bg-duo-green/20 animate-ping"></div>
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-cloud-gray dark:border-cloud-gray/10 border-t-duo-green"></div>
-        </div>
-        <p className="text-[15px] font-bold text-charcoal dark:text-white tracking-wide mt-2">
-          Loading test...
-        </p>
-      </div>
-    </div>
+    <RiveScreenLoader text="Loading test..." className="dark-mode bg-snow-white transition-colors duration-300 [&_p]:text-charcoal [&_p]:dark:text-white" />
   );
 
   if (phase === "examples") {
@@ -1029,15 +1008,7 @@ function LessonContent() {
       }
       return (
         <div className="dark-mode min-h-screen flex flex-col items-center justify-center bg-snow-white font-din-round text-almost-black px-6 text-center transition-colors duration-300">
-          <div className="flex flex-col items-center gap-4 animate-[fadeIn_0.5s_ease-out]">
-            <div className="relative flex items-center justify-center">
-              <div className="absolute h-8 w-8 rounded-full bg-duo-green/20 animate-ping"></div>
-              <div className="h-12 w-12 animate-spin rounded-full border-4 border-cloud-gray dark:border-cloud-gray/10 border-t-duo-green"></div>
-            </div>
-            <p className="text-[15px] font-bold text-charcoal dark:text-white tracking-wide mt-2">
-              Recovering test session...
-            </p>
-          </div>
+          <RiveLoader text="Recovering test session..." />
           <button
             onClick={() => window.location.reload()}
             className="mt-6 bg-duo-green hover:bg-duo-green/95 text-white font-extrabold px-6 py-3.5 rounded-2xl shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none transition-all cursor-pointer uppercase tracking-widest text-sm"
@@ -1805,17 +1776,7 @@ function LessonContent() {
 export default function LessonPage() {
   return (
     <Suspense fallback={
-      <div className="dark-mode min-h-screen flex items-center justify-center bg-snow-white font-din-round transition-colors duration-300">
-        <div className="flex flex-col items-center gap-4 text-center px-6 animate-[fadeIn_0.5s_ease-out]">
-          <div className="relative flex items-center justify-center">
-            <div className="absolute h-8 w-8 rounded-full bg-duo-green/20 animate-ping"></div>
-            <div className="h-12 w-12 animate-spin rounded-full border-4 border-cloud-gray dark:border-cloud-gray/10 border-t-duo-green"></div>
-          </div>
-          <p className="text-[15px] font-bold text-charcoal dark:text-white tracking-wide mt-2">
-            Loading...
-          </p>
-        </div>
-      </div>
+      <RiveScreenLoader text="Loading..." className="dark-mode bg-snow-white transition-colors duration-300 [&_p]:text-charcoal [&_p]:dark:text-white" />
     }>
       <LessonContent />
     </Suspense>
@@ -1854,9 +1815,9 @@ function StreakPage({ streak, weekProgress, onContinue }: StreakPageProps) {
         
         {/* Flame Animation & Streak Number */}
         <div className="relative w-84 h-84 md:w-72 md:h-72 flex items-center justify-center">
-          <DotLottiePlayer
+          <DotLottieReact
             src={streak >= 10 ? "/img/gen_imgs/Streak/Fire.lottie" : "/img/gen_imgs/Streak/Flame - Streak.lottie"}
-            activeAnimationId={streak >= 10 ? "f198971c-ebb7-4dfc-93f1-f15d4ac3fa73" : "9de27f01-998e-415c-8faa-78045c132088"}
+            animationId={streak >= 10 ? "f198971c-ebb7-4dfc-93f1-f15d4ac3fa73" : "9de27f01-998e-415c-8faa-78045c132088"}
             autoplay
             loop
             className="w-full h-full object-contain"
@@ -1885,9 +1846,9 @@ function StreakPage({ streak, weekProgress, onContinue }: StreakPageProps) {
           <div className="flex justify-between items-center px-1 w-full">
             {daysOfWeek.map((day, index) => {
               const isToday = isHydrated && index === todayIndex;
-              const isCompleted = weekProgress[index];
-              const isPast = isHydrated && index < todayIndex;
-              const isSavedByFreeze = isPast && !isCompleted && streak > 0;
+              // If the user has a streak of N days, any day within the last N days up to todayIndex is part of the active streak
+              const isStreakDay = isHydrated && todayIndex !== null && streak > 0 && index <= todayIndex && (todayIndex - index) < streak;
+              const isCompleted = Boolean(weekProgress[index] || isStreakDay);
 
               return (
                 <div key={day} className="flex flex-col items-center gap-3 flex-1">
@@ -1902,8 +1863,8 @@ function StreakPage({ streak, weekProgress, onContinue }: StreakPageProps) {
 
                   {/* Icon Checkmark Container */}
                   <div className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center relative shrink-0">
-                    {isToday && isCompleted ? (
-                      /* Today Completed: Flame outline with streak checkmark inside */
+                    {isCompleted ? (
+                      /* Completed Day in Streak: Animated active streak flame (activeStreak.riv) */
                       <StreakAsset
                         streak={1}
                         forceActive
@@ -1911,25 +1872,6 @@ function StreakPage({ streak, weekProgress, onContinue }: StreakPageProps) {
                         height={36}
                         className="w-9 h-9 md:w-10 md:h-10 object-contain shrink-0 pointer-events-none"
                       />
-                    ) : isCompleted ? (
-                      /* Previous Day Completed: Gold circle with checkmark */
-                      <div className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-[#f89e1b] border-2 border-[#d77800] flex items-center justify-center shadow-lg shrink-0">
-                        <svg
-                          viewBox="0 0 24 24"
-                          className="w-4 h-4 md:w-5 md:h-5 text-white stroke-white stroke-[4] fill-none shrink-0"
-                        >
-                          <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                      </div>
-                    ) : isSavedByFreeze ? (
-                      /* Saved by Freeze: Blue freeze icon */
-                      <div className="w-9 h-9 md:w-10 md:h-10 flex items-center justify-center shrink-0">
-                        <img
-                          src="/img/gen_imgs/Streak/streak_freeze.webp"
-                          alt="Streak Freeze Used"
-                          className="w-full h-full object-contain filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]"
-                        />
-                      </div>
                     ) : (
                       /* Not Completed: Dark empty circle */
                       <div className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-[#202f36] border-2 border-[#35454e] flex items-center justify-center shrink-0" />

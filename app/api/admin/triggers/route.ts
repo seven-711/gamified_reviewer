@@ -129,17 +129,17 @@ BEGIN
     NEW.total_score := GREATEST(0, COALESCE(NEW.total_score, 0));
     NEW.lessons_completed := GREATEST(0, COALESCE(NEW.lessons_completed, 0));
 
-    IF NEW.total_score >= 7500 THEN
-        NEW.current_level := 7 + FLOOR((NEW.total_score - 7500) / 2500)::INT;
-    ELSIF NEW.total_score >= 5000 THEN
+    IF NEW.total_score >= 120000 THEN
+        NEW.current_level := 7 + FLOOR((NEW.total_score - 120000) / 20000)::INT;
+    ELSIF NEW.total_score >= 100000 THEN
         NEW.current_level := 6;
-    ELSIF NEW.total_score >= 3500 THEN
+    ELSIF NEW.total_score >= 80000 THEN
         NEW.current_level := 5;
-    ELSIF NEW.total_score >= 2000 THEN
+    ELSIF NEW.total_score >= 60000 THEN
         NEW.current_level := 4;
-    ELSIF NEW.total_score >= 1000 THEN
+    ELSIF NEW.total_score >= 40000 THEN
         NEW.current_level := 3;
-    ELSIF NEW.total_score >= 500 THEN
+    ELSIF NEW.total_score >= 20000 THEN
         NEW.current_level := 2;
     ELSE
         NEW.current_level := 1;
@@ -170,17 +170,17 @@ BEGIN
     SET NEW.total_score = GREATEST(0, COALESCE(NEW.total_score, 0));
     SET NEW.lessons_completed = GREATEST(0, COALESCE(NEW.lessons_completed, 0));
 
-    IF NEW.total_score >= 7500 THEN
-        SET NEW.current_level = 7 + FLOOR((NEW.total_score - 7500) / 2500);
-    ELSEIF NEW.total_score >= 5000 THEN
+    IF NEW.total_score >= 120000 THEN
+        SET NEW.current_level = 7 + FLOOR((NEW.total_score - 120000) / 20000);
+    ELSEIF NEW.total_score >= 100000 THEN
         SET NEW.current_level = 6;
-    ELSEIF NEW.total_score >= 3500 THEN
+    ELSEIF NEW.total_score >= 80000 THEN
         SET NEW.current_level = 5;
-    ELSEIF NEW.total_score >= 2000 THEN
+    ELSEIF NEW.total_score >= 60000 THEN
         SET NEW.current_level = 4;
-    ELSEIF NEW.total_score >= 1000 THEN
+    ELSEIF NEW.total_score >= 40000 THEN
         SET NEW.current_level = 3;
-    ELSEIF NEW.total_score >= 500 THEN
+    ELSEIF NEW.total_score >= 20000 THEN
         SET NEW.current_level = 2;
     ELSE
         SET NEW.current_level = 1;
@@ -191,8 +191,8 @@ BEGIN
     END IF;
 END$$
 DELIMITER ;`,
-    sampleDml: `UPDATE profile_progress SET total_score = 3250 WHERE profile_id = (SELECT id FROM profiles LIMIT 1);`,
-    expectedOutcome: 'Total score becomes 3250; current_level automatically set to 4 (Officer Cadet).',
+    sampleDml: `UPDATE profile_progress SET total_score = 65000 WHERE profile_id = (SELECT id FROM profiles LIMIT 1);`,
+    expectedOutcome: 'Total score becomes 65000; current_level automatically set to 4 (Officer Cadet).',
   },
   {
     id: 'trg_audit_score_adjustments',
@@ -359,21 +359,7 @@ DELIMITER ;`,
 
 export function evalLevelFromScore(totalScore: number): number {
   const safeScore = Math.max(0, totalScore || 0);
-  if (safeScore >= 7500) {
-    return 7 + Math.floor((safeScore - 7500) / 2500);
-  } else if (safeScore >= 5000) {
-    return 6;
-  } else if (safeScore >= 3500) {
-    return 5;
-  } else if (safeScore >= 2000) {
-    return 4;
-  } else if (safeScore >= 1000) {
-    return 3;
-  } else if (safeScore >= 500) {
-    return 2;
-  } else {
-    return 1;
-  }
+  return Math.floor(safeScore / 20000) + 1;
 }
 
 export function evalCadetRankTitle(level: number): string {

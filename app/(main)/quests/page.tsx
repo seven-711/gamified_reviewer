@@ -8,19 +8,7 @@ import { supabase } from "@/lib/supabase";
 import { useAlert } from "@/components/ui/AlertContext";
 import { useStats } from "@/components/ui/StatsContext";
 import { StreakAsset } from "@/components/ui/StreakAsset";
-
-const playSound = (src: string) => {
-  if (typeof window !== "undefined") {
-    try {
-      const audio = new Audio(src);
-      audio.play().catch(() => {
-        // Silently catch autoplay or unsupported format errors in browser
-      });
-    } catch {
-      // Ignore audio instantiation failures
-    }
-  }
-};
+import { playRewardSound } from "@/lib/sound";
 
 export default function QuestsPage() {
   const { showAlert } = useAlert();
@@ -188,7 +176,7 @@ export default function QuestsPage() {
           .eq("profile_id", profileId);
 
         if (!error) {
-          playSound("/videos/claimed_reward.webm");
+          playRewardSound();
           localStorage.setItem(`quest_${questNum}_claimed`, "true");
           updateStatsLocally({ gems: gems + gemReward });
           await refreshStats();
@@ -226,7 +214,7 @@ export default function QuestsPage() {
           .eq("profile_id", profileId);
 
         if (!gameError) {
-          playSound("/videos/claimed_reward.webm");
+          playRewardSound();
           if (isGuest) {
             if (typeof window !== "undefined") {
               const currentClaimed = localStorage.getItem("guest_claimed_achievements");

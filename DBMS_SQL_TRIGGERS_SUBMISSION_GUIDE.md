@@ -160,18 +160,18 @@ BEGIN
     NEW.total_score := GREATEST(0, COALESCE(NEW.total_score, 0));
     NEW.lessons_completed := GREATEST(0, COALESCE(NEW.lessons_completed, 0));
 
-    -- Enforce Civil Service cadet level milestones from XP:
-    IF NEW.total_score >= 7500 THEN
-        NEW.current_level := 7 + FLOOR((NEW.total_score - 7500) / 2500)::INT;
-    ELSIF NEW.total_score >= 5000 THEN
+    -- Enforce Civil Service cadet level milestones from XP (20,000 XP per rank):
+    IF NEW.total_score >= 120000 THEN
+        NEW.current_level := 7 + FLOOR((NEW.total_score - 120000) / 20000)::INT;
+    ELSIF NEW.total_score >= 100000 THEN
         NEW.current_level := 6;
-    ELSIF NEW.total_score >= 3500 THEN
+    ELSIF NEW.total_score >= 80000 THEN
         NEW.current_level := 5;
-    ELSIF NEW.total_score >= 2000 THEN
+    ELSIF NEW.total_score >= 60000 THEN
         NEW.current_level := 4;
-    ELSIF NEW.total_score >= 1000 THEN
+    ELSIF NEW.total_score >= 40000 THEN
         NEW.current_level := 3;
-    ELSIF NEW.total_score >= 500 THEN
+    ELSIF NEW.total_score >= 20000 THEN
         NEW.current_level := 2;
     ELSE
         NEW.current_level := 1;
@@ -198,9 +198,9 @@ EXECUTE FUNCTION fn_trg_enforce_cadet_progression_rules();
 
 #### Database Server Live Verification Query
 ```sql
--- Step 1: Update total_score to 3750 XP (Client only updates score)
+-- Step 1: Update total_score to 85000 XP (Client only updates score)
 UPDATE profile_progress
-SET total_score = 3750
+SET total_score = 85000
 WHERE profile_id = (SELECT id FROM profiles LIMIT 1);
 
 -- Step 2: Query result
@@ -209,7 +209,7 @@ FROM profile_progress
 WHERE profile_id = (SELECT id FROM profiles LIMIT 1);
 
 -- Expected Output:
--- current_level is automatically set to 5 (Master Cadet, 3500-4999 XP) by the trigger!
+-- current_level is automatically set to 5 (Master Cadet, 80000-99999 XP) by the trigger!
 ```
 
 ### c. GUI - Output

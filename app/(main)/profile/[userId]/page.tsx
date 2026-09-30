@@ -8,10 +8,16 @@ import { supabase } from "@/lib/supabase";
 import { fetchFullProfile } from "@/lib/session";
 import { getProfileCache, setProfileCache } from "@/lib/profileCache";
 import { getStreakImage } from "@/lib/streak";
+import { RiveLoader } from "@/components/ui/RiveLoader";
 import dynamic from "next/dynamic";
 
-const DotLottiePlayer = dynamic(
-  () => import("@dotlottie/react-player").then((mod) => mod.DotLottiePlayer),
+const DotLottieReact = dynamic(
+  () => import("@lottiefiles/dotlottie-react").then((mod) => {
+    if (typeof window !== "undefined" && mod.setWasmUrl) {
+      mod.setWasmUrl("/dotlottie-player.wasm");
+    }
+    return mod.DotLottieReact;
+  }),
   { ssr: false }
 );
 
@@ -460,8 +466,7 @@ function UserProfileContent({ userId }: { userId: string }) {
   if (loading || !profile) {
     return (
       <main className="flex-1 w-full max-w-[600px] mx-auto pb-24 pt-20 flex flex-col items-center justify-center gap-4">
-        <div className="w-12 h-12 border-4 border-sky-blue/30 border-t-sky-blue rounded-full animate-spin"></div>
-        <span className="text-silver font-bold">Loading profile...</span>
+        <RiveLoader text="Loading profile..." className="[&_p]:text-silver" />
       </main>
     );
   }
@@ -833,9 +838,9 @@ function UserProfileContent({ userId }: { userId: string }) {
 
                 if (isStreakActive) {
                   return (
-                    <DotLottiePlayer
+                    <DotLottieReact
                       src={streak >= 10 ? "/img/gen_imgs/Streak/Fire.lottie" : "/img/gen_imgs/Streak/Flame - Streak.lottie"}
-                      activeAnimationId={streak >= 10 ? "f198971c-ebb7-4dfc-93f1-f15d4ac3fa73" : "9de27f01-998e-415c-8faa-78045c132088"}
+                      animationId={streak >= 10 ? "f198971c-ebb7-4dfc-93f1-f15d4ac3fa73" : "9de27f01-998e-415c-8faa-78045c132088"}
                       autoplay
                       loop
                       className="w-full h-full object-contain"
@@ -998,8 +1003,7 @@ export default function UserProfilePage({ params }: { params: any }) {
   if (!resolvedUserId) {
     return (
       <main className="flex-1 w-full max-w-[600px] mx-auto pb-24 pt-20 flex flex-col items-center justify-center gap-4">
-        <div className="w-12 h-12 border-4 border-sky-blue/30 border-t-sky-blue rounded-full animate-spin"></div>
-        <span className="text-silver font-bold">Unwrapping parameters...</span>
+        <RiveLoader text="Unwrapping parameters..." className="[&_p]:text-silver" />
       </main>
     );
   }
@@ -1007,8 +1011,7 @@ export default function UserProfilePage({ params }: { params: any }) {
   return (
     <Suspense fallback={
       <main className="flex-1 w-full max-w-[600px] mx-auto pb-24 pt-20 flex flex-col items-center justify-center gap-4">
-        <div className="w-12 h-12 border-4 border-sky-blue/30 border-t-sky-blue rounded-full animate-spin"></div>
-        <span className="text-silver font-bold">Loading...</span>
+        <RiveLoader text="Loading..." className="[&_p]:text-silver" />
       </main>
     }>
       <UserProfileContent userId={resolvedUserId} />

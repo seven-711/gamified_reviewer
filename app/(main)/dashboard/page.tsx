@@ -11,22 +11,28 @@ import { useAlert } from "@/components/ui/AlertContext";
 import { useStats } from "@/components/ui/StatsContext";
 import { getCadetRankInfo } from "@/lib/cadetRank";
 import dynamic from "next/dynamic";
+import Rive from "@rive-app/react-canvas";
 
-const DotLottiePlayer = dynamic(
-  () => import("@dotlottie/react-player").then((mod) => mod.DotLottiePlayer),
+const DotLottieReact = dynamic(
+  () => import("@lottiefiles/dotlottie-react").then((mod) => {
+    if (typeof window !== "undefined" && mod.setWasmUrl) {
+      mod.setWasmUrl("/dotlottie-player.wasm");
+    }
+    return mod.DotLottieReact;
+  }),
   { ssr: false }
 );
 
-function getRankLottieConfig(level: number): { src: string; activeAnimationId: string } {
+function getRankLottieConfig(level: number): { src: string; animationId: string } {
   switch (level) {
     case 1:
-      return { src: "/firstRank.lottie", activeAnimationId: "Main Scene" };
+      return { src: "/firstRank.lottie", animationId: "Main Scene" };
     case 2:
-      return { src: "/secondRank.lottie", activeAnimationId: "Main Scene" };
+      return { src: "/secondRank.lottie", animationId: "Main Scene" };
     case 3:
-      return { src: "/thirdRank.lottie", activeAnimationId: "Main Scene" };
+      return { src: "/thirdRank.lottie", animationId: "Main Scene" };
     default:
-      return { src: "/fourthRankBeyond.lottie", activeAnimationId: "12345" };
+      return { src: "/fourthRankBeyond.lottie", animationId: "12345" };
   }
 }
 
@@ -784,7 +790,7 @@ export default function DashboardPage() {
             <div className="w-full bg-snow-white border-2 border-cloud-gray dark:border-cloud-gray/20 rounded-2xl p-4 md:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
               <div className="flex items-center gap-4 w-full sm:w-auto">
                 <div className="w-16 h-16 md:w-28 md:h-28 rounded-2xl flex items-center justify-center shrink-0 overflow-hidden">
-                  <DotLottiePlayer
+                  <DotLottieReact
                     {...getRankLottieConfig(currentLevel)}
                     autoplay
                     loop
@@ -1231,13 +1237,6 @@ export default function DashboardPage() {
 
                     return (
                       <div key={index} className="relative w-full">
-                        {/* Mascot near active node */}
-                        {isActive && (
-                          <div className="absolute -top-12 -right-2 md:-right-6 w-[70px] h-[70px] animate-[bounce_2.5s_infinite] z-20">
-                            <Image src="/emoji/awow.webp" alt="Mascot" fill className="object-contain drop-shadow-lg" sizes="(max-width: 768px) 100vw, 50vw" />
-                          </div>
-                        )}
-
                         <button
                           onClick={() => !isLocked && handleTopicClick(testTitle, testId)}
                           className={`relative z-10 w-full flex items-center justify-between p-5 md:p-6 rounded-2xl transition-all duration-200 text-left ${cardClass}`}

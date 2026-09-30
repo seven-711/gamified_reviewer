@@ -1,4 +1,5 @@
 import { supabase } from "./supabase";
+import { getLevelFromXp } from "./cadetRank";
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -313,6 +314,7 @@ export async function updateProfileStats(
       .upsert({
         profile_id: profileId,
         total_score: newScore,
+        current_level: getLevelFromXp(newScore),
         lessons_completed: newLessons,
         last_lesson_date: todayStr,
       }, { onConflict: "profile_id" });

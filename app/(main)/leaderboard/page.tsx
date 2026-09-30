@@ -48,43 +48,43 @@ interface LeagueInfo {
 }
 
 export function getLeagueInfo(xp: number, lessonsCompleted: number, rank: number): LeagueInfo {
-  if (xp >= 8000 && rank === 1) {
+  if (xp >= 140000 && rank === 1) {
     return {
       name: "Legend League",
       image: "/img/gen_imgs/league_/legend_league.webp",
     };
   }
-  if (xp >= 6000 && rank <= 3) {
+  if (xp >= 120000 && rank <= 3) {
     return {
       name: "Champion League",
       image: "/img/gen_imgs/league_/champion league.webp",
     };
   }
-  if (xp >= 4000 && rank <= 3) {
+  if (xp >= 100000 && rank <= 3) {
     return {
       name: "Master League",
       image: "/img/gen_imgs/league_/master_league.webp",
     };
   }
-  if (xp >= 2500 && rank <= 5) {
+  if (xp >= 80000 && rank <= 5) {
     return {
       name: "Diamond League",
       image: "/img/gen_imgs/league_/diamond_league.webp",
     };
   }
-  if (xp >= 1500 && rank <= 7) {
+  if (xp >= 60000 && rank <= 7) {
     return {
       name: "Crystal League",
       image: "/img/gen_imgs/league_/crystal_league.webp",
     };
   }
-  if (xp >= 800 && rank <= 10) {
+  if (xp >= 40000 && rank <= 10) {
     return {
       name: "Gold League",
       image: "/img/gen_imgs/league_/gold_league.webp",
     };
   }
-  if (xp >= 300 || lessonsCompleted >= 5) {
+  if (xp >= 20000 || lessonsCompleted >= 5) {
     return {
       name: "Silver League",
       image: "/img/gen_imgs/league_/silver_league.webp",

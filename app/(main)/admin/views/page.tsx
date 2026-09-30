@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth";
 import { checkIsAdmin } from "@/lib/admin";
+import { RiveLoader } from "@/components/ui/RiveLoader";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -323,8 +324,7 @@ export default function SystemReportsPage() {
 
       {loading ? (
         <div className="flex flex-col items-center justify-center py-24 gap-3">
-          <div className="w-8 h-8 border-[3px] border-cloud-gray border-t-sky-blue rounded-full animate-spin" />
-          <p className="text-silver font-bold text-sm">Loading system reports...</p>
+          <RiveLoader text="Loading system reports..." className="[&_p]:text-silver" />
         </div>
       ) : (
         <>

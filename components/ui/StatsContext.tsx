@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
+import { getLevelFromXp } from "@/lib/cadetRank";
 
 interface StatsContextProps {
   streak: number;
@@ -107,8 +108,9 @@ export const StatsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
 
       if (progress) {
-        setXp(progress.total_score || 0);
-        setCurrentLevel(progress.current_level || 1);
+        const score = progress.total_score || 0;
+        setXp(score);
+        setCurrentLevel(getLevelFromXp(score));
         setLessonsCompleted(progress.lessons_completed || 0);
         setLastLessonDate(progress.last_lesson_date || null);
       }

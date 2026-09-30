@@ -1,10 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { upsertFullProfile } from "@/lib/session";
+
+type EmailStatus = "idle" | "checking" | "available" | "taken" | "invalid";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -17,9 +19,163 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
+  // Live email validation state
+  const [emailStatus, setEmailStatus] = useState<EmailStatus>("idle");
+  const [emailMessage, setEmailMessage] = useState("");
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+
+  /** Validate email format client-side */
+  const isValidEmail = (val: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim());
+
+  /** Debounced check for duplicate email via Supabase RPC */
+  const checkEmailExists = useCallback(async (emailToCheck: string) => {
+    const trimmed = emailToCheck.trim().toLowerCase();
+
+    // Skip empty or invalid emails
+    if (!trimmed || !isValidEmail(trimmed)) {
+      if (trimmed.length > 0) {
+        setEmailStatus("invalid");
+        setEmailMessage("Please enter a valid email address.");
+      } else {
+        setEmailStatus("idle");
+        setEmailMessage("");
+      }
+      return;
+    }
+
+    setEmailStatus("checking");
+    setEmailMessage("Checking availability\u2026");
+
+    try {
+      const { data, error } = await supabase.rpc("check_email_exists", {
+        email_input: trimmed,
+      });
+
+      if (error) {
+        console.error("check_email_exists RPC error:", error.message);
+        // Don't block signup on RPC errors — just reset
+        setEmailStatus("idle");
+        setEmailMessage("");
+        return;
+      }
+
+      if (data === true) {
+        setEmailStatus("taken");
+        setEmailMessage("An account with this email already exists.");
+      } else {
+        setEmailStatus("available");
+        setEmailMessage("Email is available!");
+      }
+    } catch {
+      setEmailStatus("idle");
+      setEmailMessage("");
+    }
+  }, []);
+
+  /** Debounce email input — wait 600ms after the user stops typing */
+  useEffect(() => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+
+    // Reset if empty
+    if (!email.trim()) {
+      setEmailStatus("idle");
+      setEmailMessage("");
+      return;
+    }
+
+    // Quick client-side format check while typing
+    if (email.trim().length > 0 && !isValidEmail(email)) {
+      // Don't show invalid message until they've typed enough (has @ and domain)
+      if (email.includes("@") && email.split("@")[1]?.length > 0) {
+        setEmailStatus("invalid");
+        setEmailMessage("Please enter a valid email address.");
+      } else {
+        setEmailStatus("idle");
+        setEmailMessage("");
+      }
+      return;
+    }
+
+    debounceRef.current = setTimeout(() => {
+      checkEmailExists(email);
+    }, 600);
+
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, [email, checkEmailExists]);
+
+
+
+  /** Get the border color class for the email input */
+  const emailBorderClass = (() => {
+    switch (emailStatus) {
+      case "checking": return "border-[#f5a623]";
+      case "available": return "border-[#58cc02]";
+      case "taken": return "border-[#ff4b4b]";
+      case "invalid": return "border-[#ff4b4b]";
+      default: return "border-[#2e4057]";
+    }
+  })();
+
+  /** Get the message color for email status */
+  const emailMessageColor = (() => {
+    switch (emailStatus) {
+      case "checking": return "text-[#f5a623]";
+      case "available": return "text-[#58cc02]";
+      case "taken": return "text-[#ff4b4b]";
+      case "invalid": return "text-[#ff4b4b]";
+      default: return "text-[#6b7f94]";
+    }
+  })();
+
+  /** Get the status icon for email validation */
+  const emailStatusIcon = (() => {
+    switch (emailStatus) {
+      case "checking":
+        return (
+          <svg className="animate-spin h-4 w-4 text-[#f5a623]" viewBox="0 0 24 24" fill="none">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+          </svg>
+        );
+      case "available":
+        return (
+          <svg className="h-4 w-4 text-[#58cc02]" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+          </svg>
+        );
+      case "taken":
+      case "invalid":
+        return (
+          <svg className="h-4 w-4 text-[#ff4b4b]" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+          </svg>
+        );
+      default:
+        return null;
+    }
+  })();
+
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+
+    // Block submission if email is already taken
+    if (emailStatus === "taken") {
+      setError("This email is already registered. Please log in instead.");
+      return;
+    }
+
+    // Block submission if email format is invalid
+    if (emailStatus === "invalid") {
+      setError("Please enter a valid email address.");
+      return;
+    }
 
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
@@ -41,6 +197,17 @@ export default function SignupPage() {
       });
 
       if (authError) {
+        // Check if the error message indicates the user already exists
+        if (
+          authError.message.toLowerCase().includes("user already registered") ||
+          authError.message.toLowerCase().includes("already been registered")
+        ) {
+          setEmailStatus("taken");
+          setEmailMessage("An account with this email already exists.");
+          setError(null);
+          return;
+        }
+
         // If rate limit error occurs, attempt direct sign-in in case the user already exists
         if (authError.message.toLowerCase().includes("rate limit") || authError.message.toLowerCase().includes("over_email_send_rate_limit")) {
           const { data: loginData } = await supabase.auth.signInWithPassword({
@@ -62,6 +229,19 @@ export default function SignupPage() {
         }
 
         setError(authError.message);
+        return;
+      }
+
+      // Detect existing account: Supabase returns an empty identities array
+      // when signUp is called with an already-registered email
+      if (
+        data.user &&
+        Array.isArray(data.user.identities) &&
+        data.user.identities.length === 0
+      ) {
+        setEmailStatus("taken");
+        setEmailMessage("An account with this email already exists.");
+        setError(null);
         return;
       }
 
@@ -173,17 +353,54 @@ export default function SignupPage() {
               className="w-full bg-[#1f2f40] border-2 border-[#2e4057] text-white placeholder-[#6b7f94] rounded-xl px-4 h-[52px] text-[15px] font-semibold outline-none focus:border-[#1cb0f6] transition-colors"
             />
 
-            {/* Email */}
-            <input
-              id="signup-email"
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              autoComplete="email"
-              className="w-full bg-[#1f2f40] border-2 border-[#2e4057] text-white placeholder-[#6b7f94] rounded-xl px-4 h-[52px] text-[15px] font-semibold outline-none focus:border-[#1cb0f6] transition-colors"
-            />
+            {/* Email — with live validation */}
+            <div className="flex flex-col gap-1">
+              <div className="relative">
+                <input
+                  id="signup-email"
+                  type="email"
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  autoComplete="email"
+                  className={`w-full bg-[#1f2f40] border-2 ${emailBorderClass} text-white placeholder-[#6b7f94] rounded-xl px-4 pr-10 h-[52px] text-[15px] font-semibold outline-none focus:border-[#1cb0f6] transition-colors`}
+                />
+                {/* Status icon inside the input */}
+                {emailStatusIcon && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                    {emailStatusIcon}
+                  </div>
+                )}
+              </div>
+              {/* Validation message below the input */}
+              {emailMessage && emailStatus !== "taken" && (
+                <div className={`flex items-center gap-1.5 px-1 ${emailMessageColor}`}>
+                  <span className="text-xs font-semibold leading-tight">{emailMessage}</span>
+                </div>
+              )}
+              {/* Prominent banner when email is already taken */}
+              {emailStatus === "taken" && (
+                <div className="w-full bg-[#ff4b4b]/10 border border-[#ff4b4b]/30 rounded-xl px-4 py-3 flex flex-col gap-2 mt-1">
+                  <div className="flex items-center gap-2">
+                    <svg className="h-4 w-4 text-[#ff4b4b] flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    <span className="text-[#ff4b4b] text-xs font-bold">
+                      An account with this email already exists.
+                    </span>
+                  </div>
+                  <Link href="/login" className="w-full">
+                    <button
+                      type="button"
+                      className="w-full h-[38px] bg-[#ff4b4b] hover:bg-[#e03e3e] text-white font-extrabold text-xs tracking-[0.08em] uppercase rounded-lg transition-all"
+                    >
+                      LOG IN INSTEAD
+                    </button>
+                  </Link>
+                </div>
+              )}
+            </div>
 
             {/* Password */}
             <div className="relative">
@@ -222,7 +439,7 @@ export default function SignupPage() {
             <button
               id="signup-submit"
               type="submit"
-              disabled={loading}
+              disabled={loading || emailStatus === "taken" || emailStatus === "checking"}
               className="w-full h-[52px] bg-[#1cb0f6] hover:bg-[#18a0e0] active:translate-y-[2px] text-white font-extrabold text-[15px] tracking-[0.08em] uppercase rounded-xl shadow-[0_4px_0_#0e7ab5] active:shadow-none transition-all disabled:opacity-60 disabled:cursor-not-allowed mt-1"
             >
               {loading ? "CREATING ACCOUNT…" : "GET STARTED"}
