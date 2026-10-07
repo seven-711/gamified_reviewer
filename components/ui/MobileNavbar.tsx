@@ -32,6 +32,7 @@ export default function MobileNavbar() {
     <div className="md:hidden fixed bottom-0 left-0 right-0 h-[72px] bg-snow-white border-t-2 border-cloud-gray z-40 flex items-center justify-around px-2 pb-safe">
       {visibleNavItems.map((item) => {
         const isActive = pathname === item.href;
+        const isLockedForGuest = !user && (item.name === "LEADERBOARD" || item.name === "QUESTS" || item.name === "PROFILE");
         return (
           <Link
             key={item.name}
@@ -48,6 +49,11 @@ export default function MobileNavbar() {
                 className="object-contain"
                 unoptimized
               />
+              {isLockedForGuest && (
+                <span className="absolute -top-1 -right-1 text-[10px] leading-none bg-amber-100 rounded-full">
+                  🔒
+                </span>
+              )}
             </div>
             
             <span className={`text-[8px] min-[360px]:text-[9px] font-extrabold tracking-tight min-[360px]:tracking-wider uppercase transition-all duration-150 ${

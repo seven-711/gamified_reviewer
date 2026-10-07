@@ -123,7 +123,7 @@ export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setAlertState({
         isOpen: true,
         message: parsed.cleanMessage,
-        title: options?.title || (options?.emoji || parsed.emoji ? undefined : "Alert"),
+        title: options?.title || (options?.emoji || parsed.emoji ? undefined : "Yay!"),
         emoji: options?.emoji || parsed.emoji,
         buttonText: options?.buttonText || "CONTINUE",
         resolve,
@@ -173,22 +173,6 @@ export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                     className="object-contain drop-shadow-md"
                     unoptimized
                   />
-                )}
-                {alertState.emoji && (
-                  <span className="absolute -bottom-2 -right-2 text-3xl bg-snow-white dark:bg-[#131f24] p-2 rounded-full border-2 border-cloud-gray dark:border-cloud-gray/15 shadow-sm flex items-center justify-center min-w-[48px] min-h-[48px]">
-                    {alertState.emoji === "❤️" ? (
-                      <Image
-                        src="/img/gen_imgs/user_life.webp"
-                        alt="Life"
-                        width={28}
-                        height={28}
-                        className="object-contain"
-                        style={{ height: 'auto' }}
-                      />
-                    ) : (
-                      alertState.emoji
-                    )}
-                  </span>
                 )}
               </div>
               

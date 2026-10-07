@@ -257,9 +257,14 @@ export async function updateProfileStats(
     let newStreak = currentStreak;
     let finalFreezes = currentFreezes;
 
+    if (!lastLessonDateStr && typeof window !== "undefined") {
+      lastLessonDateStr = localStorage.getItem("last_lesson_completed_date");
+    }
+
     if (lastLessonDateStr) {
       const [y1, m1, d1] = todayStr.split("-").map(Number);
-      const [y2, m2, d2] = lastLessonDateStr.split("-").map(Number);
+      const cleanLastDate = lastLessonDateStr.slice(0, 10);
+      const [y2, m2, d2] = cleanLastDate.split("-").map(Number);
       const todayDate = new Date(y1, m1 - 1, d1);
       const lastDate = new Date(y2, m2 - 1, d2);
       const diffTime = todayDate.getTime() - lastDate.getTime();
@@ -267,7 +272,7 @@ export async function updateProfileStats(
 
       if (diffDays === 1) {
         newStreak = currentStreak + 1;
-      } else if (diffDays === 0) {
+      } else if (diffDays <= 0) {
         newStreak = currentStreak === 0 ? 1 : currentStreak;
       } else if (diffDays > 1) {
         if (currentFreezes > 0) {
@@ -281,11 +286,20 @@ export async function updateProfileStats(
         }
       }
     } else {
-      newStreak = 1;
+      // If there was no recorded last_lesson_date but the cadet had an inactive streak (> 0):
+      // Taking a lesson activates it and increments it instead of resetting!
+      newStreak = currentStreak > 0 ? currentStreak + 1 : 1;
     }
 
-    streakIncreased = newStreak > currentStreak;
+    streakIncreased = newStreak > currentStreak || (currentStreak > 0 && lastLessonDateStr !== todayStr);
     finalStreakVal = newStreak;
+
+    if (typeof window !== "undefined") {
+      const currentRecord = parseInt(localStorage.getItem("record_longest_streak") || "0", 10);
+      if (newStreak > currentRecord) {
+        localStorage.setItem("record_longest_streak", newStreak.toString());
+      }
+    }
 
     // 7-day streak milestone check
     if (newStreak > 0 && newStreak % 7 === 0 && (lastLessonDateStr !== todayStr)) {

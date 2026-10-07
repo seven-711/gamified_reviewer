@@ -533,15 +533,30 @@ export default function ProfilePage() {
 
   if (isLoaded && (!isSignedIn || !user)) {
     return (
-      <main className="flex-1 w-full max-w-[600px] mx-auto pb-24 pt-12 flex flex-col items-center text-center px-6">
-        <div className="w-52 h-52 relative mb-6 opacity-80">
-          <Image src="/emoji/profile.webp" alt="Profile" fill className="object-contain" unoptimized />
+      <main className="flex-1 w-full max-w-[600px] mx-auto pb-24 pt-12 flex flex-col items-center text-center px-6 font-din-round">
+        <div className="w-52 h-52 relative mb-6">
+          <Image src="/emoji/profile.webp" alt="Profile" fill className="object-contain drop-shadow-md" unoptimized />
         </div>
-        <h2 className="font-feather text-3xl font-bold text-duo-green mb-4">Create a Profile!</h2>
-        <p className="text-silver font-din-round text-[17px] mb-8 max-w-[400px]">Sign up to track your streak, earn XP, and compete on the leaderboards.</p>
-        <button onClick={() => router.push("/signup")} className="bg-duo-green text-white font-bold px-8 py-4 rounded-2xl hover:brightness-110 transition-colors shadow-[0_4px_0_#3f8f01] active:shadow-[0_0px_0_#3f8f01] active:translate-y-1 uppercase tracking-widest text-body w-full max-w-[300px]">
-          Sign Up Now
-        </button>
+        <h2 className="font-feather text-2xl md:text-3xl font-bold text-almost-black dark:text-white mb-3">
+          Create a Profile!
+        </h2>
+        <p className="text-silver dark:text-gray-400 font-din-round text-sm md:text-base mb-8 max-w-[380px] leading-relaxed">
+          Sign up to track your review streak, earn XP, view cadet rank history, and customize your learner avatar.
+        </p>
+        <div className="flex flex-col gap-3 w-full max-w-[280px]">
+          <button
+            onClick={() => router.push("/signup")}
+            className="w-full bg-duo-green hover:bg-duo-green/95 text-white font-extrabold py-3.5 rounded-xl shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none transition-all uppercase tracking-widest text-sm font-din-round cursor-pointer text-center"
+          >
+            Create a Profile
+          </button>
+          <button
+            onClick={() => router.push("/login")}
+            className="w-full bg-snow-white hover:bg-cloud-gray/20 text-sky-blue border-2 border-cloud-gray font-extrabold py-3 rounded-xl shadow-[0_4px_0_var(--color-cloud-gray)] active:translate-y-[4px] active:shadow-none transition-all uppercase tracking-widest text-xs font-din-round cursor-pointer text-center"
+          >
+            I Already Have an Account
+          </button>
+        </div>
       </main>
     );
   }

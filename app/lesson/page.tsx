@@ -302,11 +302,6 @@ function LessonContent() {
   useEffect(() => {
     async function init() {
       if (!authLoaded) return;
-      if (!isSignedIn) {
-        setIsLoaded(true);
-        setLoadingData(false);
-        return;
-      }
       setLoadingData(true);
       setError(null);
       try {
@@ -479,7 +474,7 @@ function LessonContent() {
 
   // Timer logic
   useEffect(() => {
-    if (!isLoaded || !isSignedIn || status === "completed" || phase !== "quiz" || showOutOfHeartsModal || hearts === 0) return;
+    if (!isLoaded || status === "completed" || phase !== "quiz" || showOutOfHeartsModal || hearts === 0) return;
 
     const interval = setInterval(() => {
       setTimeLeft(prev => {
@@ -493,7 +488,7 @@ function LessonContent() {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [isLoaded, isSignedIn, status, phase, showOutOfHeartsModal, hearts]);
+  }, [isLoaded, status, phase, showOutOfHeartsModal, hearts]);
 
   // Automatically transition to quiz phase if example index goes out of bounds or examples are empty
   useEffect(() => {
@@ -880,98 +875,7 @@ function LessonContent() {
     );
   }
 
-  if (authLoaded && !isSignedIn) {
-    return (
-      <div className="dark-mode min-h-screen flex flex-col bg-snow-white font-din-round text-almost-black">
-        {/* Top Minimal Bar */}
-        <header className="border-b-2 border-cloud-gray bg-white py-4 px-6">
-          <div className="max-w-[900px] w-full mx-auto flex items-center justify-between">
-            <button
-              onClick={() => router.push("/")}
-              className="text-silver hover:text-charcoal font-bold text-xl p-2 transition-colors cursor-pointer"
-              aria-label="Exit"
-            >
-              ✕
-            </button>
-            <span className="font-feather font-black text-duo-green text-xl tracking-wide">
-              REVIEWQO
-            </span>
-            <Link href="/login" className="text-xs font-bold text-sky-blue hover:underline uppercase tracking-wider">
-              LOG IN
-            </Link>
-          </div>
-        </header>
 
-        {/* Blocker Card */}
-        <main className="grow flex flex-col items-center justify-center px-6 py-12 max-w-[500px] w-full mx-auto text-center">
-          <div className="w-24 h-24 sm:w-28 sm:h-28 relative mb-4">
-            <Image
-              src="/emoji/profile.webp"
-              alt="Mascot"
-              fill
-              className="object-cover scale-[1.3] drop-shadow-md"
-              unoptimized
-            />
-          </div>
-
-          <div className="inline-flex items-center gap-1.5 bg-amber-50 border border-amber-200 text-amber-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-3">
-            <span>🔒</span>
-            <span>Account Required</span>
-          </div>
-
-          <h1 className="font-feather text-2xl sm:text-3xl font-black text-charcoal mb-3 leading-tight">
-            Create an Account to Take Practice Tests
-          </h1>
-
-          <p className="text-graphite text-sm sm:text-base leading-relaxed mb-6 font-medium">
-            You must sign up or create an account before taking practice tests so all your test scores, XP, daily streaks, and answers are permanently saved!
-          </p>
-
-          <div className="w-full bg-white border-2 border-cloud-gray rounded-2xl p-5 mb-6 text-left shadow-sm flex flex-col gap-3">
-            <div className="flex items-center gap-3">
-              <span className="text-xl">📊</span>
-              <span className="text-xs sm:text-sm font-bold text-charcoal">Save your test scores and track exam readiness</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="text-xl">🔥</span>
-              <span className="text-xs sm:text-sm font-bold text-charcoal">Maintain daily study streaks and level up</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="text-xl">💎</span>
-              <span className="text-xs sm:text-sm font-bold text-charcoal">Earn gems and compete on the leaderboard</span>
-            </div>
-          </div>
-
-          <div className="w-full flex flex-col gap-3">
-            <Button
-              onClick={() => router.push("/onboarding")}
-              variant="primary"
-              fullWidth
-              className="h-[52px] text-body tracking-normal shadow-[0_4px_0_#3f8f01]"
-            >
-              CREATE ACCOUNT / GET STARTED
-            </Button>
-
-            <Button
-              onClick={() => router.push("/login")}
-              variant="secondary"
-              fullWidth
-              className="h-[50px] border-2 border-cloud-gray text-sky-blue shadow-[0_4px_0_var(--color-cloud-gray)]"
-            >
-              I ALREADY HAVE AN ACCOUNT
-            </Button>
-
-            <button
-              onClick={() => router.push("/")}
-              className="mt-2 text-xs font-bold text-silver hover:text-graphite uppercase tracking-wider cursor-pointer"
-            >
-              ← Return to Home
-            </button>
-          </div>
-        </main>
-      </div>
-    );
-  }
 
   if (error) {
     return (
@@ -1332,6 +1236,21 @@ function LessonContent() {
             ? (isPerfect ? "Perfect score! You've successfully finished this practice set and unlocked the next one." : "Great job! You've successfully finished this practice set and unlocked the next one.")
             : `Great effort! However, you need to score at least 80% (${Math.ceil(questions.length * 0.8)}/${questions.length}) to unlock the next test.`}
         </p>
+
+        {!isSignedIn && (
+          <div className="w-full max-w-[340px] bg-sky-blue/10 border-2 border-sky-blue/30 rounded-2xl p-3.5 mb-4 text-center flex flex-col items-center gap-1.5">
+            <span className="text-xs font-black text-sky-blue uppercase tracking-wider">🌟 Playing as Guest</span>
+            <p className="text-xs text-graphite dark:text-silver font-semibold">
+              Create a free profile to save your scores permanently, compete on leaderboards, and unlock quests!
+            </p>
+            <Link
+              href="/signup"
+              className="mt-1 text-xs font-extrabold text-sky-blue hover:underline uppercase tracking-wide"
+            >
+              Create Free Profile →
+            </Link>
+          </div>
+        )}
 
         <div className="flex flex-col gap-3 w-full max-w-[280px] md:max-w-xs px-2">
           <button

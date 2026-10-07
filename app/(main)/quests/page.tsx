@@ -12,14 +12,28 @@ import { playRewardSound } from "@/lib/sound";
 
 export default function QuestsPage() {
   const { showAlert } = useAlert();
-  const { user } = useAuth();
+  const { user, isLoaded, isSignedIn } = useAuth();
   const { streak, xp, hearts, gems, lessonsCompleted, lastLessonDate, refreshStats, updateStatsLocally } = useStats();
   const todayStr = new Date().toLocaleDateString("en-CA");
   const isStreakActive = streak > 0 && lastLessonDate === todayStr;
 
   const [activeTab, setActiveTab] = useState<"achievements" | "quests">("achievements");
   const [dailyRewardsCount, setDailyRewardsCount] = useState(1);
+  const [recordStreak, setRecordStreak] = useState(streak);
   const personalRecordsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const stored = parseInt(localStorage.getItem("record_longest_streak") || "0", 10);
+      const maxStreak = Math.max(streak, stored);
+      setRecordStreak(maxStreak);
+      if (maxStreak > stored) {
+        localStorage.setItem("record_longest_streak", maxStreak.toString());
+      }
+    } else {
+      setRecordStreak(streak);
+    }
+  }, [streak]);
 
   const scrollPersonalRecords = (direction: "left" | "right") => {
     if (personalRecordsRef.current) {
@@ -77,10 +91,22 @@ export default function QuestsPage() {
           .eq("profile_id", profileId)
           .like("event_type", "claimed_achievement_%");
 
+        let dbClaimedIds: string[] = [];
         if (!error && data) {
-          const claimedIds = data.map((evt: any) => evt.event_type.replace("claimed_achievement_", ""));
-          setClaimedAchievements(claimedIds);
+          dbClaimedIds = data.map((evt: any) => evt.event_type.replace("claimed_achievement_", ""));
         }
+
+        // Merge with localStorage fallback claims (from RLS insert failures)
+        let localClaimedIds: string[] = [];
+        if (typeof window !== "undefined") {
+          const stored = localStorage.getItem("claimed_achievements");
+          if (stored) {
+            try { localClaimedIds = JSON.parse(stored); } catch (e) {}
+          }
+        }
+
+        const mergedIds = Array.from(new Set([...dbClaimedIds, ...localClaimedIds]));
+        setClaimedAchievements(mergedIds);
       } catch (err) {
         console.error("Error fetching claimed achievements:", err);
       }
@@ -239,7 +265,19 @@ export default function QuestsPage() {
               });
 
             if (eventError) {
-              console.error("Failed to insert claim audit event:", eventError);
+              console.warn("lesson_events insert failed (RLS?), falling back to localStorage:", eventError);
+              // Persist to localStorage so claims survive page reloads
+              if (typeof window !== "undefined") {
+                const currentClaimed = localStorage.getItem("claimed_achievements");
+                let claimedList: string[] = [];
+                if (currentClaimed) {
+                  try { claimedList = JSON.parse(currentClaimed); } catch (e) {}
+                }
+                if (!claimedList.includes(achievementId)) {
+                  claimedList.push(achievementId);
+                }
+                localStorage.setItem("claimed_achievements", JSON.stringify(claimedList));
+              }
             }
             setClaimedAchievements(prev => [...prev, achievementId]);
           }
@@ -432,6 +470,40 @@ export default function QuestsPage() {
       };
     })
     .sort((a, b) => b.weight - a.weight);
+
+  if (isLoaded && (!isSignedIn || !user)) {
+    return (
+      <main className="flex-1 w-full max-w-[600px] mx-auto pb-24 pt-12 flex flex-col items-center text-center px-6 font-din-round">
+        <div className="w-52 h-52 relative mb-6">
+          <Image
+            src="/emoji/quest.webp"
+            alt="Quests Locked"
+            fill
+            className="object-contain drop-shadow-md"
+            unoptimized
+          />
+        </div>
+        <h2 className="font-feather text-2xl md:text-3xl font-bold text-almost-black dark:text-white mb-3">
+          Unlock Quests & Badges!
+        </h2>
+        <p className="text-silver dark:text-gray-400 font-din-round text-sm md:text-base mb-8 max-w-[380px] leading-relaxed">
+          Sign up or log in to complete daily study quests, earn free gems, and collect exclusive cadet achievement badges!
+        </p>
+        <div className="flex flex-col gap-3 w-full max-w-[280px]">
+          <Link href="/signup" className="w-full">
+            <button className="w-full bg-duo-green hover:bg-duo-green/95 text-white font-extrabold py-3.5 rounded-xl shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none transition-all uppercase tracking-widest text-sm font-din-round cursor-pointer text-center">
+              Create a Profile
+            </button>
+          </Link>
+          <Link href="/login" className="w-full">
+            <button className="w-full bg-snow-white hover:bg-cloud-gray/20 text-sky-blue border-2 border-cloud-gray font-extrabold py-3 rounded-xl shadow-[0_4px_0_var(--color-cloud-gray)] active:translate-y-[4px] active:shadow-none transition-all uppercase tracking-widest text-xs font-din-round cursor-pointer text-center">
+              I Already Have an Account
+            </button>
+          </Link>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <>
@@ -679,9 +751,9 @@ export default function QuestsPage() {
             {/* Card 3: Longest Streak */}
             <div className="col-span-2 md:col-span-1 p-4 bg-snow-white rounded-2xl flex flex-col items-center text-center">
               <div className="w-25 h-25 relative mb-3 flex items-center justify-center">
-                <StreakAsset streak={streak} alt="Longest Streak" fill className="object-contain" unoptimized />
+                <StreakAsset streak={recordStreak} active={isStreakActive} alt="Longest Streak" fill className="object-contain" unoptimized />
               </div>
-              <span className={`text-xl md:text-2xl font-black ${isStreakActive ? "text-orange-500" : "text-silver"}`}>{streak}</span>
+              <span className={`text-xl md:text-2xl font-black ${isStreakActive ? "text-orange-500" : "text-silver"}`}>{recordStreak}</span>
               <span className="text-[11px] md:text-[12px] font-extrabold text-charcoal dark:text-white mt-1.5 leading-tight">Longest Streak</span>
               <span className="text-[9px] md:text-[10px] text-silver font-semibold mt-1 uppercase">{todayDateStr}</span>
             </div>

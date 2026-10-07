@@ -42,7 +42,7 @@ export function StreakAsset({
   const todayStr = React.useMemo(() => new Date().toLocaleDateString("en-CA"), []);
   const isStreakActive = active !== undefined
     ? active
-    : (forceActive || (streak > 0 && (effectiveLastLessonDate === undefined || effectiveLastLessonDate === null || effectiveLastLessonDate === todayStr)));
+    : (forceActive || (streak > 0 && effectiveLastLessonDate === todayStr));
 
   const riveSrc = isStreakActive ? "/emoji/activeStreak.riv" : "/emoji/inactiveStreak.riv";
 

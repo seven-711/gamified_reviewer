@@ -221,6 +221,13 @@ AFTER INSERT ON lesson_events
 FOR EACH ROW
 EXECUTE FUNCTION fn_trg_auto_log_cadet_activity();
 
+-- RLS policies for lesson_events
+ALTER TABLE lesson_events ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow users to read own lesson events" ON lesson_events;
+CREATE POLICY "Allow users to read own lesson events" ON lesson_events FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Allow users to insert own lesson events" ON lesson_events;
+CREATE POLICY "Allow users to insert own lesson events" ON lesson_events FOR INSERT WITH CHECK (true);
+
 -- RLS policies for cadet_activity_logs
 ALTER TABLE cadet_activity_logs ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Allow all users to read cadet activity logs" ON cadet_activity_logs;

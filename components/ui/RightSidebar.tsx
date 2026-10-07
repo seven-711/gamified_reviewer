@@ -380,12 +380,21 @@ export default function RightSidebar() {
             <h3 className="font-bold text-[17px] text-charcoal">Unlock Leaderboards!</h3>
           </div>
           <div className="flex items-center gap-4 mt-2">
-            <div className="w-20 h-20 relative shrink-0">
+            <div className="w-26 h-26 relative shrink-0">
               <Image src="/emoji/unlockleaderboard.webp" alt="Leaderboard Locked" fill className="object-contain" unoptimized />
             </div>
-            <p className="text-silver text-body font-medium leading-tight">
-              Complete 1 more lesson to start competing
-            </p>
+            <div className="flex flex-col gap-1.5">
+              <p className="text-silver text-xs md:text-sm font-medium leading-tight">
+                {!isSignedIn
+                  ? "Sign up to join leaderboards and compete with other reviewers!"
+                  : "Complete 1 more lesson to start competing"}
+              </p>
+              {!isSignedIn && (
+                <Link href="/signup" className="text-xs font-bold text-sky-blue hover:underline uppercase tracking-wide">
+                  Sign Up →
+                </Link>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -399,54 +408,70 @@ export default function RightSidebar() {
           </Link>
         </div>
 
-        <div className="flex flex-col gap-4 mt-2">
-          {quests.map((quest, index) => {
-            return (
-              <div key={index} className="flex items-center gap-4">
-                <div className="w-10 h-10 relative shrink-0 select-none">
-                  <Image
-                    src={quest.image}
-                    alt={quest.title}
-                    fill
-                    className="object-contain"
-                    unoptimized
-                  />
-                </div>
-                <div className="flex flex-col w-full gap-1.5 min-w-0">
-                  <span className="font-bold text-[13px] md:text-sm text-charcoal leading-none">
-                    {quest.title}
-                  </span>
-                  <div className="flex items-center gap-3">
-                    <div className="h-5 grow bg-cloud-gray rounded-full relative flex items-center justify-center overflow-hidden">
-                      <div
-                        className={`h-full absolute left-0 top-0 rounded-full transition-all duration-300 ${quest.color}`}
-                        style={{ width: `${Math.min(100, (quest.current / quest.target) * 100)}%` }}
-                      />
-                      <span className="relative z-10 text-charcoal font-black text-[10px]">
-                        {quest.current} / {quest.target}
-                      </span>
-                    </div>
-                    {quest.isClaimed ? (
-                      <span className="text-duo-green font-extrabold text-sm shrink-0">✓</span>
-                    ) : quest.isCompleted ? (
-                      <button
-                        disabled={claiming !== null}
-                        onClick={() => handleClaimQuest(index + 1, index === 2 ? 10 : 5)}
-                        className="bg-duo-green hover:brightness-105 disabled:opacity-60 disabled:cursor-not-allowed text-white font-extrabold text-[10px] uppercase tracking-wider px-2.5 py-1.5 rounded-xl shadow-[0_3px_0_#3f8f01] active:translate-y-[3px] active:shadow-none transition-all cursor-pointer shrink-0"
-                      >
-                        {claiming === index + 1 ? "..." : "Claim"}
-                      </button>
-                    ) : (
-                      <div className="shrink-0 opacity-70 select-none">
-                        <Image src="/emoji/quest.webp" alt="Quest Chest" width={28} height={28} className="object-contain grayscale" unoptimized />
+        {!isSignedIn ? (
+          <div className="flex flex-col items-center text-center gap-2.5 py-2">
+            <div className="w-26 h-26 relative">
+              <Image src="/emoji/quest.webp" alt="Quests" fill className="object-contain" unoptimized />
+            </div>
+            <p className="text-silver text-xs font-medium leading-relaxed max-w-[220px]">
+              Daily quests & achievements unlock when you create a profile!
+            </p>
+            <Link href="/signup">
+              <button className="bg-duo-green hover:bg-duo-green/95 text-white font-extrabold text-xs px-4 py-2 rounded-xl shadow-[0_3px_0_#3f8f01] active:translate-y-[2px] active:shadow-none uppercase tracking-wider cursor-pointer">
+                Unlock Quests
+              </button>
+            </Link>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-4 mt-2">
+            {quests.map((quest, index) => {
+              return (
+                <div key={index} className="flex items-center gap-4">
+                  <div className="w-10 h-10 relative shrink-0 select-none">
+                    <Image
+                      src={quest.image}
+                      alt={quest.title}
+                      fill
+                      className="object-contain"
+                      unoptimized
+                    />
+                  </div>
+                  <div className="flex flex-col w-full gap-1.5 min-w-0">
+                    <span className="font-bold text-[13px] md:text-sm text-charcoal leading-none">
+                      {quest.title}
+                    </span>
+                    <div className="flex items-center gap-3">
+                      <div className="h-5 grow bg-cloud-gray rounded-full relative flex items-center justify-center overflow-hidden">
+                        <div
+                          className={`h-full absolute left-0 top-0 rounded-full transition-all duration-300 ${quest.color}`}
+                          style={{ width: `${Math.min(100, (quest.current / quest.target) * 100)}%` }}
+                        />
+                        <span className="relative z-10 text-charcoal font-black text-[10px]">
+                          {quest.current} / {quest.target}
+                        </span>
                       </div>
-                    )}
+                      {quest.isClaimed ? (
+                        <span className="text-duo-green font-extrabold text-sm shrink-0">✓</span>
+                      ) : quest.isCompleted ? (
+                        <button
+                          disabled={claiming !== null}
+                          onClick={() => handleClaimQuest(index + 1, index === 2 ? 10 : 5)}
+                          className="bg-duo-green hover:brightness-105 disabled:opacity-60 disabled:cursor-not-allowed text-white font-extrabold text-[10px] uppercase tracking-wider px-2.5 py-1.5 rounded-xl shadow-[0_3px_0_#3f8f01] active:translate-y-[3px] active:shadow-none transition-all cursor-pointer shrink-0"
+                        >
+                          {claiming === index + 1 ? "..." : "Claim"}
+                        </button>
+                      ) : (
+                        <div className="shrink-0 opacity-70 select-none">
+                          <Image src="/emoji/quest.webp" alt="Quest Chest" width={28} height={28} className="object-contain grayscale" unoptimized />
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Profile / Auth Widget */}

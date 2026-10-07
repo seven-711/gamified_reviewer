@@ -120,7 +120,9 @@ function formatFriendlyPurchaseError(
 export default function ShopPage() {
   const { showAlert } = useAlert();
   const { user, isLoaded, isSignedIn } = useAuth();
-  const { streak, xp, hearts, gems, streakFreezeCount, refreshStats, updateStatsLocally } = useStats();
+  const { streak, xp, hearts, gems, streakFreezeCount, lastLessonDate, refreshStats, updateStatsLocally } = useStats();
+  const todayStr = new Date().toLocaleDateString("en-CA");
+  const isStreakActive = streak > 0 && lastLessonDate === todayStr;
 
   const [purchasingHeart, setPurchasingHeart] = useState(false);
   const [purchasingFreeze, setPurchasingFreeze] = useState(false);
@@ -1088,7 +1090,7 @@ export default function ShopPage() {
             </div>
 
             {/* Streak */}
-            <div className="flex items-center gap-1.5 text-orange-500 cursor-pointer hover:bg-duo-green-light p-2 rounded-xl transition-colors">
+            <div className={`flex items-center gap-1.5 ${isStreakActive ? "text-orange-500" : "text-silver"} cursor-pointer hover:bg-duo-green-light p-2 rounded-xl transition-colors`}>
               <StreakAsset
                 streak={streak}
                 width={28}

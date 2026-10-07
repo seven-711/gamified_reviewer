@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
 import RightSidebar from "@/components/ui/RightSidebar";
@@ -77,13 +78,33 @@ async function checkDailyStreakValidation(
     const yesterdayStr = yesterday.toLocaleDateString("en-CA");
     if (typeof window !== "undefined") {
       localStorage.setItem("last_lesson_completed_date", yesterdayStr);
+      if (currentStreak > 0) {
+        const storedRecord = parseInt(localStorage.getItem("record_longest_streak") || "0", 10);
+        if (currentStreak > storedRecord) {
+          localStorage.setItem("record_longest_streak", currentStreak.toString());
+        }
+      }
+    }
+    if (profileId) {
+      await supabase.from("profile_progress").upsert({
+        profile_id: profileId,
+        last_lesson_date: yesterdayStr,
+      }, { onConflict: "profile_id" });
     }
     return { streak: currentStreak, last_lesson_date: yesterdayStr };
   }
 
+  if (typeof window !== "undefined" && currentStreak > 0) {
+    const storedRecord = parseInt(localStorage.getItem("record_longest_streak") || "0", 10);
+    if (currentStreak > storedRecord) {
+      localStorage.setItem("record_longest_streak", currentStreak.toString());
+    }
+  }
+
   const todayStr = new Date().toLocaleDateString("en-CA");
   const [y1, m1, d1] = todayStr.split("-").map(Number);
-  const [y2, m2, d2] = lastLessonDateStr.split("-").map(Number);
+  const cleanLastDate = lastLessonDateStr.slice(0, 10);
+  const [y2, m2, d2] = cleanLastDate.split("-").map(Number);
   const todayDate = new Date(y1, m1 - 1, d1);
   const lastDate = new Date(y2, m2 - 1, d2);
   const diffTime = todayDate.getTime() - lastDate.getTime();
@@ -263,7 +284,6 @@ export default function DashboardPage() {
     return null;
   });
   const [showHeartsBlocker, setShowHeartsBlocker] = useState(false);
-  const [showAuthModal, setShowAuthModal] = useState(false);
   const [refillingHearts, setRefillingHearts] = useState(false);
 
   useEffect(() => {
@@ -610,10 +630,6 @@ export default function DashboardPage() {
   }, [profile, testCount, quantSection]);
 
   const handleTopicClick = (topicName: string, testId?: string) => {
-    if (!isSignedIn) {
-      setShowAuthModal(true);
-      return;
-    }
     if (testId) {
       if (profile && profile.hearts === 0) {
         setShowHeartsBlocker(true);
@@ -635,10 +651,6 @@ export default function DashboardPage() {
 
   const startTestWithTimer = async () => {
     if (!selectedTestForTimer) return;
-    if (!isSignedIn) {
-      setShowAuthModal(true);
-      return;
-    }
     if (profile && profile.hearts === 0) {
       setShowHeartsBlocker(true);
       return;
@@ -730,51 +742,18 @@ export default function DashboardPage() {
   return (
     <>
       <main className="flex-1 w-full max-w-[600px] mx-auto pb-24">
-        <div className="flex flex-col gap-6 pt-2 items-center w-full">
-          {/* Guest Mode Banner */}
-          {!isSignedIn && (
-            <div className="w-full px-4 md:px-0">
-              <div className="w-full bg-[#f0f9ff] border-2 border-[#bae6fd] rounded-2xl p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3 text-left">
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl shrink-0">💡</span>
-                  <div>
-                    <h4 className="font-feather font-bold text-charcoal text-sm">
-                      Guest Preview Mode
-                    </h4>
-                    <p className="text-xs text-graphite font-medium">
-                      Create an account or sign in to take practice tests and save your progress!
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
-                  <button
-                    onClick={() => router.push("/onboarding")}
-                    className="bg-duo-green hover:bg-duo-green/90 text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow-[0_3px_0_#3f8f01] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer w-full sm:w-auto text-center"
-                  >
-                    CREATE ACCOUNT
-                  </button>
-                  <button
-                    onClick={() => router.push("/login")}
-                    className="border-2 border-cloud-gray hover:bg-white text-graphite text-xs font-bold px-3 py-2 rounded-xl transition-all cursor-pointer w-full sm:w-auto text-center"
-                  >
-                    LOG IN
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
+        <div className="flex flex-col gap-3 md:gap-6 pt-1 md:pt-2 items-center w-full">
           {/* Section Header */}
-          <div className="w-full px-4 md:px-0 sticky top-3 md:top-6 z-30">
-            <div className="w-full bg-duo-green rounded-2xl p-3 md:p-5 flex items-center justify-between shadow-[0_4px_0_#3f8f01]">
+          <div className="w-full md:px-0 sticky top-17 md:top-6 z-30">
+            <div className="w-full bg-duo-green rounded-xl md:rounded-2xl p-3.5 md:p-5 flex items-center justify-between shadow-[0_3px_0_#3f8f01] md:shadow-[0_4px_0_#3f8f01]">
               <div className="flex flex-col text-white min-w-0 pr-2">
                 <div className="flex items-center gap-2 mb-0.5">
-                  <span onClick={() => router.push("/onboarding?edit=true")} className="text-lg font-bold cursor-pointer hover:opacity-80 transition-opacity">←</span>
-                  <span className="font-bold text-[10px] md:text-sm tracking-widest uppercase">
+                  <span onClick={() => router.push("/onboarding?edit=true")} className="text-xl md:text-lg font-bold cursor-pointer hover:opacity-80 transition-opacity">←</span>
+                  <span className="font-bold text-[11px] md:text-sm tracking-widest uppercase">
                     Section 1, Unit 1
                   </span>
                 </div>
-                <h2 className="font-feather text-base md:text-2xl font-bold tracking-wide leading-tight truncate">
+                <h2 className="font-feather text-lg md:text-2xl font-bold tracking-wide leading-tight truncate">
                   {mounted && profile ? (
                     `${profile.exam_category} ${topicName ? `- ${topicName}` : ""}`
                   ) : (
@@ -787,21 +766,21 @@ export default function DashboardPage() {
 
           {/* Cadet Rank Level Progression Card (Trigger 2 Verification) */}
           <div className="w-full px-4 md:px-0">
-            <div className="w-full bg-snow-white border-2 border-cloud-gray dark:border-cloud-gray/20 rounded-2xl p-4 md:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
-              <div className="flex items-center gap-4 w-full sm:w-auto">
-                <div className="w-16 h-16 md:w-28 md:h-28 rounded-2xl flex items-center justify-center shrink-0 overflow-hidden">
+            <div className="w-full bg-snow-white border-2 border-cloud-gray dark:border-cloud-gray/20 rounded-xl md:rounded-2xl p-3 md:p-5 flex flex-col sm:flex-row items-center justify-between gap-2.5 md:gap-4 shadow-sm">
+              <div className="flex items-center gap-2.5 md:gap-4 w-full sm:w-auto">
+                <div className="w-20 h-20 md:w-28 md:h-28 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0 overflow-hidden">
                   <DotLottieReact
                     {...getRankLottieConfig(currentLevel)}
                     autoplay
                     loop
-                    className="w-16 h-16 md:w-28 md:h-28"
+                    className="w-20 h-20 md:w-28 md:h-28"
                   />
                 </div>
                 <div className="flex flex-col text-left min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-xs font-bold uppercase tracking-wider text-silver">Cadet Rank</span>
                   </div>
-                  <h3 className="font-feather text-lg md:text-xl font-bold text-charcoal dark:text-white leading-snug">
+                  <h3 className="font-feather text-base md:text-xl font-bold text-charcoal dark:text-white leading-snug">
                     Level {currentLevel}: {rankInfo.title}
                   </h3>
                 </div>
@@ -831,7 +810,7 @@ export default function DashboardPage() {
 
           {/* Quantitative Reasoning Active Section Banner */}
           {isQuantTopic && quantSection && (
-            <div className="w-full flex items-center justify-between bg-sky-blue/10 border-2 border-sky-blue/20 rounded-2xl p-4 font-din-round animate-[fadeIn_0.3s_ease-out]">
+            <div className="w-full flex items-center justify-between bg-sky-blue/10 border-2 border-sky-blue/20 rounded-xl md:rounded-2xl p-3 md:p-4 font-din-round animate-[fadeIn_0.3s_ease-out]">
               <div className="flex flex-col text-left">
                 <span className="text-[10px] text-silver font-black uppercase tracking-wider">Current Focus Area</span>
                 <span className="text-sm font-extrabold text-sky-blue uppercase">
@@ -1457,73 +1436,7 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {showAuthModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center z-50 p-4 animate-[fadeIn_0.2s_ease-out]">
-          <div className="bg-snow-white border-2 border-cloud-gray border-b-8 rounded-[24px] w-full max-w-[440px] p-6 md:p-8 flex flex-col gap-6 shadow-none animate-[scaleIn_0.2s_ease-out] relative">
-            <button
-              onClick={() => setShowAuthModal(false)}
-              className="absolute top-4 right-4 text-silver hover:text-charcoal font-bold text-xl p-2 cursor-pointer"
-            >
-              ✕
-            </button>
 
-            <div className="flex flex-col items-center text-center gap-4">
-              <div className="w-[84px] h-[84px] rounded-full overflow-hidden border-2 border-cloud-gray relative bg-duo-green-light shrink-0">
-                <Image
-                  src="/emoji/profile.webp"
-                  alt="Mascot"
-                  fill
-                  className="object-cover scale-[1.5] translate-y-1"
-                  unoptimized
-                />
-              </div>
-
-              <div className="inline-flex items-center gap-1.5 bg-amber-50 border border-amber-200 text-amber-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-                <span>🔒</span>
-                <span>Account Required</span>
-              </div>
-
-              <div className="flex flex-col gap-2 font-din-round">
-                <h3 className="font-feather text-2xl text-charcoal font-bold leading-tight tracking-wide">
-                  Create an Account to Start Tests
-                </h3>
-                <p className="text-graphite text-sm leading-relaxed max-w-[340px] mx-auto">
-                  To ensure your test scores, XP, review streak, and completed lessons are recorded and saved, please sign up or log in first.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-3 font-din-round">
-              <button
-                onClick={() => {
-                  setShowAuthModal(false);
-                  router.push("/onboarding");
-                }}
-                className="w-full bg-duo-green hover:bg-duo-green/90 text-white font-bold py-3.5 rounded-2xl shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none transition-all text-sm uppercase tracking-wide cursor-pointer text-center"
-              >
-                CREATE ACCOUNT / GET STARTED
-              </button>
-
-              <button
-                onClick={() => {
-                  setShowAuthModal(false);
-                  router.push("/login");
-                }}
-                className="w-full bg-snow-white text-sky-blue border-2 border-cloud-gray font-bold py-3 rounded-2xl shadow-[0_4px_0_var(--color-cloud-gray)] active:translate-y-[4px] active:shadow-none hover:bg-cloud-gray/20 transition-all text-sm uppercase tracking-wide cursor-pointer text-center"
-              >
-                I ALREADY HAVE AN ACCOUNT
-              </button>
-
-              <button
-                onClick={() => setShowAuthModal(false)}
-                className="text-xs font-bold text-silver hover:text-graphite cursor-pointer text-center mt-1"
-              >
-                Maybe Later
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       <style dangerouslySetInnerHTML={{
         __html: `

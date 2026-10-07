@@ -428,7 +428,7 @@ export default function LeaderboardPage() {
                 </h2>
 
                 <p className="text-silver text-sm md:text-base font-semibold mb-8 text-center max-w-[340px] leading-relaxed">
-                  You are currently playing as a guest. Log in or create a profile to compete in leaderboards!
+                  You are currently reviewing as a guest. Create a profile or log in to rank against fellow reviewers!
                   {currentUserProfile && currentUserProfile.total_score > 0 && (
                     <span className="block mt-3 text-duo-green font-bold text-center">
                       Current Accumulated XP: {currentUserProfile.total_score} XP
@@ -436,11 +436,18 @@ export default function LeaderboardPage() {
                   )}
                 </p>
 
-                <Link href="/signup" className="w-full max-w-[280px]">
-                  <button className="w-full bg-duo-green hover:bg-duo-green/95 text-white font-extrabold py-3.5 rounded-xl shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none transition-all uppercase tracking-widest text-sm font-din-round cursor-pointer text-center">
-                    Create a Profile
-                  </button>
-                </Link>
+                <div className="flex flex-col gap-3 w-full max-w-[280px]">
+                  <Link href="/signup" className="w-full">
+                    <button className="w-full bg-duo-green hover:bg-duo-green/95 text-white font-extrabold py-3.5 rounded-xl shadow-[0_4px_0_#3f8f01] active:translate-y-[4px] active:shadow-none transition-all uppercase tracking-widest text-sm font-din-round cursor-pointer text-center">
+                      Create a Profile
+                    </button>
+                  </Link>
+                  <Link href="/login" className="w-full">
+                    <button className="w-full bg-snow-white hover:bg-cloud-gray/20 text-sky-blue border-2 border-cloud-gray font-extrabold py-3 rounded-xl shadow-[0_4px_0_var(--color-cloud-gray)] active:translate-y-[4px] active:shadow-none transition-all uppercase tracking-widest text-xs font-din-round cursor-pointer text-center">
+                      I Already Have an Account
+                    </button>
+                  </Link>
+                </div>
               </>
             ) : (
               <>

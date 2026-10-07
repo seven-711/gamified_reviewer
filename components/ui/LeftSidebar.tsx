@@ -39,27 +39,35 @@ export default function LeftSidebar() {
       <nav className="flex flex-col gap-2">
         {visibleNavItems.map((item) => {
           const isActive = pathname === item.href;
+          const isLockedForGuest = !user && (item.name === "LEADERBOARDS" || item.name === "QUESTS" || item.name === "PROFILE");
           return (
             <Link
               key={item.name}
               href={item.href}
-              className={`flex items-center gap-4 px-4 py-3 rounded-2xl border-2 transition-colors ${isActive
+              className={`flex items-center justify-between px-4 py-3 rounded-2xl border-2 transition-colors ${isActive
                   ? "bg-duo-green-light border-sky-blue text-sky-blue"
                   : "border-transparent text-charcoal hover:bg-duo-green-light hover:border-cloud-gray"
                 }`}
             >
-              <div className="w-13 h-13 relative shrink-0">
-                <Image
-                  src={item.icon}
-                  alt={item.name}
-                  fill
-                  className="object-contain"
-                  unoptimized
-                />
+              <div className="flex items-center gap-4">
+                <div className="w-13 h-13 relative shrink-0">
+                  <Image
+                    src={item.icon}
+                    alt={item.name}
+                    fill
+                    className="object-contain"
+                    unoptimized
+                  />
+                </div>
+                <span className="font-extrabold tracking-wider text-[12px]">
+                  {item.name}
+                </span>
               </div>
-              <span className="font-extrabold tracking-wider text-[12px]">
-                {item.name}
-              </span>
+              {isLockedForGuest && (
+                <span className="text-xs text-amber-700 px-1.5 py-0.5 rounded-full font-bold ml-1 select-none" title="Sign up to unlock">
+                  🔒
+                </span>
+              )}
             </Link>
           );
         })}
