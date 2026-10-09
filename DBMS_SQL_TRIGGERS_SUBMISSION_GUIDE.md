@@ -180,9 +180,9 @@ BEGIN
     -- Business Rule: Automatically update last_lesson_date when lessons completed increments
     IF NEW.lessons_completed > 0 AND (
         NEW.last_lesson_date IS NULL OR 
-        (TG_OP = 'UPDATE' AND NEW.lessons_completed > COALESCE(OLD.lessons_completed, 0))
+        (TG_OP = 'UPDATE' AND NEW.lessons_completed > COALESCE(OLD.lessons_completed, 0) AND (NEW.last_lesson_date = OLD.last_lesson_date OR NEW.last_lesson_date IS NULL))
     ) THEN
-        NEW.last_lesson_date := TO_CHAR(CURRENT_DATE, 'YYYY-MM-DD');
+        NEW.last_lesson_date := CURRENT_DATE;
     END IF;
 
     RETURN NEW;

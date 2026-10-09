@@ -24,18 +24,30 @@ const DotLottieReact = dynamic(
   { ssr: false }
 );
 
-function getRankLottieConfig(level: number): { src: string; animationId: string } {
+function getRankLottieConfig(level: number): { src: string } {
   switch (level) {
     case 1:
-      return { src: "/firstRank.lottie", animationId: "Main Scene" };
+      return { src: "/firstRank.lottie" };
     case 2:
-      return { src: "/secondRank.lottie", animationId: "Main Scene" };
+      return { src: "/secondRank.lottie" };
     case 3:
-      return { src: "/thirdRank.lottie", animationId: "Main Scene" };
+      return { src: "/thirdRank.lottie" };
     default:
-      return { src: "/fourthRankBeyond.lottie", animationId: "12345" };
+      return { src: "/fourthRankBeyond.lottie" };
   }
 }
+
+function RiveCharacter() {
+  return (
+    <div className="w-[110px] h-[110px] select-none">
+      <Rive
+        src="/emoji/reviewqo.riv"
+        className="w-full h-full"
+      />
+    </div>
+  );
+}
+
 
 // Data metadata fetched via API
 
@@ -101,21 +113,29 @@ async function checkDailyStreakValidation(
     }
   }
 
+  let effectiveLastDateStr = lastLessonDateStr;
+  if (typeof window !== "undefined") {
+    const localLastDate = localStorage.getItem("last_lesson_completed_date");
+    if (localLastDate && (!effectiveLastDateStr || localLastDate > effectiveLastDateStr)) {
+      effectiveLastDateStr = localLastDate;
+    }
+  }
+
   const todayStr = new Date().toLocaleDateString("en-CA");
   const [y1, m1, d1] = todayStr.split("-").map(Number);
-  const cleanLastDate = lastLessonDateStr.slice(0, 10);
+  const cleanLastDate = (effectiveLastDateStr || "").slice(0, 10);
   const [y2, m2, d2] = cleanLastDate.split("-").map(Number);
   const todayDate = new Date(y1, m1 - 1, d1);
   const lastDate = new Date(y2, m2 - 1, d2);
   const diffTime = todayDate.getTime() - lastDate.getTime();
   const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
 
-  if (typeof window !== "undefined") {
-    localStorage.setItem("last_lesson_completed_date", lastLessonDateStr);
+  if (typeof window !== "undefined" && effectiveLastDateStr) {
+    localStorage.setItem("last_lesson_completed_date", effectiveLastDateStr);
   }
 
   if (diffDays <= 1) {
-    return { streak: currentStreak, last_lesson_date: lastLessonDateStr };
+    return { streak: currentStreak, last_lesson_date: effectiveLastDateStr };
   }
 
   // diffDays > 1: they missed a day
@@ -169,7 +189,7 @@ async function checkDailyStreakValidation(
 async function checkDailyLoginReward(
   profileId: string,
   currentGems: number,
-  showAlert: (msg: string) => Promise<void>
+  showAlert: (msg: string, options?: any) => Promise<void>
 ): Promise<number> {
   if (typeof window === "undefined") return currentGems;
   const todayStr = new Date().toLocaleDateString("en-CA");
@@ -182,7 +202,10 @@ async function checkDailyLoginReward(
       .update({ gems: newGems })
       .eq("profile_id", profileId);
     localStorage.setItem("last_login_reward_date", todayStr);
-    await showAlert("Daily Login Reward! You received 💎 10 Gems.");
+    await showAlert("Daily Login Reward! You received 💎 10 Gems.", {
+      title: "Daily Login Reward",
+      image: "/img/gen_imgs/achievements/gift_box.webp"
+    });
     return newGems;
   } catch (e) {
     console.error("Failed to update daily login gems reward", e);
@@ -231,7 +254,22 @@ async function checkHeartsRegeneration(dbProfile: any): Promise<{ hearts: number
 export default function DashboardPage() {
   const { showAlert } = useAlert();
   const router = useRouter();
-  const { streak, xp, gems, hearts, currentLevel, refreshStats, updateStatsLocally } = useStats();
+  const { streak, xp, gems, hearts, currentLevel, lastLessonDate, refreshStats, updateStatsLocally } = useStats();
+
+  // Track all-time record streak (localStorage-persisted)
+  const [recordStreak, setRecordStreak] = useState(streak);
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const stored = parseInt(localStorage.getItem("record_longest_streak") || "0", 10);
+      const maxStreak = Math.max(streak, stored);
+      setRecordStreak(maxStreak);
+      if (maxStreak > stored) {
+        localStorage.setItem("record_longest_streak", maxStreak.toString());
+      }
+    } else {
+      setRecordStreak(streak);
+    }
+  }, [streak]);
   const rankInfo = getCadetRankInfo(currentLevel);
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<UserProfile | null>(() => {
@@ -285,6 +323,7 @@ export default function DashboardPage() {
   });
   const [showHeartsBlocker, setShowHeartsBlocker] = useState(false);
   const [refillingHearts, setRefillingHearts] = useState(false);
+  const [selectedMobileNode, setSelectedMobileNode] = useState<number | null>(null);
 
   useEffect(() => {
     if (profile) {
@@ -736,6 +775,247 @@ export default function DashboardPage() {
     }
   }
   if (activeIndex >= renderCount) activeIndex = renderCount - 1; // Cap at the last test if all are completed
+
+  // Helper for test metadata and titles
+  const getTestInfo = (testNum: number) => {
+    let testTitle = `${topicName} - Test ${testNum}`;
+    if (formattedTopic === "practice_tests") {
+      if (testNum === 1) testTitle = "Word Problems and Operations";
+      else if (testNum === 2) testTitle = "Data Sufficiency";
+      else testTitle = `Practice Test ${testNum}`;
+    } else if (formattedTopic === "word_problems_and_operations") {
+      testTitle = "Word Problems and Operations";
+    } else if (formattedTopic === "data_sufficiency") {
+      testTitle = "Data Sufficiency";
+    } else if (formattedTopic === "quantitative_reasoning") {
+      if (quantSection === "part2_secA") {
+        if (testNum === 1) testTitle = "Chapter 1: Analogy (Exercise 1)";
+        else if (testNum === 2) testTitle = "Chapter 1: Analogy (Exercise 2)";
+        else if (testNum === 3) testTitle = "Chapter 1: Analogy (Exercise 3)";
+        else if (testNum === 4) testTitle = "Chapter 1: Analogy (Exercise 4)";
+        else if (testNum === 5) testTitle = "Chapter 1: Analogy (Exercise 5)";
+        else if (testNum === 6) testTitle = "Chapter 1: Analogy (Exercise 6)";
+        else if (testNum === 7) testTitle = "Chapter 1: Analogy (Exercise 7)";
+        else if (testNum === 8) testTitle = "Chapter 1: Analogy (Exercise 8)";
+        else if (testNum === 9) testTitle = "Chapter 1: Analogy (Exercise 9)";
+        else if (testNum === 10) testTitle = "Chapter 2: Classification Reasoning";
+        else if (testNum === 11) testTitle = "Chapter 3: Series Completion (Exercise 1)";
+        else if (testNum === 12) testTitle = "Chapter 3: Series Completion (Exercise 2)";
+        else if (testNum === 13) testTitle = "Chapter 3: Series Completion (Exercise 3)";
+        else if (testNum === 14) testTitle = "Chapter 3: Series Completion (Exercise 4)";
+        else if (testNum === 15) testTitle = "Chapter 4: Coding and Decoding (Exercise 1)";
+        else if (testNum === 16) testTitle = "Chapter 4: Coding and Decoding (Exercise 2)";
+        else if (testNum === 17) testTitle = "Chapter 4: Coding and Decoding (Exercise 3)";
+        else if (testNum === 18) testTitle = "Chapter 5: Blood Relations (Exercise 1)";
+        else if (testNum === 19) testTitle = "Chapter 5: Blood Relations (Exercise 2)";
+        else if (testNum === 20) testTitle = "Chapter 5: Blood Relations (Exercise 3)";
+        else if (testNum === 21) testTitle = "Chapter 6: Puzzle Test (Exercise 1)";
+        else if (testNum === 22) testTitle = "Chapter 6: Puzzle Test (Exercise 2)";
+        else if (testNum === 23) testTitle = "Chapter 7: Direction Sense Test (Exercise 1)";
+        else if (testNum === 24) testTitle = "Chapter 7: Direction Sense Test (Exercise 2)";
+        else if (testNum === 25) testTitle = "Chapter 8: Logical Venn Diagrams (Exercise 1)";
+        else if (testNum === 26) testTitle = "Chapter 9: Number Ranking and Time Sequence Test (Exercise 1)";
+        else if (testNum === 27) testTitle = "Chapter 10: Decision Making (Exercise 1)";
+        else if (testNum === 28) testTitle = "Chapter 10: Decision Making (Exercise 2)";
+        else if (testNum === 29) testTitle = "Chapter 11: Assertion and Reason (Exercise 1)";
+        else if (testNum === 30) testTitle = "Chapter 12: Situation Reaction Test (Exercise 1)";
+        else if (testNum === 31) testTitle = "Chapter 13: Mathematical Operations (Exercise 1)";
+        else if (testNum === 32) testTitle = "Chapter 14: Inserting the Missing One (Exercise 1)";
+        else if (testNum === 33) testTitle = "Chapter 15: Logical Sequence of Words (Exercise 1)";
+        else testTitle = `Chapter ${testNum}`;
+      } else if (quantSection === "part2_secB") {
+        if (testNum === 1) testTitle = "Chapter 16: Logic (Exercise 1)";
+        else testTitle = `Chapter ${testNum}`;
+      } else {
+        if (testNum === 1) testTitle = "Chapter 1: HCF and LCM";
+        else if (testNum === 2) testTitle = "Chapter 2: Permutation and Combination";
+        else if (testNum === 3) testTitle = "Chapter 3: Probability";
+        else if (testNum === 4) testTitle = "Chapter 4: Ratio and Proportion";
+        else if (testNum === 5) testTitle = "Chapter 5: Percentage";
+        else if (testNum === 6) testTitle = "Chapter 6: Average";
+        else if (testNum === 7) testTitle = "Chapter 7: Problems on Ages";
+        else if (testNum === 8) testTitle = "Chapter 8: Profit and Loss";
+        else if (testNum === 9) testTitle = "Chapter 9: Squares and Square Roots";
+        else if (testNum === 10) testTitle = "Chapter 10: Cubes and Cube Roots";
+        else if (testNum === 11) testTitle = "Chapter 11: Series";
+        else if (testNum === 12) testTitle = "Chapter 12: Progression and Sequence";
+        else if (testNum === 13) testTitle = "Chapter 13: Fractions";
+        else if (testNum === 14) testTitle = "Chapter 14: Elementary Algebra I";
+        else if (testNum === 15) testTitle = "Chapter 15: Elementary Algebra II";
+        else if (testNum === 16) testTitle = "Chapter 16: Partnership";
+        else if (testNum === 17) testTitle = "Chapter 17: Simple Interest";
+        else if (testNum === 18) testTitle = "Chapter 18: Compound Interest";
+        else if (testNum === 19) testTitle = "Chapter 19: Time and Work";
+        else if (testNum === 20) testTitle = "Chapter 20: Work and Wages";
+        else if (testNum === 21) testTitle = "Chapter 21: Pipes and Cistern";
+        else if (testNum === 22) testTitle = "Chapter 22: Alligation";
+        else if (testNum === 23) testTitle = "Chapter 23: Problems on Trains";
+        else if (testNum === 24) testTitle = "Chapter 24: Boats and Streams";
+        else if (testNum === 25) testTitle = "Chapter 25: Elementary Mensuration I (Measurement of Area)";
+        else if (testNum === 26) testTitle = "Chapter 26: Elementary Mensuration II (Measurement of Volume and Surface Area)";
+        else if (testNum === 27) testTitle = "Chapter 27: Problems on Clock";
+        else if (testNum === 28) testTitle = "Chapter 28: Problems on Calendar";
+        else if (testNum === 29) testTitle = "Chapter 29: Time and Distance";
+        else if (testNum === 30) testTitle = "Chapter 30: Heights and Distances";
+        else if (testNum === 31) testTitle = "Chapter 31: Trigonometry";
+        else if (testNum === 32) testTitle = "Chapter 32: Odd man out and series";
+        else if (testNum === 33) testTitle = "Chapter 33: Data Sufficiency";
+        else if (testNum === 34) testTitle = "Chapter 34: Data Analysis";
+        else if (testNum === 35) testTitle = "Chapter 35: Mathematical Operations";
+        else if (testNum === 36) testTitle = "Chapter 36: Number System";
+        else if (testNum === 37) testTitle = "Chapter 37: Arithmetic Reasoning";
+        else if (testNum === 38) testTitle = "Chapter 38: Simplification";
+        else if (testNum === 39) testTitle = "Chapter 39: Races and Games";
+        else if (testNum === 40) testTitle = "Chapter 40: Stocks and Shares";
+        else if (testNum === 41) testTitle = "Chapter 41: Discount";
+        else if (testNum === 42) testTitle = "Chapter 42: Logarithm";
+        else testTitle = `Chapter ${testNum}`;
+      }
+    }
+    const testId = isPart2SecA 
+      ? `part2_secA_test${testNum}` 
+      : isPart2SecB 
+        ? `part2_secB_test${testNum}` 
+        : (formattedTopic === "practice_tests")
+          ? (testNum === 1 ? "word_problems_and_operations_test1" : "data_sufficiency_test1")
+          : `${formattedTopic}_test${testNum}`;
+    const scoreData = scores[testId] || (formattedTopic === "practice_tests" ? scores[`practice_tests_test${testNum}`] : undefined);
+    return { testTitle, testId, scoreData };
+  };
+
+  const renderNodeIcon = (pos: number) => {
+    switch (pos) {
+      case 0: // Level 1: Star
+        return (
+          <svg className="w-9 h-9 fill-white drop-shadow-md transform group-hover:scale-110 transition duration-150" viewBox="0 0 24 24">
+            <path d="M12 1.5l3.2 6.5 7.17 1.04-5.19 5.06 1.23 7.14L12 17.87 5.59 21.24l1.23-7.14L1.63 9.04l7.17-1.04L12 1.5z"></path>
+          </svg>
+        );
+      case 1: // Level 2: Book
+        return (
+          <svg className="w-9 h-9 fill-white drop-shadow-md transform group-hover:scale-110 transition duration-150" viewBox="0 0 24 24">
+            <path d="M21 5c-1.11-.35-2.33-.5-3.5-.5-1.95 0-4.05.4-5.5 1.5-1.45-1.1-3.55-1.5-5.5-1.5S2.45 4.9 1 6v14.65c0 .25.25.5.5.5.1 0 .15-.05.25-.05C3.1 20.45 5.05 20 6.5 20c1.95 0 4.05.4 5.5 1.5 1.35-.85 3.8-1.5 5.5-1.5 1.65 0 3.35.3 4.75 1.05.1.05.15.05.25.05.25 0 .5-.25.5-.5V6c-.6-.45-1.25-.75-2-1zm-1 13c-1.05-.3-2.2-.45-3.5-.45-1.75 0-3.65.45-4.5 1.35V7.5c.85-.9 2.75-1.35 4.5-1.35 1.3 0 2.45.15 3.5.45v11.4z"></path>
+          </svg>
+        );
+      case 2: // Level 3: Microphone
+        return (
+          <svg className="w-9 h-9 fill-white drop-shadow-md transform group-hover:scale-110 transition duration-150" viewBox="0 0 24 24">
+            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"></path>
+            <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"></path>
+          </svg>
+        );
+      case 3: // Level 4: Dumbbell
+        return (
+          <svg className="w-8 h-8 fill-white drop-shadow-md transform group-hover:scale-110 transition duration-150 rotate-45" viewBox="0 0 24 24">
+            <path d="M20.57 14.86L22 13.43 20.57 12 17 15.57 8.43 7 12 3.43 10.57 2 9.14 3.43 7.71 2 5.57 4.14 4.14 2.71 2.71 4.14l1.43 1.43L2 7.71l1.43 1.43L2 10.57 3.43 12 7 8.43 15.57 17 12 20.57 13.43 22l1.43-1.43L16.29 22l2.14-2.14 1.43 1.43 1.43-1.43-1.43-1.43L22 16.29z"></path>
+          </svg>
+        );
+      case 4: // Level 5: Video Camera
+        return (
+          <svg className="w-9 h-9 fill-white drop-shadow-md transform group-hover:scale-110 transition duration-150" viewBox="0 0 24 24">
+            <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"></path>
+          </svg>
+        );
+      case 5: // Level 6: Headphones
+      default:
+        return (
+          <svg className="w-9 h-9 fill-white drop-shadow-md transform group-hover:scale-110 transition duration-150" viewBox="0 0 24 24">
+            <path d="M12 3c-4.97 0-9 4.03-9 9v7c0 1.1.9 2 2 2h4v-8H5v-1c0-3.87 3.13-7 7-7s7 3.13 7 7v1h-4v8h4c1.1 0 2-.9 2-2v-7c0-4.97-4.03-9-9-9z"></path>
+          </svg>
+        );
+    }
+  };
+
+  const renderLockedIcon = () => (
+    <svg className="w-8 h-8 fill-[#afafaf] drop-shadow-sm" viewBox="0 0 24 24">
+      <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z" />
+    </svg>
+  );
+
+  const renderNodeButton = (index: number) => {
+    const testNum = index + 1;
+    const { testTitle, testId, scoreData } = getTestInfo(testNum);
+    const isActive = index === activeIndex;
+    const isLocked = !unlockAll && index > activeIndex;
+    const isPassed = !isLocked && Boolean(scoreData && scoreData.total > 0 && (scoreData.score / scoreData.total) >= 0.8);
+    const pos = index % 6;
+    const isSelected = selectedMobileNode === index;
+
+    const btnClass = isLocked
+      ? "btn-3d-gray cursor-not-allowed"
+      : isPassed
+        ? "btn-3d-gold cursor-pointer"
+        : "btn-3d-green cursor-pointer";
+
+    return (
+      <div key={index} className="relative flex flex-col items-center">
+        {/* Floating Bouncing START Badge for Active Node */}
+        {isActive && !isSelected && (
+          <div className="absolute -top-11 left-1/2 -translate-x-1/2 z-30 animate-bounce pointer-events-none">
+            <div className="bg-white text-[#58cc02] font-black text-[11px] px-3.5 py-1 rounded-xl shadow-[0_3px_0_#e5e5e5] uppercase tracking-wider border-2 border-[#e5e5e5] whitespace-nowrap">
+              START
+            </div>
+            <div className="w-0 h-0 border-x-5 border-x-transparent border-t-5 border-t-white mx-auto -mt-[1px]"></div>
+          </div>
+        )}
+
+        {/* Floating Popover Speech Bubble when Tapped */}
+        {isSelected && (
+          <div className="fixed left-1/2 -translate-x-1/2 bottom-28 z-50 animate-[scaleIn_0.15s_ease-out] w-[220px] bg-white rounded-xl border border-[#e5e5e5] px-3 py-2.5 shadow-lg text-center font-din-round">
+            <h4 className="font-feather font-bold text-xs text-black leading-snug break-words whitespace-normal line-clamp-3">{testTitle}</h4>
+            <p className="text-[10px] text-graphite font-semibold mt-0.5">
+              {scoreData ? `Best: ${scoreData.score}/${scoreData.total}` : isLocked ? "Locked" : "Not started"}
+            </p>
+            <div className="mt-2 flex items-center justify-center">
+              {isLocked ? (
+                <span className="text-[10px] text-silver font-extrabold uppercase tracking-wide">Pass previous to unlock</span>
+              ) : (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedMobileNode(null);
+                    handleTopicClick(testTitle, testId);
+                  }}
+                  className="w-full bg-[#58cc02] hover:bg-[#46a302] text-white font-black text-[11px] py-1.5 px-3 rounded-lg shadow-[0_3px_0_#46a302] active:translate-y-[2px] active:shadow-none uppercase tracking-wider transition cursor-pointer"
+                >
+                  {isPassed ? "Practice" : "Start"}
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Main 3D Node Button */}
+        <button
+          onClick={() => {
+            if (isLocked) {
+              showAlert("🔒 This lesson is locked! Complete preceding lessons with 80% or toggle 'Unlock All' to access.");
+              return;
+            }
+            if (isSelected) {
+              setSelectedMobileNode(null);
+              handleTopicClick(testTitle, testId);
+            } else {
+              setSelectedMobileNode(index);
+            }
+          }}
+          aria-label={`${testTitle} - ${isLocked ? "Locked" : isPassed ? "Completed" : "Active"}`}
+          className={`w-[74px] h-[74px] rounded-full relative flex items-center justify-center group active:outline-none select-none ${btnClass}`}
+        >
+          <div className="absolute inset-0 rounded-full btn-inner-shine pointer-events-none"></div>
+          {isLocked ? renderLockedIcon() : renderNodeIcon(pos)}
+
+          {/* Completed Gold Checkmark Badge */}
+          {isPassed && (
+            <div className="absolute -bottom-0.5 -right-0.5 w-6 h-6 rounded-full bg-[#ffc800] border-2 border-white flex items-center justify-center shadow-md">
+              <span className="text-white text-xs font-black">✓</span>
+            </div>
+          )}
+        </button>
+      </div>
+    );
+  };
+
   const showSubOnboarding = isQuantTopic && !quantSection;
   const showComingSoon = (isQuantTopic && quantSection && quantSection !== "part1" && quantSection !== "part2_secA" && quantSection !== "part2_secB") || (!isQuantTopic && testCount === 0 && !loading);
 
@@ -743,17 +1023,17 @@ export default function DashboardPage() {
     <>
       <main className="flex-1 w-full max-w-[600px] mx-auto pb-24">
         <div className="flex flex-col gap-3 md:gap-6 pt-1 md:pt-2 items-center w-full">
-          {/* Section Header */}
-          <div className="w-full md:px-0 sticky top-17 md:top-6 z-30">
-            <div className="w-full bg-duo-green rounded-xl md:rounded-2xl p-3.5 md:p-5 flex items-center justify-between shadow-[0_3px_0_#3f8f01] md:shadow-[0_4px_0_#3f8f01]">
+          {/* Desktop Section Header */}
+          <div className="hidden md:block w-full md:px-0 sticky top-6 z-30">
+            <div className="w-full bg-duo-green rounded-2xl p-5 flex items-center justify-between shadow-[0_4px_0_#3f8f01]">
               <div className="flex flex-col text-white min-w-0 pr-2">
                 <div className="flex items-center gap-2 mb-0.5">
-                  <span onClick={() => router.push("/onboarding?edit=true")} className="text-xl md:text-lg font-bold cursor-pointer hover:opacity-80 transition-opacity">←</span>
-                  <span className="font-bold text-[11px] md:text-sm tracking-widest uppercase">
+                  <span onClick={() => router.push("/onboarding?edit=true")} className="text-lg font-bold cursor-pointer hover:opacity-80 transition-opacity">←</span>
+                  <span className="font-bold text-sm tracking-widest uppercase">
                     Section 1, Unit 1
                   </span>
                 </div>
-                <h2 className="font-feather text-lg md:text-2xl font-bold tracking-wide leading-tight truncate">
+                <h2 className="font-feather text-2xl font-bold tracking-wide leading-tight truncate">
                   {mounted && profile ? (
                     `${profile.exam_category} ${topicName ? `- ${topicName}` : ""}`
                   ) : (
@@ -764,50 +1044,35 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Cadet Rank Level Progression Card (Trigger 2 Verification) */}
-          <div className="w-full px-4 md:px-0">
-            <div className="w-full bg-snow-white border-2 border-cloud-gray dark:border-cloud-gray/20 rounded-xl md:rounded-2xl p-3 md:p-5 flex flex-col sm:flex-row items-center justify-between gap-2.5 md:gap-4 shadow-sm">
-              <div className="flex items-center gap-2.5 md:gap-4 w-full sm:w-auto">
-                <div className="w-20 h-20 md:w-28 md:h-28 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0 overflow-hidden">
-                  <DotLottieReact
-                    {...getRankLottieConfig(currentLevel)}
-                    autoplay
-                    loop
-                    className="w-20 h-20 md:w-28 md:h-28"
-                  />
-                </div>
-                <div className="flex flex-col text-left min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs font-bold uppercase tracking-wider text-silver">Cadet Rank</span>
-                  </div>
-                  <h3 className="font-feather text-base md:text-xl font-bold text-charcoal dark:text-white leading-snug">
-                    Level {currentLevel}: {rankInfo.title}
-                  </h3>
-                </div>
+          {/* Mobile SectionHeaderCard (Unit Banner Card) */}
+          <div className="block md:hidden w-full px-1 sticky top-15 z-30" data-purpose="unit-header-card">
+            <div className="w-full bg-[#58cc02] rounded-2xl p-4 shadow-[0_5px_0_#46a302] flex items-center justify-between text-white border border-[#68d712]">
+              <div className="space-y-0.5 min-w-0 pr-2">
+                <p className="text-[12px] font-black tracking-wider uppercase opacity-90">SECTION 1, UNIT 1</p>
+                <h1 className="text-[19px] font-extrabold tracking-tight truncate">
+                  {mounted && profile ? `${profile.exam_category}${topicName ? ` - ${topicName}` : ""}` : "Loading Topic..."}
+                </h1>
               </div>
-
-              {rankInfo.nextLevelXp && (
-                <div className="w-full sm:w-56 flex flex-col gap-1.5 shrink-0">
-                  <div className="flex justify-between text-[11px] font-bold text-silver">
-                    <span>Lvl {currentLevel} ({rankInfo.badgeName})</span>
-                    <span>Lvl {currentLevel + 1}</span>
-                  </div>
-                  <div className="h-3 w-full bg-cloud-gray dark:bg-slate-700 rounded-full overflow-hidden relative">
-                    <div
-                      className="h-full bg-gradient-to-r from-duo-green to-duo-green-dark rounded-full transition-all duration-500"
-                      style={{
-                        width: `${Math.min(100, Math.max(0, ((xp - rankInfo.minXp) / (rankInfo.nextLevelXp - rankInfo.minXp)) * 100))}%`
-                      }}
-                    />
-                  </div>
-                  <span className="text-[10px] text-right font-semibold text-silver">
-                    {xp} / {rankInfo.nextLevelXp} XP
-                  </span>
-                </div>
-              )}
+              {/* Guidebook / Change Topic Button */}
+              <button
+                onClick={() => router.push("/onboarding?edit=true")}
+                className="p-2.5 rounded-xl bg-[#58cc02] hover:bg-[#61e002]/30 active:bg-[#46a302] border-2 border-white/30 text-white shadow-inner flex items-center justify-center transition cursor-pointer shrink-0"
+                title="Guidebook / Change Topic"
+              >
+                <svg className="w-6 h-6 stroke-white fill-none stroke-[2.5]" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                  <rect height="18" rx="2" strokeWidth="2.5" width="15" x="6" y="3"></rect>
+                  <line x1="10" x2="17" y1="8" y2="8"></line>
+                  <line x1="10" x2="17" y1="12" y2="12"></line>
+                  <line x1="10" x2="14" y1="16" y2="16"></line>
+                  <circle cx="3.5" cy="7" fill="white" r="1.5"></circle>
+                  <circle cx="3.5" cy="12" fill="white" r="1.5"></circle>
+                  <circle cx="3.5" cy="17" fill="white" r="1.5"></circle>
+                </svg>
+              </button>
             </div>
           </div>
 
+          
           {/* Quantitative Reasoning Active Section Banner */}
           {isQuantTopic && quantSection && (
             <div className="w-full flex items-center justify-between bg-sky-blue/10 border-2 border-sky-blue/20 rounded-xl md:rounded-2xl p-3 md:p-4 font-din-round animate-[fadeIn_0.3s_ease-out]">
@@ -1035,40 +1300,40 @@ export default function DashboardPage() {
           ) : (
             /* Standard Dashboard Content */
             <>
-              {/* Settings / Controls Row */}
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between w-full px-4 md:px-0 gap-3">
-                <div
-                  onClick={() => {
-                    setSelectedTestForTimer({ testId: "settings", testTitle: "Practice Timer Settings" });
-                    const saved = localStorage.getItem("timer_duration");
-                    setModalTimerDuration(saved ? parseInt(saved, 10) : 5);
-                  }}
-                  className="flex items-center justify-center sm:justify-start gap-2 bg-duo-green-light/10 hover:bg-duo-green-light/20 border-2 border-cloud-gray rounded-2xl sm:rounded-full py-2.5 px-4 cursor-pointer select-none transition-all shadow-[0_3px_0_var(--color-cloud-gray)] active:translate-y-[3px] active:shadow-none active:scale-[0.98] group text-almost-black font-din-round text-sm"
-                >
-                  <span className="text-base shrink-0">⏱️</span>
-                  <span className="font-extrabold tracking-wider uppercase text-silver group-hover:text-almost-black transition-colors flex items-center gap-1.5">
-                    <span>Timer:</span>
-                    <span className="text-sky-blue font-black">{modalTimerDuration === 60 ? "1 Hour" : `${modalTimerDuration} Mins`}</span>
-                  </span>
-                  <span className="bg-sky-blue/15 text-sky-blue font-bold px-2.5 py-0.5 rounded-full text-[10px] tracking-wider uppercase transition-all group-hover:bg-sky-blue group-hover:text-white shrink-0">
-                    Change
-                  </span>
+              {/* DESKTOP VIEW: Topic Cards List */}
+              <div className="hidden md:flex flex-col w-full gap-4 md:gap-5 pb-24 px-4 md:px-0">
+                {/* Desktop Settings / Controls Row */}
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between w-full gap-3">
+                  <div
+                    onClick={() => {
+                      setSelectedTestForTimer({ testId: "settings", testTitle: "Practice Timer Settings" });
+                      const saved = localStorage.getItem("timer_duration");
+                      setModalTimerDuration(saved ? parseInt(saved, 10) : 5);
+                    }}
+                    className="flex items-center justify-center sm:justify-start gap-2 bg-duo-green-light/10 hover:bg-duo-green-light/20 border-2 border-cloud-gray rounded-2xl sm:rounded-full py-2.5 px-4 cursor-pointer select-none transition-all shadow-[0_3px_0_var(--color-cloud-gray)] active:translate-y-[3px] active:shadow-none active:scale-[0.98] group text-almost-black font-din-round text-sm"
+                  >
+                    <span className="text-base shrink-0">⏱️</span>
+                    <span className="font-extrabold tracking-wider uppercase text-silver group-hover:text-almost-black transition-colors flex items-center gap-1.5">
+                      <span>Timer:</span>
+                      <span className="text-sky-blue font-black">{modalTimerDuration === 60 ? "1 Hour" : `${modalTimerDuration} Mins`}</span>
+                    </span>
+                    <span className="bg-sky-blue/15 text-sky-blue font-bold px-2.5 py-0.5 rounded-full text-[10px] tracking-wider uppercase transition-all group-hover:bg-sky-blue group-hover:text-white shrink-0">
+                      Change
+                    </span>
+                  </div>
+
+                  <label className="flex items-center justify-between sm:justify-end cursor-pointer gap-4 opacity-80 hover:opacity-100 transition-opacity bg-cloud-gray/10 sm:bg-transparent border-2 border-cloud-gray/20 sm:border-0 rounded-2xl py-2.5 px-4 sm:p-0 shrink-0 select-none">
+                    <span className="text-charcoal font-bold text-xs uppercase tracking-wide whitespace-nowrap">Unlock All Reviewers</span>
+                    <div className="relative shrink-0">
+                      <input type="checkbox" className="sr-only" checked={unlockAll} onChange={() => setUnlockAll(!unlockAll)} />
+                      <div className={`block w-10 h-6 rounded-full transition-colors ${unlockAll ? 'bg-duo-green' : 'bg-[#29353c]'}`}></div>
+                      <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${unlockAll ? 'transform translate-x-4' : ''}`}></div>
+                    </div>
+                  </label>
                 </div>
 
-                <label className="flex items-center justify-between sm:justify-end cursor-pointer gap-4 opacity-80 hover:opacity-100 transition-opacity bg-cloud-gray/10 sm:bg-transparent border-2 border-cloud-gray/20 sm:border-0 rounded-2xl py-2.5 px-4 sm:p-0 shrink-0 select-none">
-                  <span className="text-charcoal font-bold text-xs uppercase tracking-wide whitespace-nowrap">Unlock All Reviewers</span>
-                  <div className="relative shrink-0">
-                    <input type="checkbox" className="sr-only" checked={unlockAll} onChange={() => setUnlockAll(!unlockAll)} />
-                    <div className={`block w-10 h-6 rounded-full transition-colors ${unlockAll ? 'bg-duo-green' : 'bg-[#29353c]'}`}></div>
-                    <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${unlockAll ? 'transform translate-x-4' : ''}`}></div>
-                  </div>
-                </label>
-              </div>
-
-              {/* Topic Cards */}
-              <div className="flex flex-col w-full gap-4 md:gap-5 pb-24 px-4 md:px-0">
+                {/* Desktop Cards */}
                 {loading ? (
-                  /* Shimmering Skeleton Loader Cards representing progressive loading */
                   [...Array(4)].map((_, i) => (
                     <div key={i} className="w-full relative animate-pulse">
                       <div className="w-full flex items-center justify-between p-5 md:p-6 rounded-2xl border-2 border-cloud-gray/70 bg-cloud-gray/10 shadow-[0_6px_0_rgba(229,229,229,0.3)]">
@@ -1084,109 +1349,7 @@ export default function DashboardPage() {
                   Array.from({ length: isPart2SecA ? 33 : isPart2SecB ? 1 : testCount }, (_, i) => i + 1).map((testNum, index) => {
                     const isActive = index === activeIndex;
                     const isLocked = !unlockAll && index > activeIndex;
-
-                    let testTitle = `${topicName} - Test ${testNum}`;
-                    if (formattedTopic === "practice_tests") {
-                      if (testNum === 1) testTitle = "Word Problems and Operations";
-                      else if (testNum === 2) testTitle = "Data Sufficiency";
-                      else testTitle = `Practice Test ${testNum}`;
-                    } else if (formattedTopic === "word_problems_and_operations") {
-                      testTitle = "Word Problems and Operations";
-                    } else if (formattedTopic === "data_sufficiency") {
-                      testTitle = "Data Sufficiency";
-                    } else if (formattedTopic === "quantitative_reasoning") {
-                      if (quantSection === "part2_secA") {
-                        if (testNum === 1) testTitle = "Chapter 1: Analogy (Exercise 1)";
-                        else if (testNum === 2) testTitle = "Chapter 1: Analogy (Exercise 2)";
-                        else if (testNum === 3) testTitle = "Chapter 1: Analogy (Exercise 3)";
-                        else if (testNum === 4) testTitle = "Chapter 1: Analogy (Exercise 4)";
-                        else if (testNum === 5) testTitle = "Chapter 1: Analogy (Exercise 5)";
-                        else if (testNum === 6) testTitle = "Chapter 1: Analogy (Exercise 6)";
-                        else if (testNum === 7) testTitle = "Chapter 1: Analogy (Exercise 7)";
-                        else if (testNum === 8) testTitle = "Chapter 1: Analogy (Exercise 8)";
-                        else if (testNum === 9) testTitle = "Chapter 1: Analogy (Exercise 9)";
-                        else if (testNum === 10) testTitle = "Chapter 2: Classification Reasoning";
-                        else if (testNum === 11) testTitle = "Chapter 3: Series Completion (Exercise 1)";
-                        else if (testNum === 12) testTitle = "Chapter 3: Series Completion (Exercise 2)";
-                        else if (testNum === 13) testTitle = "Chapter 3: Series Completion (Exercise 3)";
-                        else if (testNum === 14) testTitle = "Chapter 3: Series Completion (Exercise 4)";
-                        else if (testNum === 15) testTitle = "Chapter 4: Coding and Decoding (Exercise 1)";
-                        else if (testNum === 16) testTitle = "Chapter 4: Coding and Decoding (Exercise 2)";
-                        else if (testNum === 17) testTitle = "Chapter 4: Coding and Decoding (Exercise 3)";
-                        else if (testNum === 18) testTitle = "Chapter 5: Blood Relations (Exercise 1)";
-                        else if (testNum === 19) testTitle = "Chapter 5: Blood Relations (Exercise 2)";
-                        else if (testNum === 20) testTitle = "Chapter 5: Blood Relations (Exercise 3)";
-                        else if (testNum === 21) testTitle = "Chapter 6: Puzzle Test (Exercise 1)";
-                        else if (testNum === 22) testTitle = "Chapter 6: Puzzle Test (Exercise 2)";
-                        else if (testNum === 23) testTitle = "Chapter 7: Direction Sense Test (Exercise 1)";
-                        else if (testNum === 24) testTitle = "Chapter 7: Direction Sense Test (Exercise 2)";
-                        else if (testNum === 25) testTitle = "Chapter 8: Logical Venn Diagrams (Exercise 1)";
-                        else if (testNum === 26) testTitle = "Chapter 9: Number Ranking and Time Sequence Test (Exercise 1)";
-                        else if (testNum === 27) testTitle = "Chapter 10: Decision Making (Exercise 1)";
-                        else if (testNum === 28) testTitle = "Chapter 10: Decision Making (Exercise 2)";
-                        else if (testNum === 29) testTitle = "Chapter 11: Assertion and Reason (Exercise 1)";
-                        else if (testNum === 30) testTitle = "Chapter 12: Situation Reaction Test (Exercise 1)";
-                        else if (testNum === 31) testTitle = "Chapter 13: Mathematical Operations (Exercise 1)";
-                        else if (testNum === 32) testTitle = "Chapter 14: Inserting the Missing One (Exercise 1)";
-                        else if (testNum === 33) testTitle = "Chapter 15: Logical Sequence of Words (Exercise 1)";
-                        else testTitle = `Chapter ${testNum}`;
-                      } else if (quantSection === "part2_secB") {
-                        if (testNum === 1) testTitle = "Chapter 16: Logic (Exercise 1)";
-                        else testTitle = `Chapter ${testNum}`;
-                      } else {
-                        if (testNum === 1) testTitle = "Chapter 1: HCF and LCM";
-                        else if (testNum === 2) testTitle = "Chapter 2: Permutation and Combination";
-                        else if (testNum === 3) testTitle = "Chapter 3: Probability";
-                        else if (testNum === 4) testTitle = "Chapter 4: Ratio and Proportion";
-                        else if (testNum === 5) testTitle = "Chapter 5: Percentage";
-                        else if (testNum === 6) testTitle = "Chapter 6: Average";
-                        else if (testNum === 7) testTitle = "Chapter 7: Problems on Ages";
-                        else if (testNum === 8) testTitle = "Chapter 8: Profit and Loss";
-                        else if (testNum === 9) testTitle = "Chapter 9: Squares and Square Roots";
-                        else if (testNum === 10) testTitle = "Chapter 10: Cubes and Cube Roots";
-                        else if (testNum === 11) testTitle = "Chapter 11: Series";
-                        else if (testNum === 12) testTitle = "Chapter 12: Progression and Sequence";
-                        else if (testNum === 13) testTitle = "Chapter 13: Fractions";
-                        else if (testNum === 14) testTitle = "Chapter 14: Elementary Algebra I";
-                        else if (testNum === 15) testTitle = "Chapter 15: Elementary Algebra II";
-                        else if (testNum === 16) testTitle = "Chapter 16: Partnership";
-                        else if (testNum === 17) testTitle = "Chapter 17: Simple Interest";
-                        else if (testNum === 18) testTitle = "Chapter 18: Compound Interest";
-                        else if (testNum === 19) testTitle = "Chapter 19: Time and Work";
-                        else if (testNum === 20) testTitle = "Chapter 20: Work and Wages";
-                        else if (testNum === 21) testTitle = "Chapter 21: Pipes and Cistern";
-                        else if (testNum === 22) testTitle = "Chapter 22: Alligation";
-                        else if (testNum === 23) testTitle = "Chapter 23: Problems on Trains";
-                        else if (testNum === 24) testTitle = "Chapter 24: Boats and Streams";
-                        else if (testNum === 25) testTitle = "Chapter 25: Elementary Mensuration I (Measurement of Area)";
-                        else if (testNum === 26) testTitle = "Chapter 26: Elementary Mensuration II (Measurement of Volume and Surface Area)";
-                        else if (testNum === 27) testTitle = "Chapter 27: Problems on Clock";
-                        else if (testNum === 28) testTitle = "Chapter 28: Problems on Calendar";
-                        else if (testNum === 29) testTitle = "Chapter 29: Time and Distance";
-                        else if (testNum === 30) testTitle = "Chapter 30: Heights and Distances";
-                        else if (testNum === 31) testTitle = "Chapter 31: Trigonometry";
-                        else if (testNum === 32) testTitle = "Chapter 32: Odd man out and series";
-                        else if (testNum === 33) testTitle = "Chapter 33: Data Sufficiency";
-                        else if (testNum === 34) testTitle = "Chapter 34: Data Analysis";
-                        else if (testNum === 35) testTitle = "Chapter 35: Mathematical Operations";
-                        else if (testNum === 36) testTitle = "Chapter 36: Number System";
-                        else if (testNum === 37) testTitle = "Chapter 37: Arithmetic Reasoning";
-                        else if (testNum === 38) testTitle = "Chapter 38: Simplification";
-                        else if (testNum === 39) testTitle = "Chapter 39: Races and Games";
-                        else if (testNum === 40) testTitle = "Chapter 40: Stocks and Shares";
-                        else if (testNum === 41) testTitle = "Chapter 41: Discount";
-                        else if (testNum === 42) testTitle = "Chapter 42: Logarithm";
-                        else testTitle = `Chapter ${testNum}`;
-                      }
-                    }
-                    const testId = isPart2SecA 
-                      ? `part2_secA_test${testNum}` 
-                      : isPart2SecB 
-                        ? `part2_secB_test${testNum}` 
-                        : (formattedTopic === "practice_tests")
-                          ? (testNum === 1 ? "word_problems_and_operations_test1" : "data_sufficiency_test1")
-                          : `${formattedTopic}_test${testNum}`;
-                    const scoreData = scores[testId] || (formattedTopic === "practice_tests" ? scores[`practice_tests_test${testNum}`] : undefined);
+                    const { testTitle, testId, scoreData } = getTestInfo(testNum);
 
                     let cardClass = "";
                     let titleClass = "";
@@ -1267,6 +1430,7 @@ export default function DashboardPage() {
                     </div>
                   </button>
                 </div>
+
                 {/* Reset Progress Button */}
                 <div className="w-full mt-8 flex justify-center">
                   <button
@@ -1290,12 +1454,281 @@ export default function DashboardPage() {
                   </button>
                 </div>
               </div>
+
+              {/* MOBILE VIEW: Stepping Stones Zigzag Learning Path */}
+              <div className="block md:hidden w-full px-2 pb-16">
+                {/* Backdrop dismisser when popover is open */}
+                {selectedMobileNode !== null && (
+                  <div
+                    className="fixed inset-0 z-30 pointer-events-auto"
+                    onClick={() => setSelectedMobileNode(null)}
+                  />
+                )}
+
+                {/* Mobile Controls Strip (Timer & Unlock All) */}
+                <div className="flex items-center justify-between gap-2 px-1 mb-3 mt-1">
+                  <div
+                    onClick={() => {
+                      setSelectedTestForTimer({ testId: "settings", testTitle: "Practice Timer Settings" });
+                      const saved = localStorage.getItem("timer_duration");
+                      setModalTimerDuration(saved ? parseInt(saved, 10) : 5);
+                    }}
+                    className="flex items-center gap-1.5 bg-snow-white border-2 border-cloud-gray rounded-xl py-2 px-3 cursor-pointer shadow-[0_2px_0_var(--color-cloud-gray)] active:translate-y-[1px] active:shadow-none select-none"
+                  >
+                    <span className="text-sm">⏱️</span>
+                    <span className="font-bold text-silver uppercase text-[10px] tracking-wide">Timer:</span>
+                    <span className="text-sky-blue font-black text-xs">{modalTimerDuration === 60 ? "1 hr" : `${modalTimerDuration}m`}</span>
+                  </div>
+
+                  <label className="flex items-center gap-2.5 cursor-pointer select-none bg-snow-white border-2 border-cloud-gray rounded-xl py-2 px-3 shadow-[0_2px_0_var(--color-cloud-gray)]">
+                    <span className="text-charcoal font-bold text-[10px] uppercase tracking-wide whitespace-nowrap">Unlock All</span>
+                    <div className="relative shrink-0">
+                      <input type="checkbox" className="sr-only" checked={unlockAll} onChange={() => setUnlockAll(!unlockAll)} />
+                      <div className={`w-9 h-5 rounded-full transition-colors duration-200 ${unlockAll ? 'bg-duo-green' : 'bg-[#c8c8c8]'}`} />
+                      <div className={`absolute top-0.5 bg-white w-4 h-4 rounded-full shadow-sm transition-all duration-200 ${unlockAll ? 'left-[calc(100%-18px)]' : 'left-0.5'}`} />
+                    </div>
+                  </label>
+                </div>
+
+                {loading ? (
+                  <div className="w-full flex flex-col items-center gap-6 py-12 animate-pulse">
+                    <div className="w-20 h-20 rounded-full bg-cloud-gray/30" />
+                    <div className="w-20 h-20 rounded-full bg-cloud-gray/30" />
+                    <div className="w-20 h-20 rounded-full bg-cloud-gray/30" />
+                  </div>
+                ) : (
+                  <div className="relative w-full max-w-[370px] mx-auto mt-6 flex flex-col items-center select-none" data-purpose="zigzag-path-nodes">
+                    {/* ROW 1: Character Placeholder (Reading) + Level 1 Node (Star) */}
+                    {renderCount >= 1 && (
+                      <div className="w-full flex justify-between items-center px-4 relative mt-1 min-h-[125px]">
+                        {/* Mascot / Character Placeholder Slot (Upper Left) */}
+                        <div className="flex flex-col items-center" data-purpose="mascot-placeholder-slot-top">
+                          <Image
+                            src="/emoji/guidebook.webp"
+                            alt="Character reading guidebook"
+                            width={100}
+                            height={100}
+                            className="object-contain drop-shadow-md select-none"
+                            priority
+                          />
+                        </div>
+                        {/* Level 1: Star Node (Right side) */}
+                        <div className="mr-4 mt-2">
+                          {renderNodeButton(0)}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* ROW 2: Level 2 Node (Book) */}
+                    {renderCount >= 2 && (
+                      <div className="w-full flex justify-end pr-14 mt-3">
+                        {renderNodeButton(1)}
+                      </div>
+                    )}
+
+                    {/* ROW 3: Golden Treasure Chest (Center) */}
+                    <div className="w-full flex justify-center mt-3" data-purpose="reward-chest-node">
+                      <div className="relative flex flex-col items-center">
+                        <div className="w-20 h-5 bg-gray-200/90 rounded-full blur-[2px] absolute -bottom-1"></div>
+                        <button
+                          onClick={() => {
+                            const canOpen = activeIndex >= 2 || unlockAll;
+                            if (canOpen) {
+                              showAlert("🎉 Milestone Chest Unlocked! You've made outstanding progress!");
+                            } else {
+                              showAlert("Complete preceding lessons to unlock this milestone chest!");
+                            }
+                          }}
+                          aria-label="Milestone Treasure Chest"
+                          className="relative w-[76px] h-[66px] flex flex-col items-center group active:scale-95 transition cursor-pointer"
+                        >
+                          {/* Chest Lid */}
+                          <div className="w-[74px] h-[34px] bg-gradient-to-b from-[#ffd633] via-[#ffc800] to-[#e6a800] rounded-t-xl border-t-2 border-x-2 border-[#d99200] shadow-sm relative flex items-center justify-center">
+                            <div className="w-full h-2 bg-[#d99200]/30 absolute top-2"></div>
+                            <div className="w-5 h-6 bg-[#b87700] rounded-b-md border border-[#915800] flex flex-col items-center justify-center absolute -bottom-2 z-10 shadow-md">
+                              <div className="w-1.5 h-1.5 bg-black rounded-full"></div>
+                              <div className="w-1 h-2 bg-black rounded-b-xs"></div>
+                            </div>
+                          </div>
+                          {/* Chest Base / Trunk */}
+                          <div className="w-[70px] h-[30px] bg-gradient-to-b from-[#e09800] to-[#b87700] rounded-b-lg border-b-4 border-x-2 border-[#915800] flex items-center justify-between px-2">
+                            <div className="w-1.5 h-full bg-[#915800]/40"></div>
+                            <div className="w-1.5 h-full bg-[#915800]/40"></div>
+                          </div>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* ROW 4: Level 3 Node (Microphone) */}
+                    {renderCount >= 3 && (
+                      <div className="w-full flex justify-start pl-28 mt-4">
+                        {renderNodeButton(2)}
+                      </div>
+                    )}
+
+                    {/* ROW 5: Level 4 Node (Dumbbell) + Cheering Character Placeholder (Right) */}
+                    {renderCount >= 4 && (
+                      <div className="w-full flex justify-between items-center px-8 mt-2 min-h-[110px]">
+                        <div className="ml-10">
+                          {renderNodeButton(3)}
+                        </div>
+                        {/* Rive animated character (lower right) */}
+                        <div className="flex flex-col items-center mr-2 relative" data-purpose="mascot-placeholder-slot-bottom">
+                          <RiveCharacter />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* ROW 6: Level 5 Node (Video Camera) */}
+                    {renderCount >= 5 && (
+                      <div className="w-full flex justify-start pl-28 mt-1">
+                        {renderNodeButton(4)}
+                      </div>
+                    )}
+
+                    {/* ROW 7: Level 6 Node (Headphones) & Floating Return Button */}
+                    {renderCount >= 6 && (
+                      <div className="w-full flex justify-between items-center px-10 mt-3 relative">
+                        <div className="w-12"></div>
+                        {renderNodeButton(5)}
+                        <button
+                          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+                          className="w-12 h-12 bg-white rounded-2xl border-2 border-gray-200 shadow-[0_4px_0_#e5e5e5] active:shadow-none active:translate-y-1 flex items-center justify-center text-[#1cb0f6] hover:bg-gray-50 transition cursor-pointer"
+                          title="Scroll to active lesson"
+                        >
+                          <svg className="w-6 h-6 stroke-[#1cb0f6] fill-none stroke-[3.5]" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                            <line x1="12" x2="12" y1="19" y2="5"></line>
+                            <polyline points="5 12 12 5 19 12"></polyline>
+                          </svg>
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Additional rows for tests beyond level 6 */}
+                    {renderCount > 6 && Array.from({ length: renderCount - 6 }, (_, offset) => {
+                      const index = offset + 6;
+                      const pos = index % 6;
+                      return (
+                        <React.Fragment key={index}>
+                          {pos === 0 && (
+                            <div className="w-full flex justify-end pr-10 mt-4">
+                              {renderNodeButton(index)}
+                            </div>
+                          )}
+                          {pos === 1 && (
+                            <>
+                              <div className="w-full flex justify-end pr-14 mt-3">
+                                {renderNodeButton(index)}
+                              </div>
+                              <div className="w-full flex justify-center mt-3" data-purpose="reward-chest-node">
+                                <div className="relative flex flex-col items-center">
+                                  <div className="w-20 h-5 bg-gray-200/90 rounded-full blur-[2px] absolute -bottom-1"></div>
+                                  <button
+                                    onClick={() => {
+                                      const canOpen = activeIndex >= index || unlockAll;
+                                      if (canOpen) {
+                                        showAlert("🎉 Milestone Chest Unlocked! Outstanding work!");
+                                      } else {
+                                        showAlert("Complete preceding lessons to unlock this milestone chest!");
+                                      }
+                                    }}
+                                    className="relative w-[76px] h-[66px] flex flex-col items-center group active:scale-95 transition cursor-pointer"
+                                  >
+                                    <div className="w-[74px] h-[34px] bg-gradient-to-b from-[#ffd633] via-[#ffc800] to-[#e6a800] rounded-t-xl border-t-2 border-x-2 border-[#d99200] shadow-sm relative flex items-center justify-center">
+                                      <div className="w-full h-2 bg-[#d99200]/30 absolute top-2"></div>
+                                      <div className="w-5 h-6 bg-[#b87700] rounded-b-md border border-[#915800] flex flex-col items-center justify-center absolute -bottom-2 z-10 shadow-md">
+                                        <div className="w-1.5 h-1.5 bg-black rounded-full"></div>
+                                        <div className="w-1 h-2 bg-black rounded-b-xs"></div>
+                                      </div>
+                                    </div>
+                                    <div className="w-[70px] h-[30px] bg-gradient-to-b from-[#e09800] to-[#b87700] rounded-b-lg border-b-4 border-x-2 border-[#915800] flex items-center justify-between px-2">
+                                      <div className="w-1.5 h-full bg-[#915800]/40"></div>
+                                      <div className="w-1.5 h-full bg-[#915800]/40"></div>
+                                    </div>
+                                  </button>
+                                </div>
+                              </div>
+                            </>
+                          )}
+                          {pos === 2 && (
+                            <div className="w-full flex justify-start pl-28 mt-4">
+                              {renderNodeButton(index)}
+                            </div>
+                          )}
+                          {pos === 3 && (
+                            <div className="w-full flex justify-start pl-10 mt-2">
+                              {renderNodeButton(index)}
+                            </div>
+                          )}
+                          {pos === 4 && (
+                            <div className="w-full flex justify-start pl-28 mt-1">
+                              {renderNodeButton(index)}
+                            </div>
+                          )}
+                          {pos === 5 && (
+                            <div className="w-full flex justify-center mt-3">
+                              {renderNodeButton(index)}
+                            </div>
+                          )}
+                        </React.Fragment>
+                      );
+                    })}
+
+                    {/* Floating return button at bottom if fewer than 6 or greater than 6 */}
+                    {(renderCount < 6 || renderCount > 6) && (
+                      <div className="w-full flex justify-end pr-6 mt-4">
+                        <button
+                          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+                          className="w-11 h-11 bg-white rounded-2xl border-2 border-[#e5e5e5] shadow-[0_3px_0_#e5e5e5] active:shadow-none active:translate-y-[3px] flex items-center justify-center hover:bg-gray-50 transition-all cursor-pointer"
+                          title="Scroll to active lesson"
+                        >
+                          <svg
+                            className="w-5 h-5 text-[#1cb0f6]"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth={2.5}
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            viewBox="0 0 24 24"
+                          >
+                            <line x1="12" x2="12" y1="19" y2="5" />
+                            <polyline points="5 12 12 5 19 12" />
+                          </svg>
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Mobile Reset Progress Button */}
+                    <div className="w-full mt-8 flex justify-center pb-6">
+                      <button
+                        onClick={async () => {
+                          if (window.confirm("Are you sure you want to reset all your progress? This cannot be undone.")) {
+                            const keysToRemove = [];
+                            for (let i = 0; i < localStorage.length; i++) {
+                              const key = localStorage.key(i);
+                              if (key && (key.startsWith("quiz_score_") || key.startsWith("quiz_state_"))) {
+                                keysToRemove.push(key);
+                              }
+                            }
+                            keysToRemove.forEach(key => localStorage.removeItem(key));
+                            setScores({});
+                            await refreshStats();
+                          }
+                        }}
+                        className="text-graphite/50 hover:text-[#ea2b2b] font-bold text-xs underline transition-colors"
+                      >
+                        Reset All Progress
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </>
           )}
         </div>
       </main>
 
-      <aside className="w-full lg:w-[368px] shrink-0 lg:sticky lg:top-6 lg:self-start lg:h-fit">
+      <aside className="hidden lg:block w-full lg:w-[368px] shrink-0 lg:sticky lg:top-6 lg:self-start lg:h-fit">
         <RightSidebar />
       </aside>
 

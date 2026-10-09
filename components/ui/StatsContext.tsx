@@ -111,8 +111,12 @@ export const StatsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         const score = progress.total_score || 0;
         setXp(score);
         setCurrentLevel(getLevelFromXp(score));
-        setLessonsCompleted(progress.lessons_completed || 0);
-        setLastLessonDate(progress.last_lesson_date || null);
+        let effDate = progress.last_lesson_date || null;
+        if (typeof window !== "undefined") {
+          const local = localStorage.getItem("last_lesson_completed_date");
+          if (local && (!effDate || local > effDate)) effDate = local;
+        }
+        setLastLessonDate(effDate);
       }
     } catch (err) {
       console.error("Error loading stats in StatsProvider:", err);

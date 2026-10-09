@@ -23,16 +23,16 @@ const DotLottieReact = dynamic(
   { ssr: false }
 );
 
-function getRankLottieConfig(level: number): { src: string; animationId: string } {
+function getRankLottieConfig(level: number): { src: string } {
   switch (level) {
     case 1:
-      return { src: "/firstRank.lottie", animationId: "Main Scene" };
+      return { src: "/firstRank.lottie" };
     case 2:
-      return { src: "/secondRank.lottie", animationId: "Main Scene" };
+      return { src: "/secondRank.lottie" };
     case 3:
-      return { src: "/thirdRank.lottie", animationId: "Main Scene" };
+      return { src: "/thirdRank.lottie" };
     default:
-      return { src: "/fourthRankBeyond.lottie", animationId: "12345" };
+      return { src: "/fourthRankBeyond.lottie" };
   }
 }
 
@@ -201,7 +201,12 @@ export default function RightSidebar() {
     };
   }, [user, isSignedIn]);
 
-  const handleClaimQuest = async (questNum: number, gemReward: number) => {
+  const handleClaimQuest = async (
+    questNum: number,
+    gemReward: number,
+    questIcon?: string,
+    questTitle?: string
+  ) => {
     setClaiming(questNum);
     let profileId: string | null = null;
     if (user) {
@@ -227,7 +232,10 @@ export default function RightSidebar() {
           if (questNum === 1) setQuest1Claimed(true);
           if (questNum === 2) setQuest2Claimed(true);
           if (questNum === 3) setQuest3Claimed(true);
-          await showAlert(`🎉 Quest completed! You received 💎 ${gemReward} Gems.`);
+          await showAlert(`🎉 Quest completed! You received 💎 ${gemReward} Gems.`, {
+            title: questTitle || "Quest Completed!",
+            image: questIcon || "/img/gen_imgs/trophy.webp"
+          });
         } else {
           await showAlert("❌ Claim failed: " + error.message);
         }
@@ -455,7 +463,7 @@ export default function RightSidebar() {
                       ) : quest.isCompleted ? (
                         <button
                           disabled={claiming !== null}
-                          onClick={() => handleClaimQuest(index + 1, index === 2 ? 10 : 5)}
+                          onClick={() => handleClaimQuest(index + 1, index === 2 ? 10 : 5, quest.image, quest.title)}
                           className="bg-duo-green hover:brightness-105 disabled:opacity-60 disabled:cursor-not-allowed text-white font-extrabold text-[10px] uppercase tracking-wider px-2.5 py-1.5 rounded-xl shadow-[0_3px_0_#3f8f01] active:translate-y-[3px] active:shadow-none transition-all cursor-pointer shrink-0"
                         >
                           {claiming === index + 1 ? "..." : "Claim"}

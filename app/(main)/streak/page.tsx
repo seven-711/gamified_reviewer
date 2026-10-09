@@ -12,6 +12,10 @@ const DayStreakRive = dynamic(() => import("@/components/ui/DayStreakRive"), {
   ssr: false,
 });
 
+const StreakRive = dynamic(() => import("@/components/ui/StreakRive"), {
+  ssr: false,
+});
+
 export default function StreakPage() {
   const router = useRouter();
   const { streak, lastLessonDate, refreshStats } = useStats();
@@ -160,19 +164,31 @@ export default function StreakPage() {
                 const isFuture = date.getTime() > new Date().getTime();
 
                 return (
-                  <div key={i} className="flex justify-center items-center h-8 relative">
-                    {/* Continuous pill background for adjacent active days could be added here, but simple circles for now */}
-                    <div 
-                      className={`w-8 h-8 flex items-center justify-center rounded-full font-bold text-sm z-10 transition-colors ${
-                        isActive 
-                          ? "bg-[#f89e1b] text-white border-2 border-[#d77800] shadow-[0_2px_0_#d77800]" 
-                          : isFuture 
+                  <div 
+                    key={i} 
+                    className="flex justify-center items-center h-8 relative"
+                    title={`${monthNames[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`}
+                  >
+                    {isActive ? (
+                      <div className="w-8 h-8 flex items-center justify-center relative select-none">
+                        <StreakRive
+                          src="/emoji/activeStreak.riv"
+                          width={32}
+                          height={32}
+                          className="w-8 h-8 object-contain"
+                        />
+                      </div>
+                    ) : (
+                      <div 
+                        className={`w-8 h-8 flex items-center justify-center rounded-full font-bold text-sm z-10 transition-colors ${
+                          isFuture 
                             ? "text-gray-600" 
                             : "text-gray-400"
-                      }`}
-                    >
-                      {date.getDate()}
-                    </div>
+                        }`}
+                      >
+                        {date.getDate()}
+                      </div>
+                    )}
                   </div>
                 );
               })}

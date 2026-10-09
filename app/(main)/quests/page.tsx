@@ -183,7 +183,12 @@ export default function QuestsPage() {
     return () => clearInterval(interval);
   }, [refreshQuests]);
 
-  const handleClaimQuest = async (questNum: number, gemReward: number) => {
+  const handleClaimQuest = async (
+    questNum: number,
+    gemReward: number,
+    questIcon?: string,
+    questTitle?: string
+  ) => {
     setClaiming(questNum);
     let profileId: string | null = null;
     if (user) {
@@ -209,7 +214,10 @@ export default function QuestsPage() {
           if (questNum === 1) setQuest1Claimed(true);
           if (questNum === 2) setQuest2Claimed(true);
           if (questNum === 3) setQuest3Claimed(true);
-          await showAlert(`🎉 Quest completed! You received 💎 ${gemReward} Gems.`);
+          await showAlert(`🎉 Quest completed! You received 💎 ${gemReward} Gems.`, {
+            title: questTitle || "Quest Completed!",
+            image: questIcon || "/img/gen_imgs/trophy.webp"
+          });
         } else {
           await showAlert("❌ Claim failed: " + error.message);
         }
@@ -220,7 +228,12 @@ export default function QuestsPage() {
     setClaiming(null);
   };
 
-  const handleClaimAchievement = async (achievementId: string, gemReward: number) => {
+  const handleClaimAchievement = async (
+    achievementId: string,
+    gemReward: number,
+    achievementIcon?: string,
+    achievementName?: string
+  ) => {
     setClaimingAchievementId(achievementId);
     let profileId: string | null = null;
     if (user) {
@@ -284,7 +297,10 @@ export default function QuestsPage() {
 
           updateStatsLocally({ gems: gems + gemReward });
           await refreshStats();
-          await showAlert(`🎉 Achievement completed! You received 💎 ${gemReward} Gems.`);
+          await showAlert(`🎉 Achievement completed! You received 💎 ${gemReward} Gems.`, {
+            title: achievementName || "Achievement Unlocked!",
+            image: achievementIcon || "/img/gen_imgs/achievements/gold_star.webp"
+          });
         } else {
           await showAlert("❌ Claim failed: " + gameError.message);
         }
@@ -573,7 +589,7 @@ export default function QuestsPage() {
                 {dailyXp >= 3000 && !quest1Claimed && (
                   <button
                     disabled={claiming !== null}
-                    onClick={() => handleClaimQuest(1, 5)}
+                    onClick={() => handleClaimQuest(1, 5, "/img/gen_imgs/exp.webp", "Daily Sprint")}
                     className="bg-duo-green hover:brightness-105 text-white font-bold text-[10px] sm:text-xs uppercase tracking-wide px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-xl shadow-[0_3px_0_#3f8f01] active:translate-y-[3px] active:shadow-none transition-all cursor-pointer shrink-0"
                   >
                     {claiming === 1 ? "Claiming..." : "Claim"}
@@ -623,7 +639,7 @@ export default function QuestsPage() {
                 {dailyLessons >= 3 && !quest2Claimed && (
                   <button
                     disabled={claiming !== null}
-                    onClick={() => handleClaimQuest(2, 5)}
+                    onClick={() => handleClaimQuest(2, 5, "/img/gen_imgs/achievements/gold_star.webp", "First Steps")}
                     className="bg-duo-green hover:brightness-105 text-white font-bold text-[10px] sm:text-xs uppercase tracking-wide px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-xl shadow-[0_3px_0_#3f8f01] active:translate-y-[3px] active:shadow-none transition-all cursor-pointer shrink-0"
                   >
                     {claiming === 2 ? "Claiming..." : "Claim"}
@@ -673,7 +689,7 @@ export default function QuestsPage() {
                 {dailyPassed >= 1 && !quest3Claimed && (
                   <button
                     disabled={claiming !== null}
-                    onClick={() => handleClaimQuest(3, 10)}
+                    onClick={() => handleClaimQuest(3, 10, "/img/gen_imgs/trophy.webp", "High Achiever")}
                     className="relative overflow-hidden
                               bg-gradient-to-b from-[#58cc02] to-[#46a302]
                               hover:brightness-110
@@ -807,7 +823,7 @@ export default function QuestsPage() {
                       disabled={claimingAchievementId !== null}
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleClaimAchievement(achievement.id, achievement.reward);
+                        handleClaimAchievement(achievement.id, achievement.reward, achievement.icon, achievement.name);
                       }}
                       className="mt-3 relative overflow-hidden w-full
                                  bg-gradient-to-b from-[#58cc02] to-[#46a302]

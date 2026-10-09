@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Number Problems & The 7-Step Strategy — Solving Word Problems</title>
+<link rel="stylesheet" href="../lib/engine.css">
+<link rel="expect" href="#bar" blocking="render">
+<style>
+  /* Custom chapter styling enhancements */
+  .band, .side, .screen {
+    font-family: "Avenir Next", "Segoe UI", sans-serif;
+  }
+</style>
+</head>
+<body>
+<script src="../lib/engine.js"></script>
+<script src="audio/en/timings.js"></script>
+<script>
+'use strict';
+
+const CHAPTER = {
+  number: 1,
+  title: 'Number Problems & The 7-Step Strategy',
+  minutes: 6,
+  language: 'en'
+};
+
+/* ---------- Chapter Drawing Helpers ---------- */
+const text = (p, str, x, y, t0, { size = 32, fill = COL.chalk, anchor = 'start', weight = 500, o = 0 } = {}) => {
+  const e = T(p, str, { x, y, size, fill, anchor, weight, o });
+  if (t0 !== undefined) show(e, t0);
+  return e;
+};
+
+const math = (p, parts, x, y, t0, { size = 48, fill = COL.chalk, anchor = 'middle', o = 0 } = {}) => {
+  const e = M(p, [].concat(parts), { x, y, size, fill, anchor, o });
+  if (t0 !== undefined) show(e, t0);
+  return e;
+};
+
+// Tape diagram box helper
+function makeTapeBox(parent, x, y, w, h, label, color, t0) {
+  const g = G(parent, { x, y, o: 0 });
+  // Shadow / border box
+  mk('rect', {
+    x: 0, y: 0, width: w, height: h, rx: 12,
+    fill: color, stroke: COL.chalk, 'stroke-width': 3
+  }, g);
+  // Label inside
+  T(g, label, {
+    x: w / 2, y: h / 2 + 10, size: 36, fill: COL.board,
+    weight: 700, anchor: 'middle'
+  });
+  if (t0 !== undefined) show(g, t0);
+  return g;
+}
+
+/* ---------- Beats ---------- */
+const BEATS = [
+  // 1. INTRO
+  ['intro', 'Introduction', (m, D) => {
+    const p = panel(0);
+    const g = G(p, { o: 0, y: 30 });
+    text(g, 'UNIT 1: FOUNDATIONS & LINEAR MODELS', 800, 310, 0.2, { size: 26, fill: COL.task, weight: 700, anchor: 'middle' });
+    text(g, 'Number Problems & The 7-Step Strategy', 800, 410, 0.4, { size: 68, weight: 800, fill: COL.chalk, anchor: 'middle' });
+    text(g, 'Translating written exam questions into visual tape models', 800, 490, 0.6, { size: 32, fill: COL.dim, anchor: 'middle' });
+    tw(g, { o: 1, y: 0 }, 0.2, 0.9, out);
+
+    const sub = text(p, 'Civil Service & College Entrance Exam Reviewer', 800, 620, m('start', 0.2), { size: 28, fill: COL.good, weight: 600, anchor: 'middle' });
+    tw(g, { o: 0, y: -20 }, D - 0.9, 0.7);
+    hide(sub, D - 0.9, 0.7);
+  }],
+
+  // 2. STRATEGY
+  ['strategy', 'The 3-Step Foundation', (m) => {
+    const p = panel(0);
+    text(p, 'The 3 Essential Word Problem Steps', 800, 160, 0.2, { size: 48, weight: 700, anchor: 'middle' });
+
+    // Step 1 Card: Target Question
+    const c1 = G(p, { x: 180, y: 260, o: 0 });
+    mk('rect', { width: 370, height: 400, rx: 20, fill: '#1e332c', stroke: COL.dim, 'stroke-width': 2 }, c1);
+    mk('circle', { cx: 60, cy: 70, r: 28, fill: COL.task }, c1);
+    T(c1, '1', { x: 60, y: 80, size: 30, fill: COL.board, weight: 800, anchor: 'middle' });
+    T(c1, 'Target the Question', { x: 105, y: 78, size: 26, weight: 700, fill: COL.chalk });
+    T(c1, 'Look at the very end of', { x: 40, y: 150, size: 22, fill: COL.dim });
+    T(c1, 'the problem. Identify exactly', { x: 40, y: 190, size: 22, fill: COL.dim });
+    T(c1, 'what unknown you must find.', { x: 40, y: 230, size: 22, fill: COL.dim });
+    tw(c1, { o: 1 }, m('target', 0), 0.6);
+
+    // Step 2 Card: Base Unknown x
+    const c2 = G(p, { x: 615, y: 260, o: 0 });
+    mk('rect', { width: 370, height: 400, rx: 20, fill: '#1e332c', stroke: COL.dim, 'stroke-width': 2 }, c2);
+    mk('circle', { cx: 60, cy: 70, r: 28, fill: COL.good }, c2);
+    T(c2, '2', { x: 60, y: 80, size: 30, fill: COL.board, weight: 800, anchor: 'middle' });
+    T(c2, 'Define Baseline x', { x: 105, y: 78, size: 26, weight: 700, fill: COL.chalk });
+    T(c2, 'Let x represent the smaller', { x: 40, y: 150, size: 22, fill: COL.dim });
+    T(c2, 'or base quantity so other', { x: 40, y: 190, size: 22, fill: COL.dim });
+    T(c2, 'parts become multiples of x.', { x: 40, y: 230, size: 22, fill: COL.dim });
+    tw(c2, { o: 1 }, m('xvar', 0), 0.6);
+
+    // Step 3 Card: Draw the Model
+    const c3 = G(p, { x: 1050, y: 260, o: 0 });
+    mk('rect', { width: 370, height: 400, rx: 20, fill: '#1e332c', stroke: COL.dim, 'stroke-width': 2 }, c3);
+    mk('circle', { cx: 60, cy: 70, r: 28, fill: COL.whole }, c3);
+    T(c3, '3', { x: 60, y: 80, size: 30, fill: COL.board, weight: 800, anchor: 'middle' });
+    T(c3, 'Draw Tape Bars', { x: 105, y: 78, size: 26, weight: 700, fill: COL.chalk });
+    T(c3, 'Sketch blocks for each part.', { x: 40, y: 150, size: 22, fill: COL.dim });
+    T(c3, 'Equal blocks make algebraic', { x: 40, y: 190, size: 22, fill: COL.dim });
+    T(c3, 'equations crystal clear.', { x: 40, y: 230, size: 22, fill: COL.dim });
+    tw(c3, { o: 1 }, m('sketch', 0), 0.6);
+  }],
+
+  // 3. PROBLEM STATEMENT
+  ['problem', 'The Sum Problem', (m) => {
+    const p = panel(0);
+    // Problem card box
+    const card = G(p, { x: 250, y: 240, o: 0 });
+    mk('rect', { width: 1100, height: 380, rx: 24, fill: '#182b24', stroke: COL.task, 'stroke-width': 3 }, card);
+    T(card, 'EXAMPLE QUESTION', { x: 80, y: 80, size: 24, fill: COL.task, weight: 700 });
+    T(card, 'There are two numbers whose sum is 72.', { x: 80, y: 160, size: 44, fill: COL.chalk, weight: 700 });
+    T(card, 'One number is twice the other.', { x: 80, y: 225, size: 44, fill: COL.good, weight: 700 });
+    T(card, 'What are the two numbers?', { x: 80, y: 295, size: 44, fill: COL.chalk, weight: 700 });
+    tw(card, { o: 1 }, m('prompt', 0), 0.8, out);
+  }],
+
+  // 4. BARS (Tape Diagram)
+  ['bars', 'Tape Diagram Model', (m) => {
+    const p = panel(0);
+    // Problem summary on top
+    text(p, 'Two numbers sum to 72. One number is twice the other.', 800, 140, 0.2, { size: 36, weight: 600, anchor: 'middle' });
+
+    // Row 1: Smaller number
+    text(p, 'Smaller Number:', 300, 290, m('draw', 0), { size: 32, fill: COL.dim, weight: 600 });
+    makeTapeBox(p, 580, 240, 220, 80, 'x', COL.good, m('draw', 0.2));
+
+    // Row 2: Larger number (twice the other = 2 blocks of x)
+    text(p, 'Larger Number:', 300, 440, m('double', 0), { size: 32, fill: COL.dim, weight: 600 });
+    makeTapeBox(p, 580, 390, 220, 80, 'x', COL.good, m('double', 0.2));
+    makeTapeBox(p, 805, 390, 220, 80, 'x', COL.good, m('double', 0.4));
+
+    // Total Bracket
+    const bracket = G(p, { o: 0 });
+    mk('path', {
+      d: 'M 1060 240 Q 1090 355 1110 355 Q 1090 355 1060 470',
+      fill: 'none', stroke: COL.task, 'stroke-width': 4, 'stroke-linecap': 'round'
+    }, bracket);
+    T(bracket, 'Sum = 72', { x: 1140, y: 368, size: 38, fill: COL.task, weight: 700 });
+    tw(bracket, { o: 1 }, m('bracket', 0), 0.7);
+
+    // Callout note below
+    text(p, 'Total number of equal units:  1 + 2 = 3 units', 800, 620, m('bracket', 0.8), { size: 32, fill: COL.whole, weight: 700, anchor: 'middle' });
+  }],
+
+  // 5. SOLVE (Visual Division & Equation)
+  ['solve', 'Solving the Blocks', (m) => {
+    const p = panel(0);
+    text(p, 'From Visual Blocks to Exact Values', 800, 120, 0.2, { size: 44, weight: 700, anchor: 'middle' });
+
+    // Step 1: Blocks lined up
+    const row = G(p, { x: 470, y: 200, o: 0 });
+    makeTapeBox(row, 0, 0, 220, 80, 'x', COL.good, 0.2);
+    makeTapeBox(row, 225, 0, 220, 80, 'x', COL.good, 0.2);
+    makeTapeBox(row, 450, 0, 220, 80, 'x', COL.good, 0.2);
+    T(row, '= 72', { x: 710, y: 55, size: 44, fill: COL.task, weight: 800 });
+    tw(row, { o: 1 }, m('combine', 0), 0.6);
+
+    // Algebraic equation
+    math(p, '3x = 72', 800, 360, m('combine', 0.4), { size: 52, fill: COL.chalk });
+
+    // Division step
+    math(p, ['x = ', F(72, 3), ' = 24'], 800, 460, m('divide', 0), { size: 52, fill: COL.good });
+
+    // Final answer cards
+    const ansG = G(p, { x: 350, y: 550, o: 0 });
+    mk('rect', { width: 420, height: 160, rx: 16, fill: '#1a3326', stroke: COL.good, 'stroke-width': 2 }, ansG);
+    T(ansG, 'Smaller Number (x)', { x: 30, y: 50, size: 24, fill: COL.dim, weight: 600 });
+    T(ansG, '= 24', { x: 30, y: 110, size: 54, fill: COL.good, weight: 800 });
+    tw(ansG, { o: 1 }, m('ans1', 0), 0.6);
+
+    const ans2G = G(p, { x: 830, y: 550, o: 0 });
+    mk('rect', { width: 420, height: 160, rx: 16, fill: '#1a3326', stroke: COL.good, 'stroke-width': 2 }, ans2G);
+    T(ans2G, 'Larger Number (2x)', { x: 30, y: 50, size: 24, fill: COL.dim, weight: 600 });
+    T(ans2G, '= 48', { x: 30, y: 110, size: 54, fill: COL.good, weight: 800 });
+    tw(ans2G, { o: 1 }, m('ans2', 0), 0.6);
+
+    // Check line
+    text(p, 'Check: 24 + 48 = 72  ✓ Sensible & Correct!', 800, 770, m('ans2', 0.8), { size: 28, fill: COL.task, weight: 700, anchor: 'middle' });
+  }],
+
+  // 6. QUICK CHECK 1 (Interactive)
+  ['q1', 'Quick Check 1', () => { panel(0); }, {
+    ask: done => quiz(BAND, [{
+      id: 'c-sum-numbers',
+      prompt: ['Two numbers have a sum of ', $m('45'), '. One number is twice the other. What is the smaller number?'],
+      build: blanks([
+        {
+          parts: ['Smaller number (x) = ', { box: '15' }],
+          why: 'Correct! 1 unit + 2 units = 3 units. 45 ÷ 3 = 15. The smaller number is 15 (and the larger is 30).',
+          hint: 'Think in equal parts: x + 2x = 45. Divide 45 by 3.'
+        }
+      ])
+    }], done, 'Quick Check 1')
+  }],
+
+  // 7. CONSECUTIVE NUMBERS
+  ['consecutive', 'Consecutive Integers', (m) => {
+    const p = panel(0);
+    text(p, 'Consecutive Integer Word Problems', 800, 140, 0.2, { size: 46, weight: 700, anchor: 'middle' });
+
+    // Concept: x and x + 1
+    const g = G(p, { x: 360, y: 250, o: 0 });
+    text(g, 'First Integer:', 0, 50, 0.1, { size: 32, fill: COL.dim, weight: 600 });
+    makeTapeBox(g, 260, 0, 240, 80, 'x', COL.whole, 0.2);
+
+    text(g, 'Next Integer:', 0, 180, 0.3, { size: 32, fill: COL.dim, weight: 600 });
+    makeTapeBox(g, 260, 130, 240, 80, 'x', COL.whole, 0.4);
+    // Orange +1 unit block attached
+    makeTapeBox(g, 505, 130, 90, 80, '+1', COL.task, m('plusone', 0));
+    tw(g, { o: 1 }, m('consec', 0), 0.7);
+
+    // Sum relation
+    const eqG = G(p, { x: 500, y: 530, o: 0 });
+    math(eqG, ['Sum = x + (x + 1) = 2x + 1'], 300, 40, 0.2, { size: 48, fill: COL.chalk });
+    text(eqG, 'Subtract the 1 extra unit, then divide equally between the 2 blocks.', 300, 110, 0.4, { size: 28, fill: COL.dim, anchor: 'middle' });
+    tw(eqG, { o: 1 }, m('unit', 0), 0.7);
+  }],
+
+  // 8. QUICK CHECK 2 (Interactive)
+  ['q2', 'Quick Check 2', () => { panel(0); }, {
+    ask: done => quiz(BAND, [{
+      id: 'c-consecutive-check',
+      prompt: ['The sum of two consecutive integers is ', $m('35'), '. What is the smaller integer?'],
+      build: choice(
+        [['16'], ['17'], ['18'], ['19']],
+        1,
+        'Great job! 2x + 1 = 35 gives 2x = 34, so x = 17. The two integers are 17 and 18.',
+        [
+          '16 + 17 = 33, which is too small.',
+          null,
+          '18 is the larger integer! The question asks for the smaller integer.',
+          '19 + 20 = 39, which is too large.'
+        ]
+      )
+    }], done, 'Quick Check 2')
+  }],
+
+  // 9. WRAP (Summary)
+  ['wrap', 'Summary & Key Rules', (m) => {
+    const p = panel(0);
+    text(p, 'Key Takeaways for Number Problems', 800, 140, 0.2, { size: 46, weight: 700, anchor: 'middle' });
+
+    const takeaways = [
+      ['Always set x to the smallest baseline quantity.', 'w1', COL.task],
+      ['Draw tape bars: equal blocks reveal total parts instantly without guesswork.', 'w2', COL.good],
+      ['For consecutive integers, represent the sequence as x, x + 1, x + 2...', 'w3', COL.whole]
+    ];
+
+    takeaways.forEach(([str, mark, color], i) => {
+      const g = G(p, { x: 260, y: 260 + i * 150, o: 0 });
+      mk('rect', { width: 1080, height: 105, rx: 18, fill: '#1a2e26', stroke: color, 'stroke-width': 2 }, g);
+      mk('circle', { cx: 65, cy: 52, r: 28, fill: color }, g);
+      T(g, String(i + 1), { x: 65, y: 62, size: 30, fill: COL.board, weight: 800, anchor: 'middle' });
+      T(g, str, { x: 125, y: 62, size: 30, fill: COL.chalk, weight: 600 });
+      tw(g, { o: 1 }, m(mark, 0), 0.6);
+    });
+  }],
+
+  // 10. FINAL PRACTICE (Full-screen exam practice)
+  ['final1', 'Chapter Practice', () => { panel(0); }, {
+    ask: done => quiz(SCREEN, [{
+      id: 'p-consecutive-three',
+      prompt: [
+        'The sum of three consecutive integers is ', $m('48'), '. What is the ',
+        '<strong>largest</strong>', ' of the three integers?'
+      ],
+      build: choice(
+        [
+          ['15'],
+          ['16'],
+          ['17'],
+          ['18']
+        ],
+        2,
+        'Excellent! The numbers are x, x+1, x+2. 3x + 3 = 48 gives 3x = 45, so x = 15. The numbers are 15, 16, 17. The largest is 17.',
+        [
+          '15 is the smallest integer (x). The question asked for the largest!',
+          '16 is the middle integer (x+1). The question asked for the largest!',
+          null,
+          '18 + 17 + 16 = 51, which exceeds the sum of 48.'
+        ]
+      )
+    }], done, 'Chapter Practice   1 of 1')
+  }],
+
+  // 11. FINISH
+  ['finish', 'Completed', () => { panel(0); }, { ask: finishCard }]
+].map(([id, title, run, extra]) => ({ id, title, run, ...extra }));
+
+boot();
+</script>
+</body>
+</html>

@@ -37,9 +37,16 @@ export function StreakAsset({
 }: StreakAssetProps) {
   const stats = React.useContext(StatsContext);
   const contextLastLessonDate = stats ? stats.lastLessonDate : null;
-  const effectiveLastLessonDate = lastLessonDate !== undefined ? lastLessonDate : contextLastLessonDate;
-
   const todayStr = React.useMemo(() => new Date().toLocaleDateString("en-CA"), []);
+  const effectiveLastLessonDate = React.useMemo(() => {
+    let d = lastLessonDate !== undefined ? lastLessonDate : contextLastLessonDate;
+    if (typeof window !== "undefined") {
+      const local = localStorage.getItem("last_lesson_completed_date");
+      if (local && (!d || local > d)) d = local;
+    }
+    return d;
+  }, [lastLessonDate, contextLastLessonDate]);
+
   const isStreakActive = active !== undefined
     ? active
     : (forceActive || (streak > 0 && effectiveLastLessonDate === todayStr));

@@ -310,7 +310,12 @@ export default function ShopPage() {
     };
   }, [user, isSignedIn]);
 
-  const handleClaimQuest = async (questNum: number, gemReward: number) => {
+  const handleClaimQuest = async (
+    questNum: number,
+    gemReward: number,
+    questIcon?: string,
+    questTitle?: string
+  ) => {
     setClaimingQuest(questNum);
     let profileId: string | null = null;
     if (user) {
@@ -338,7 +343,10 @@ export default function ShopPage() {
           if (typeof window !== "undefined") {
             window.dispatchEvent(new CustomEvent("reviewer-db-update"));
           }
-          await showAlert(`🎉 Quest completed! You received 💎 ${gemReward} Gems.`);
+          await showAlert(`🎉 Quest completed! You received 💎 ${gemReward} Gems.`, {
+            title: questTitle || "Quest Completed!",
+            image: questIcon || "/img/gen_imgs/trophy.webp"
+          });
         } else {
           await showAlert("❌ Claim failed: " + error.message);
         }
@@ -1219,7 +1227,7 @@ export default function ShopPage() {
                         ) : quest.isCompleted ? (
                           <button
                             disabled={claimingQuest !== null}
-                            onClick={() => handleClaimQuest(index + 1, index === 2 ? 10 : 5)}
+                            onClick={() => handleClaimQuest(index + 1, index === 2 ? 10 : 5, quest.image, quest.title)}
                             className="bg-duo-green hover:brightness-105 disabled:opacity-60 disabled:cursor-not-allowed text-white font-extrabold text-[10px] uppercase tracking-wider px-2.5 py-1.5 rounded-xl shadow-[0_3px_0_#3f8f01] active:translate-y-[3px] active:shadow-none transition-all cursor-pointer shrink-0"
                           >
                             {claimingQuest === index + 1 ? "..." : "Claim"}

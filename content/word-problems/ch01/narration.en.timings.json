@@ -1,0 +1,1038 @@
+{
+ "intro": {
+  "key": "7887dc1fcbea0fa2f7214e09e231fa55fdbbccb8",
+  "dur": 6.84,
+  "words": [
+   [
+    0.103083,
+    "Unit"
+   ],
+   [
+    0.347958,
+    "one"
+   ],
+   [
+    0.914958,
+    "chapter"
+   ],
+   [
+    1.340208,
+    "one"
+   ],
+   [
+    2.036083,
+    "Word"
+   ],
+   [
+    2.24225,
+    "problems"
+   ],
+   [
+    2.770625,
+    "are"
+   ],
+   [
+    2.912375,
+    "not"
+   ],
+   [
+    3.286083,
+    "mysteries"
+   ],
+   [
+    4.561875,
+    "they"
+   ],
+   [
+    4.652041,
+    "are"
+   ],
+   [
+    4.768041,
+    "puzzles"
+   ],
+   [
+    5.270625,
+    "waiting"
+   ],
+   [
+    5.683,
+    "for"
+   ],
+   [
+    5.837625,
+    "a"
+   ],
+   [
+    5.876291,
+    "picture"
+   ]
+  ],
+  "marks": {
+   "start": 2.036
+  },
+  "cues": [
+   [
+    0.103,
+    "Unit one, chapter one."
+   ],
+   [
+    2.036,
+    "Word problems are not mysteries; they are puzzles waiting for a picture."
+   ]
+  ]
+ },
+ "strategy": {
+  "key": "2944d704bea7617266b11140090c855758d7f8c1",
+  "dur": 10.344,
+  "words": [
+   [
+    0.090208,
+    "Every"
+   ],
+   [
+    0.309291,
+    "word"
+   ],
+   [
+    0.579916,
+    "problem"
+   ],
+   [
+    1.417541,
+    "ends"
+   ],
+   [
+    1.572166,
+    "with"
+   ],
+   [
+    1.701041,
+    "a"
+   ],
+   [
+    1.739708,
+    "target"
+   ],
+   [
+    2.1005,
+    "question"
+   ],
+   [
+    3.028333,
+    "Always"
+   ],
+   [
+    3.402041,
+    "let"
+   ],
+   [
+    3.762875,
+    "x"
+   ],
+   [
+    4.278333,
+    "represent"
+   ],
+   [
+    4.961333,
+    "the"
+   ],
+   [
+    5.077333,
+    "smaller"
+   ],
+   [
+    5.631458,
+    "baseline"
+   ],
+   [
+    6.172666,
+    "quantity"
+   ],
+   [
+    7.087625,
+    "and"
+   ],
+   [
+    7.190708,
+    "draw"
+   ],
+   [
+    7.461333,
+    "the"
+   ],
+   [
+    7.551541,
+    "relationship"
+   ],
+   [
+    8.414958,
+    "before"
+   ],
+   [
+    8.89175,
+    "writing"
+   ],
+   [
+    9.188125,
+    "equations"
+   ]
+  ],
+  "marks": {
+   "target": 1.418,
+   "xvar": 3.763,
+   "sketch": 7.191
+  },
+  "cues": [
+   [
+    0.09,
+    "Every word problem ends with a target question."
+   ],
+   [
+    3.028,
+    "Always let x represent the smaller baseline quantity, and draw the relationship before writing equations."
+   ]
+  ]
+ },
+ "problem": {
+  "key": "44de566cd0fe5aee79eacc465ad224d71084a922",
+  "dur": 7.776,
+  "words": [
+   [
+    0.116,
+    "Here"
+   ],
+   [
+    0.386583,
+    "is"
+   ],
+   [
+    0.502583,
+    "a"
+   ],
+   [
+    0.554125,
+    "classic"
+   ],
+   [
+    1.095375,
+    "exam"
+   ],
+   [
+    1.443291,
+    "question"
+   ],
+   [
+    2.422666,
+    "Two"
+   ],
+   [
+    2.615958,
+    "numbers"
+   ],
+   [
+    2.912375,
+    "have"
+   ],
+   [
+    3.04125,
+    "a"
+   ],
+   [
+    3.092791,
+    "sum"
+   ],
+   [
+    3.32475,
+    "of"
+   ],
+   [
+    3.376291,
+    "72"
+   ],
+   [
+    4.613416,
+    "One"
+   ],
+   [
+    4.755166,
+    "number"
+   ],
+   [
+    5.064416,
+    "is"
+   ],
+   [
+    5.206166,
+    "twice"
+   ],
+   [
+    5.70875,
+    "the"
+   ],
+   [
+    5.837625,
+    "other"
+   ],
+   [
+    6.597958,
+    "What"
+   ],
+   [
+    6.662375,
+    "are"
+   ],
+   [
+    6.713916,
+    "the"
+   ],
+   [
+    6.778333,
+    "numbers"
+   ]
+  ],
+  "marks": {
+   "prompt": 2.423
+  },
+  "cues": [
+   [
+    0.116,
+    "Here is a classic exam question: Two numbers have a sum of 72."
+   ],
+   [
+    4.613,
+    "One number is twice the other."
+   ],
+   [
+    6.598,
+    "What are the numbers?"
+   ]
+  ]
+ },
+ "bars": {
+  "key": "d353cf1da0b1bc4ee0921f163214bf091eeca73c",
+  "dur": 10.488,
+  "words": [
+   [
+    0.103083,
+    "Instead"
+   ],
+   [
+    0.438125,
+    "of"
+   ],
+   [
+    0.54125,
+    "guessing"
+   ],
+   [
+    1.25,
+    "draw"
+   ],
+   [
+    1.520625,
+    "tape"
+   ],
+   [
+    1.829916,
+    "bars"
+   ],
+   [
+    2.770625,
+    "One"
+   ],
+   [
+    3.092791,
+    "bar"
+   ],
+   [
+    3.363416,
+    "for"
+   ],
+   [
+    3.453625,
+    "the"
+   ],
+   [
+    3.543833,
+    "smaller"
+   ],
+   [
+    3.969083,
+    "number"
+   ],
+   [
+    4.768041,
+    "and"
+   ],
+   [
+    4.884,
+    "two"
+   ],
+   [
+    5.128875,
+    "identical"
+   ],
+   [
+    5.605666,
+    "bars"
+   ],
+   [
+    5.953625,
+    "for"
+   ],
+   [
+    6.043833,
+    "the"
+   ],
+   [
+    6.10825,
+    "larger"
+   ],
+   [
+    6.443291,
+    "number"
+   ],
+   [
+    7.255166,
+    "Together"
+   ],
+   [
+    7.976791,
+    "their"
+   ],
+   [
+    8.118541,
+    "total"
+   ],
+   [
+    8.505166,
+    "sum"
+   ],
+   [
+    9.097916,
+    "is"
+   ],
+   [
+    9.213916,
+    "72"
+   ]
+  ],
+  "marks": {
+   "draw": 1.25,
+   "double": 4.884,
+   "bracket": 8.505
+  },
+  "cues": [
+   [
+    0.103,
+    "Instead of guessing, draw tape bars."
+   ],
+   [
+    2.771,
+    "One bar for the smaller number, and two identical bars for the larger number."
+   ],
+   [
+    7.255,
+    "Together, their total sum is 72."
+   ]
+  ]
+ },
+ "solve": {
+  "key": "4f6f4b7d7202d1708bc0cb2f518b4f7030e5ffe0",
+  "dur": 15.144,
+  "words": [
+   [
+    0.090208,
+    "Notice"
+   ],
+   [
+    0.42525,
+    "what"
+   ],
+   [
+    0.54125,
+    "the"
+   ],
+   [
+    0.618541,
+    "picture"
+   ],
+   [
+    1.005166,
+    "tells"
+   ],
+   [
+    1.340208,
+    "us"
+   ],
+   [
+    2.087625,
+    "three"
+   ],
+   [
+    2.409791,
+    "identical"
+   ],
+   [
+    2.873708,
+    "parts"
+   ],
+   [
+    3.556708,
+    "equal"
+   ],
+   [
+    3.840208,
+    "72"
+   ],
+   [
+    5.128875,
+    "Dividing"
+   ],
+   [
+    5.528333,
+    "72"
+   ],
+   [
+    6.353083,
+    "by"
+   ],
+   [
+    6.701041,
+    "3"
+   ],
+   [
+    7.551541,
+    "gives"
+   ],
+   [
+    7.822166,
+    "24"
+   ],
+   [
+    8.827333,
+    "for"
+   ],
+   [
+    9.17525,
+    "each"
+   ],
+   [
+    9.394333,
+    "block"
+   ],
+   [
+    10.347916,
+    "So"
+   ],
+   [
+    10.451041,
+    "the"
+   ],
+   [
+    10.528333,
+    "smaller"
+   ],
+   [
+    10.902041,
+    "number"
+   ],
+   [
+    11.198458,
+    "is"
+   ],
+   [
+    11.50775,
+    "24"
+   ],
+   [
+    12.7835,
+    "and"
+   ],
+   [
+    12.822166,
+    "the"
+   ],
+   [
+    12.886583,
+    "larger"
+   ],
+   [
+    13.298958,
+    "number"
+   ],
+   [
+    13.827333,
+    "is"
+   ],
+   [
+    13.943291,
+    "48"
+   ]
+  ],
+  "marks": {
+   "combine": 2.088,
+   "divide": 7.552,
+   "ans1": 11.508,
+   "ans2": 13.943
+  },
+  "cues": [
+   [
+    0.09,
+    "Notice what the picture tells us: three identical parts equal 72."
+   ],
+   [
+    5.129,
+    "Dividing 72 by 3 gives 24 for each block."
+   ],
+   [
+    10.348,
+    "So the smaller number is 24, and the larger number is 48."
+   ]
+  ]
+ },
+ "q1": {
+  "key": "5ea21fd186d7d96981d0dd1ae75897f70bdb8b27",
+  "dur": 2.544,
+  "words": [
+   [
+    0.103083,
+    "Quick"
+   ],
+   [
+    0.25775,
+    "check"
+   ],
+   [
+    1.146916,
+    "Find"
+   ],
+   [
+    1.327333,
+    "the"
+   ],
+   [
+    1.378875,
+    "smaller"
+   ],
+   [
+    1.765458,
+    "number"
+   ]
+  ],
+  "marks": {},
+  "cues": [
+   [
+    0.103,
+    "Quick check."
+   ],
+   [
+    1.147,
+    "Find the smaller number."
+   ]
+  ]
+ },
+ "consecutive": {
+  "key": "714cc08720e391c6bb14ac92562dd595384cef1f",
+  "dur": 10.8,
+  "words": [
+   [
+    0.103083,
+    "When"
+   ],
+   [
+    0.231958,
+    "problems"
+   ],
+   [
+    0.747416,
+    "mention"
+   ],
+   [
+    1.314416,
+    "consecutive"
+   ],
+   [
+    2.07475,
+    "integers"
+   ],
+   [
+    3.04125,
+    "the"
+   ],
+   [
+    3.144333,
+    "second"
+   ],
+   [
+    3.543833,
+    "number"
+   ],
+   [
+    4.188125,
+    "is"
+   ],
+   [
+    4.317,
+    "simply"
+   ],
+   [
+    4.793833,
+    "x"
+   ],
+   [
+    5.373708,
+    "plus"
+   ],
+   [
+    5.760291,
+    "1"
+   ],
+   [
+    6.520625,
+    "Their"
+   ],
+   [
+    6.67525,
+    "sum"
+   ],
+   [
+    6.868541,
+    "creates"
+   ],
+   [
+    7.319583,
+    "two"
+   ],
+   [
+    7.667541,
+    "equal"
+   ],
+   [
+    7.963916,
+    "blocks"
+   ],
+   [
+    8.788666,
+    "plus"
+   ],
+   [
+    9.239708,
+    "a"
+   ],
+   [
+    9.304125,
+    "single"
+   ],
+   [
+    9.7165,
+    "unit"
+   ],
+   [
+    9.948458,
+    "block"
+   ]
+  ],
+  "marks": {
+   "consec": 1.314,
+   "plusone": 4.794,
+   "unit": 9.716
+  },
+  "cues": [
+   [
+    0.103,
+    "When problems mention consecutive integers, the second number is simply x plus 1."
+   ],
+   [
+    6.521,
+    "Their sum creates two equal blocks, plus a single unit block."
+   ]
+  ]
+ },
+ "q2": {
+  "key": "323ea1c54ae6a652a8924fedce2c758b1de75c92",
+  "dur": 3.696,
+  "words": [
+   [
+    0.090208,
+    "Quick"
+   ],
+   [
+    0.25775,
+    "check"
+   ],
+   [
+    1.185583,
+    "Find"
+   ],
+   [
+    1.417541,
+    "the"
+   ],
+   [
+    1.481958,
+    "smaller"
+   ],
+   [
+    2.023208,
+    "consecutive"
+   ],
+   [
+    2.809291,
+    "integer"
+   ]
+  ],
+  "marks": {},
+  "cues": [
+   [
+    0.09,
+    "Quick check."
+   ],
+   [
+    1.186,
+    "Find the smaller consecutive integer."
+   ]
+  ]
+ },
+ "wrap": {
+  "key": "3bbe29b60224c005fba29c0e12e21d28bd50a1d6",
+  "dur": 13.776,
+  "words": [
+   [
+    0.103083,
+    "Remember"
+   ],
+   [
+    0.515458,
+    "three"
+   ],
+   [
+    1.030916,
+    "key"
+   ],
+   [
+    1.301541,
+    "rules"
+   ],
+   [
+    2.345375,
+    "First"
+   ],
+   [
+    3.311875,
+    "let"
+   ],
+   [
+    3.621125,
+    "x"
+   ],
+   [
+    3.827333,
+    "be"
+   ],
+   [
+    3.969083,
+    "your"
+   ],
+   [
+    4.123708,
+    "smaller"
+   ],
+   [
+    4.6005,
+    "base"
+   ],
+   [
+    5.193291,
+    "unknown"
+   ],
+   [
+    6.159791,
+    "Second"
+   ],
+   [
+    6.894333,
+    "bar"
+   ],
+   [
+    7.152041,
+    "models"
+   ],
+   [
+    7.551541,
+    "make"
+   ],
+   [
+    7.731958,
+    "the"
+   ],
+   [
+    7.873708,
+    "equal"
+   ],
+   [
+    8.157208,
+    "parts"
+   ],
+   [
+    8.4665,
+    "obvious"
+   ],
+   [
+    9.561875,
+    "Third"
+   ],
+   [
+    10.322166,
+    "consecutive"
+   ],
+   [
+    10.914958,
+    "numbers"
+   ],
+   [
+    11.546375,
+    "add"
+   ],
+   [
+    11.804125,
+    "one"
+   ],
+   [
+    12.306708,
+    "for"
+   ],
+   [
+    12.64175,
+    "each"
+   ],
+   [
+    12.92525,
+    "step"
+   ]
+  ],
+  "marks": {
+   "w1": 2.345,
+   "w2": 6.16,
+   "w3": 9.562
+  },
+  "cues": [
+   [
+    0.103,
+    "Remember three key rules: First, let x be your smaller base unknown."
+   ],
+   [
+    6.16,
+    "Second, bar models make the equal parts obvious."
+   ],
+   [
+    9.562,
+    "Third, consecutive numbers add one for each step."
+   ]
+  ]
+ },
+ "final1": {
+  "key": "6b46430ac00bf67551a6d37a94db4b4947d8b02b",
+  "dur": 3.984,
+  "words": [
+   [
+    0.103083,
+    "Chapter"
+   ],
+   [
+    0.412375,
+    "practice"
+   ],
+   [
+    1.546375,
+    "Find"
+   ],
+   [
+    1.739708,
+    "the"
+   ],
+   [
+    1.829916,
+    "largest"
+   ],
+   [
+    2.474208,
+    "consecutive"
+   ],
+   [
+    3.144333,
+    "integer"
+   ]
+  ],
+  "marks": {},
+  "cues": [
+   [
+    0.103,
+    "Chapter practice."
+   ],
+   [
+    1.546,
+    "Find the largest consecutive integer."
+   ]
+  ]
+ },
+ "finish": {
+  "key": "6ff062acc507423957aa3097cbf235b7a06d7b35",
+  "dur": 4.488,
+  "words": [
+   [
+    0.090208,
+    "Well"
+   ],
+   [
+    0.25775,
+    "done"
+   ],
+   [
+    1.056708,
+    "You"
+   ],
+   [
+    1.121125,
+    "have"
+   ],
+   [
+    1.237125,
+    "mastered"
+   ],
+   [
+    1.752583,
+    "number"
+   ],
+   [
+    2.010291,
+    "problems"
+   ],
+   [
+    2.873708,
+    "and"
+   ],
+   [
+    3.002583,
+    "tape"
+   ],
+   [
+    3.32475,
+    "diagrams"
+   ]
+  ],
+  "marks": {},
+  "cues": [
+   [
+    0.09,
+    "Well done."
+   ],
+   [
+    1.057,
+    "You have mastered number problems and tape diagrams."
+   ]
+  ]
+ }
+}

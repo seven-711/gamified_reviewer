@@ -5,9 +5,11 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
+import { useStats } from "@/components/ui/StatsContext";
 import { fetchFullProfile } from "@/lib/session";
-import { getProfileCache, setProfileCache } from "@/lib/profileCache";
+import { getProfileCache, setProfileCache, clearProfileCache } from "@/lib/profileCache";
 import { getCadetRankInfo, getLevelFromXp } from "@/lib/cadetRank";
+import { fetchFollowCounts } from "@/lib/follow";
 import dynamic from "next/dynamic";
 
 const DotLottieReact = dynamic(
@@ -20,22 +22,23 @@ const DotLottieReact = dynamic(
   { ssr: false }
 );
 
-function getRankLottieConfig(level: number): { src: string; animationId: string } {
-  switch (level) {
-    case 1:
-      return { src: "/firstRank.lottie", animationId: "Main Scene" };
-    case 2:
-      return { src: "/secondRank.lottie", animationId: "Main Scene" };
-    case 3:
-      return { src: "/thirdRank.lottie", animationId: "Main Scene" };
-    default:
-      return { src: "/fourthRankBeyond.lottie", animationId: "12345" };
-  }
-}
-
 const StreakRive = dynamic(() => import("@/components/ui/StreakRive"), {
   ssr: false,
 });
+
+function getRankLottieConfig(level: number): { src: string } {
+  switch (level) {
+    case 1:
+      return { src: "/firstRank.lottie" };
+    case 2:
+      return { src: "/secondRank.lottie" };
+    case 3:
+      return { src: "/thirdRank.lottie" };
+    default:
+      return { src: "/fourthRankBeyond.lottie" };
+  }
+}
+
 
 interface UserProfile {
   id: string;
@@ -50,6 +53,7 @@ interface UserProfile {
   timer_duration?: number;
   lessons_completed?: number;
   last_lesson_date?: string | null;
+  streak_freeze_count?: number;
 }
 
 interface ScoreAuditLog {
@@ -245,6 +249,7 @@ const MONTHLY_BADGES: MonthlyBadge[] = [
 
 export default function ProfilePage() {
   const router = useRouter();
+  const stats = useStats();
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [timerDuration, setTimerDuration] = useState<number>(5);
@@ -258,7 +263,35 @@ export default function ProfilePage() {
   const [activityLogs, setActivityLogs] = useState<CadetActivityLog[]>([]);
   const [ledgerTab, setLedgerTab] = useState<"audit" | "activity">("audit");
 
+  const [recordStreak, setRecordStreak] = useState(0);
+  const [calendarMonth, setCalendarMonth] = useState<Date>(new Date());
+  const [signingOut, setSigningOut] = useState(false);
   const { user, isLoaded, isSignedIn, signOut } = useAuth();
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const stored = parseInt(localStorage.getItem("record_longest_streak") || "0", 10);
+      const currentStreak = profile?.streak || 0;
+      const maxStreak = Math.max(currentStreak, stored);
+      setRecordStreak(maxStreak);
+    }
+  }, [profile?.streak]);
+
+  const handleSignOut = async () => {
+    try {
+      setSigningOut(true);
+      if (user?.id) {
+        clearProfileCache(user.id);
+      }
+      localStorage.removeItem("guest_session_id");
+      localStorage.removeItem("last_lesson_completed_date");
+      await signOut();
+    } catch (err) {
+      console.error("Sign out error:", err);
+    } finally {
+      window.location.href = "/login";
+    }
+  };
 
   const loadData = useCallback(async (bypassCache = false) => {
     if (!isLoaded) return;
@@ -458,19 +491,9 @@ export default function ProfilePage() {
       let freshFollowersCount = 0;
       try {
         if (currentUserId) {
-          const [followingRes, followersRes] = await Promise.all([
-            supabase
-              .from("lesson_events")
-              .select("id", { count: "exact", head: true })
-              .eq("profile_id", currentUserId)
-              .like("event_type", "claimed_achievement_follow:%"),
-            supabase
-              .from("lesson_events")
-              .select("id", { count: "exact", head: true })
-              .eq("event_type", `claimed_achievement_follow:${currentUserId}`),
-          ]);
-          freshFollowingCount = followingRes.count || 0;
-          freshFollowersCount = followersRes.count || 0;
+          const counts = await fetchFollowCounts(currentUserId);
+          freshFollowingCount = counts.followingCount;
+          freshFollowersCount = counts.followersCount;
           setFollowingCount(freshFollowingCount);
           setFollowersCount(freshFollowersCount);
         }
@@ -506,8 +529,10 @@ export default function ProfilePage() {
       loadData(true);
     };
     window.addEventListener("reviewer-db-update", handleUpdate);
+    window.addEventListener("reviewer-follow-update", handleUpdate);
     return () => {
       window.removeEventListener("reviewer-db-update", handleUpdate);
+      window.removeEventListener("reviewer-follow-update", handleUpdate);
     };
   }, [loadData]);
 
@@ -530,6 +555,15 @@ export default function ProfilePage() {
       }
     }
   };
+
+  if (signingOut) {
+    return (
+      <main className="flex-1 w-full max-w-[600px] mx-auto pb-24 pt-24 flex flex-col items-center justify-center text-center px-6 font-din-round">
+        <div className="w-10 h-10 border-4 border-duo-green border-t-transparent rounded-full animate-spin mb-4" />
+        <p className="text-silver font-bold text-sm">Redirecting to login...</p>
+      </main>
+    );
+  }
 
   if (isLoaded && (!isSignedIn || !user)) {
     return (
@@ -743,14 +777,12 @@ export default function ProfilePage() {
 
             <div className="self-start sm:self-auto shrink-0">
               <button
-                onClick={async () => {
-                  await signOut();
-                  router.push("/");
-                }}
-                className="flex items-center gap-1.5 border-2 border-red-500/30 hover:border-red-500/50 hover:bg-red-500/10 px-3 py-1.5 rounded-xl transition-all cursor-pointer"
+                disabled={signingOut}
+                onClick={handleSignOut}
+                className="flex items-center gap-1.5 border-2 border-red-500/30 hover:border-red-500/50 hover:bg-red-500/10 px-3 py-1.5 rounded-xl transition-all cursor-pointer disabled:opacity-50"
               >
                 <span className="text-red-500 font-extrabold uppercase tracking-widest text-[10px] select-none">
-                  Sign Out
+                  {signingOut ? "Signing Out..." : "Sign Out"}
                 </span>
               </button>
             </div>
@@ -804,6 +836,295 @@ export default function ProfilePage() {
           </button>
         </div>
 
+        {/* Cadet Rank Level Progression Card */}
+        <div className="w-full mt-5">
+          <div className="w-full bg-snow-white border-2 border-cloud-gray dark:border-cloud-gray/20 rounded-xl md:rounded-2xl p-3 md:p-5 flex flex-col sm:flex-row items-center justify-between gap-2.5 md:gap-4 shadow-sm">
+            <div className="flex items-center gap-2.5 md:gap-4 w-full sm:w-auto">
+              <div className="w-20 h-20 md:w-28 md:h-28 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0 overflow-hidden">
+                <DotLottieReact
+                  {...getRankLottieConfig(level)}
+                  autoplay
+                  loop
+                  className="w-20 h-20 md:w-28 md:h-28"
+                />
+              </div>
+              <div className="flex flex-col text-left min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-xs font-bold uppercase tracking-wider text-silver">Cadet Rank</span>
+                </div>
+                <h3 className="font-feather text-base md:text-xl font-bold text-charcoal dark:text-white leading-snug">
+                  Level {level}: {rankInfo.title}
+                </h3>
+              </div>
+            </div>
+
+            {rankInfo.nextLevelXp && (
+              <div className="w-full sm:w-56 flex flex-col gap-1.5 shrink-0">
+                <div className="flex justify-between text-[11px] font-bold text-silver">
+                  <span>Lvl {level} ({rankInfo.badgeName})</span>
+                  <span>Lvl {level + 1}</span>
+                </div>
+                <div className="h-3 w-full bg-cloud-gray dark:bg-slate-700 rounded-full overflow-hidden relative">
+                  <div
+                    className="h-full bg-gradient-to-r from-duo-green to-duo-green-dark rounded-full transition-all duration-500"
+                    style={{
+                      width: `${Math.min(100, Math.max(0, ((xp - rankInfo.minXp) / (rankInfo.nextLevelXp - rankInfo.minXp)) * 100))}%`
+                    }}
+                  />
+                </div>
+                <span className="text-[10px] text-right font-semibold text-silver">
+                  {xp} / {rankInfo.nextLevelXp} XP
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Streak Record Widget */}
+        {(() => {
+          const today = new Date();
+          const todayStr = today.toLocaleDateString("en-CA");
+          const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+          const todayEndOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999).getTime();
+
+          const effectiveLastLessonDate =
+            profile?.last_lesson_date ||
+            (typeof window !== "undefined" ? localStorage.getItem("last_lesson_completed_date") : null) ||
+            null;
+          const isStreakActive = streak > 0 && effectiveLastLessonDate === todayStr;
+
+          const streakFreezeCount =
+            (stats?.streakFreezeCount !== undefined && stats?.streakFreezeCount !== null
+              ? stats.streakFreezeCount
+              : profile?.streak_freeze_count) ??
+            (typeof window !== "undefined" ? Number(localStorage.getItem("streak_freeze_count") || 0) : 0);
+          const hasStreakFreeze = (Number(streakFreezeCount) || 0) > 0;
+
+          const activeDays = new Set<string>();
+          if (effectiveLastLessonDate && streak > 0) {
+            const [ly, lm, ld] = effectiveLastLessonDate.split("-").map(Number);
+            const endDt = new Date(ly, lm - 1, ld);
+            for (let s = 0; s < streak; s++) {
+              const sd = new Date(endDt);
+              sd.setDate(sd.getDate() - s);
+              activeDays.add(sd.toLocaleDateString("en-CA"));
+            }
+          }
+          if (lessonEvents && lessonEvents.length > 0) {
+            lessonEvents.forEach((evt) => {
+              if (evt.created_at) {
+                const dt = new Date(evt.created_at);
+                activeDays.add(dt.toLocaleDateString("en-CA"));
+              }
+            });
+          }
+          if (typeof window !== "undefined") {
+            const localLast = localStorage.getItem("last_lesson_completed_date");
+            if (localLast) {
+              activeDays.add(localLast);
+            }
+          }
+
+          const calYear = calendarMonth.getFullYear();
+          const calMonth = calendarMonth.getMonth();
+          const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+          const firstDayIndex = new Date(calYear, calMonth, 1).getDay();
+
+          const calendarDays: (Date | null)[] = [];
+          for (let i = 0; i < firstDayIndex; i++) {
+            calendarDays.push(null);
+          }
+          for (let d = 1; d <= daysInMonth; d++) {
+            calendarDays.push(new Date(calYear, calMonth, d));
+          }
+
+          const isCurrentCalendarMonth =
+            calYear === today.getFullYear() && calMonth === today.getMonth();
+
+          const daysOfWeek = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+          const monthNames = [
+            "January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"
+          ];
+
+          const handlePrevMonth = () => {
+            setCalendarMonth(new Date(calYear, calMonth - 1, 1));
+          };
+          const handleNextMonth = () => {
+            setCalendarMonth(new Date(calYear, calMonth + 1, 1));
+          };
+
+          const streakPct = Math.min(100, recordStreak > 0 ? Math.round((streak / recordStreak) * 100) : 0);
+          return (
+            <div className="w-full mt-5">
+              <div className="w-full bg-[#141415] border border-[#242426] rounded-[24px] md:rounded-[28px] p-4 md:p-5 flex flex-col gap-4 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.8),inset_0_1px_1px_0_rgba(255,255,255,0.08)] overflow-hidden relative">
+                {isStreakActive && (
+                  <div className="absolute -top-6 -right-6 w-32 h-32 rounded-full bg-[#f89e1b]/10 blur-2xl pointer-events-none" />
+                )}
+                {/* Header Row */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl border border-dashed border-zinc-700 bg-zinc-900/60 flex items-center justify-center shrink-0 overflow-hidden">
+                      <img
+                        src={isStreakActive ? "/img/gen_imgs/Streak/streak.webp" : (hasStreakFreeze ? "/img/gen_imgs/Streak/streak_freeze.webp" : "/img/gen_imgs/Streak/off_streak.webp")}
+                        alt={isStreakActive ? "Streak" : (hasStreakFreeze ? "Streak Freeze" : "Off Streak")}
+                        className="w-full h-full object-contain select-none"
+                      />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-semibold tracking-widest text-zinc-500 uppercase leading-tight">STREAK</span>
+                      <div className="flex items-baseline gap-1 mt-0.5">
+                        <span className={`text-2xl md:text-3xl font-bold tracking-tight leading-none ${isStreakActive ? "text-[#f89e1b]" : "text-zinc-400"}`}>{streak}</span>
+                        <span className="text-[11px] font-bold tracking-wider text-zinc-300 uppercase leading-none">DAYS</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-0.5">
+                    <span className="text-[9px] font-bold tracking-widest text-zinc-500 uppercase">RECORD</span>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-lg md:text-xl font-black leading-none text-white">{recordStreak}</span>
+                      <span className="text-[10px] font-bold text-zinc-500 uppercase">days</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Month Navigation & Controls */}
+                <div className="flex items-center justify-between border-t border-zinc-800/80 pt-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs md:text-sm font-bold tracking-wider uppercase text-zinc-200">
+                      {monthNames[calMonth]} {calYear}
+                    </span>
+                    {!isCurrentCalendarMonth && (
+                      <button
+                        onClick={() => setCalendarMonth(new Date())}
+                        className="text-[10px] font-bold uppercase tracking-wider text-[#f89e1b] hover:text-[#f89e1b]/80 bg-[#f89e1b]/10 hover:bg-[#f89e1b]/20 px-2 py-0.5 rounded-full transition-colors cursor-pointer select-none"
+                      >
+                        Today
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={handlePrevMonth}
+                      className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer select-none"
+                      title="Previous month"
+                      aria-label="Previous month"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="15 18 9 12 15 6" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={handleNextMonth}
+                      className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer select-none"
+                      title="Next month"
+                      aria-label="Next month"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="9 18 15 12 9 6" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Days of Week Header */}
+                <div className="grid grid-cols-7 gap-1 text-center">
+                  {daysOfWeek.map((day) => (
+                    <div key={day} className="text-[10px] md:text-xs font-bold text-zinc-500 uppercase tracking-wider">
+                      {day}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Monthly Habit Calendar Grid */}
+                <div className="grid grid-cols-7 gap-y-2 gap-x-1 items-center justify-items-center text-center">
+                  {calendarDays.map((dateObj, i) => {
+                    if (!dateObj) {
+                      return <div key={`empty-${i}`} className="w-8 h-8 md:w-9 md:h-9" />;
+                    }
+                    const dStr = dateObj.toLocaleDateString("en-CA");
+                    const isCompleted = activeDays.has(dStr);
+                    const isToday = dStr === todayStr;
+                    const isFuture = dateObj.getTime() > todayEndOfDay;
+
+                    const diffDays = Math.round(
+                      (todayStart.getTime() - new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate()).getTime()) /
+                        (1000 * 60 * 60 * 24)
+                    );
+                    const isMissedWithFreeze =
+                      !isCompleted &&
+                      !isFuture &&
+                      hasStreakFreeze &&
+                      (isToday || (diffDays > 0 && diffDays <= streakFreezeCount));
+
+                    return (
+                      <div
+                        key={dStr}
+                        className="w-8 h-8 md:w-9 md:h-9 flex items-center justify-center relative select-none"
+                        title={`${monthNames[dateObj.getMonth()]} ${dateObj.getDate()}, ${dateObj.getFullYear()}${
+                          isCompleted ? " • Practiced" : isMissedWithFreeze ? " • Streak Freeze" : ""
+                        }`}
+                      >
+                        {isCompleted ? (
+                          <StreakRive
+                            src="/emoji/activeStreak.riv"
+                            width={32}
+                            height={32}
+                            className="w-8 h-8 md:w-9 md:h-9 object-contain select-none pointer-events-none"
+                          />
+                        ) : isMissedWithFreeze ? (
+                          <Image
+                            src="/img/gen_imgs/Streak/streak_freeze.webp"
+                            alt="Streak Freeze"
+                            width={32}
+                            height={32}
+                            className="w-8 h-8 md:w-9 md:h-9 object-contain select-none pointer-events-none"
+                            unoptimized
+                          />
+                        ) : (
+                          <div
+                            className={`w-8 h-8 md:w-9 md:h-9 flex items-center justify-center rounded-full text-xs font-bold transition-colors ${
+                              isToday
+                                ? "border-2 border-[#f89e1b]/60 text-white bg-[#f89e1b]/10"
+                                : isFuture
+                                  ? "text-zinc-700"
+                                  : "text-zinc-500"
+                            }`}
+                          >
+                            {dateObj.getDate()}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Progress toward record */}
+                <div className="flex flex-col gap-1.5 border-t border-zinc-800/80 pt-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] font-semibold tracking-widest text-zinc-500 uppercase">Progress to Record</span>
+                    <span className="text-[10px] font-semibold text-zinc-500">{streakPct}%</span>
+                  </div>
+                  <div className="w-full h-2 bg-[#222325] rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-700"
+                      style={{
+                        width: `${streakPct}%`,
+                        background: isStreakActive ? "#f89e1b" : "#71717a",
+                        boxShadow: isStreakActive && streakPct > 10 ? "0 0 12px 2px rgba(248,158,27,0.4)" : undefined
+                      }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-[9px] font-bold text-zinc-600">
+                    <span>Current: {streak} days</span>
+                    <span>Best: {recordStreak} days</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+
         {/* Overview Section */}
         <div className="w-full mt-10">
           <h2 className="font-feather text-xs font-black tracking-widest text-silver uppercase mb-5 select-none">
@@ -826,57 +1147,6 @@ export default function ProfilePage() {
               </span>
               <span className="text-[11px] font-extrabold text-silver uppercase tracking-wider">
                 Cadet Rank
-              </span>
-            </div>
-            {/* Streak */}
-            <div className="flex flex-col items-center justify-center p-5 hover:-translate-y-0.5 transition-transform text-center gap-1.5">
-              <div className="w-[100px] h-[100px] flex items-center justify-center shrink-0 select-none">
-                {(() => {
-                  const todayStr = new Date().toLocaleDateString("en-CA");
-                  const isStreakActive = !!(profile?.streak && profile.streak > 0 && profile.last_lesson_date === todayStr);
-                  const isStreakFrozenOrMissed = !profile?.streak || profile.streak < 1;
-                  
-                  if (isStreakActive) {
-                    return (
-                      <StreakRive
-                        src="/emoji/activeStreak.riv"
-                        width={90}
-                        height={90}
-                        className="w-full h-full object-contain"
-                      />
-                    );
-                  } else if (isStreakFrozenOrMissed) {
-                    return (
-                      <Image
-                        src="/img/gen_imgs/Streak/streak_freeze.webp"
-                        alt="Streak Missed"
-                        width={90}
-                        height={90}
-                        className="object-contain"
-                      />
-                    );
-                  } else {
-                    return (
-                      <Image
-                        src="/img/gen_imgs/Streak/off_streak.webp"
-                        alt="Streak Unactivated"
-                        width={90}
-                        height={90}
-                        className="object-contain"
-                      />
-                    );
-                  }
-                })()}
-              </div>
-              <span className={`font-black text-2xl ${(() => {
-                const todayStr = new Date().toLocaleDateString("en-CA");
-                const isStreakActive = !!(profile?.streak && profile.streak > 0 && profile.last_lesson_date === todayStr);
-                return isStreakActive ? "text-orange-400 dark:text-orange-500" : "text-gray-400";
-              })()}`}>
-                {profile?.streak || 0} Days
-              </span>
-              <span className="text-[11px] font-extrabold text-silver uppercase tracking-wider">
-                Daily Streak
               </span>
             </div>
 

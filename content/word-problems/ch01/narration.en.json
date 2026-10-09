@@ -1,0 +1,17 @@
+{
+  "voice": "en-US-AndrewMultilingualNeural",
+  "rate": "-3%",
+  "beats": {
+    "intro": "Unit one, chapter one. [[start]]Word problems are not mysteries; they are puzzles waiting for a picture.",
+    "strategy": "Every word problem [[target]]ends with a target question. Always let [[xvar]]x represent the smaller baseline quantity, and [[sketch]]draw the relationship before writing equations.",
+    "problem": "Here is a classic exam question: [[prompt]]Two numbers have a sum of 72. One number is twice the other. What are the numbers?",
+    "bars": "Instead of guessing, [[draw]]draw tape bars. One bar for the smaller number, and [[double]]two identical bars for the larger number. Together, their total [[bracket]]sum is 72.",
+    "solve": "Notice what the picture tells us: [[combine]]three identical parts equal 72. Dividing 72 by 3 [[divide]]gives 24 for each block. So the smaller number is [[ans1]]24, and the larger number is [[ans2]]48.",
+    "q1": "Quick check. Find the smaller number.",
+    "consecutive": "When problems mention [[consec]]consecutive integers, the second number is simply [[plusone]]x plus 1. Their sum creates two equal blocks, plus a single [[unit]]unit block.",
+    "q2": "Quick check. Find the smaller consecutive integer.",
+    "wrap": "Remember three key rules: [[w1]]First, let x be your smaller base unknown. [[w2]]Second, bar models make the equal parts obvious. [[w3]]Third, consecutive numbers add one for each step.",
+    "final1": "Chapter practice. Find the largest consecutive integer.",
+    "finish": "Well done. You have mastered number problems and tape diagrams."
+  }
+}

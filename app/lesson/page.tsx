@@ -3,7 +3,6 @@
 import React, { useState, Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Button } from "@/components/ui/Button";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { QuizFooter } from "@/components/ui/QuizFooter";
 import { StreakAsset } from "@/components/ui/StreakAsset";
@@ -16,8 +15,10 @@ import { supabase } from "@/lib/supabase";
 import { useAlert } from "@/components/ui/AlertContext";
 import { useStats } from "@/components/ui/StatsContext";
 import { RiveScreenLoader, RiveLoader } from "@/components/ui/RiveLoader";
-import { playSound, playCorrectSound, playWrongSound, isSoundEnabled, setSoundEnabledState } from "@/lib/sound";
+import { playCorrectSound, playWrongSound, isSoundEnabled, setSoundEnabledState } from "@/lib/sound";
 import dynamic from "next/dynamic";
+import { AIAssessmentCard } from "@/components/ui/AIAssessmentCard";
+import { UserAnswerRecord, AIAssessmentResult, formatTestTitle } from "@/lib/aiAssessment";
 
 const DotLottieReact = dynamic(
   () => import("@lottiefiles/dotlottie-react").then((mod) => {
@@ -71,47 +72,22 @@ function LessonContent() {
   const [timeLeft, setTimeLeft] = useState<number>(300);
   const [correctAnswers, setCorrectAnswers] = useState(0);
   const [consecutiveCorrect, setConsecutiveCorrect] = useState<number>(0);
-  const [streakOverlay, setStreakOverlay] = useState<{ src: string; title: string; color: string } | null>(null);
   const [streakRiveModal, setStreakRiveModal] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (streakOverlay) {
-      const timer = setTimeout(() => {
-        setStreakOverlay(null);
-      }, 2000); // 1.7s stay + 300ms fade-out
-      return () => clearTimeout(timer);
-    }
-  }, [streakOverlay]);
+  // AI-Powered Performance Assessment state
+  const [userAnswers, setUserAnswers] = useState<Record<number, UserAnswerRecord>>({});
+  const [aiAssessment, setAiAssessment] = useState<AIAssessmentResult | null>(null);
+  const [aiLoading, setAiLoading] = useState<boolean>(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+  const assessmentFetchedRef = React.useRef<boolean>(false);
 
   const triggerStreakOverlay = (next: number) => {
-    if (next === 3) {
+    if (next === 5) {
       setStreakRiveModal("/emoji/3streak.riv");
-    } else if (next === 5) {
-      setStreakRiveModal("/emoji/5streak.riv");
     } else if (next === 10) {
-      setStreakOverlay({
-        src: "/img/gen_imgs/Streak/50_day_streak.webp",
-        title: "10 STRAIGHT!",
-        color: "text-[#ff2e63]"
-      });
-    } else if (next === 15) {
-      setStreakOverlay({
-        src: "/img/gen_imgs/Streak/100_day_streak.webp",
-        title: "15 STRAIGHT!",
-        color: "text-[#a570ff]"
-      });
-    } else if (next === 20) {
-      setStreakOverlay({
-        src: "/img/gen_imgs/Streak/150_day_streak.webp",
-        title: "20 STRAIGHT!",
-        color: "text-[#1cb0f6]"
-      });
-    } else if (next === 25) {
-      setStreakOverlay({
-        src: "/img/gen_imgs/Streak/200_day_streak.webp",
-        title: "25 STRAIGHT!",
-        color: "text-[#58cc02]"
-      });
+      setStreakRiveModal("/emoji/5streak.riv");
+    } else if (next === 15 || (next > 15 && next % 5 === 0)) {
+      setStreakRiveModal("/15correctStreak.riv");
     }
   };
   const [showHowToAnswer, setShowHowToAnswer] = useState(true);
@@ -346,6 +322,9 @@ function LessonContent() {
             if (parsed.showHowToAnswer !== undefined) {
               setShowHowToAnswer(parsed.showHowToAnswer);
             }
+            if (parsed.userAnswers) {
+              setUserAnswers(parsed.userAnswers);
+            }
           } catch (e) {
             console.error("Failed to parse saved quiz state", e);
             activeIndices = generateShuffledIndices(loadedQuestions.length);
@@ -467,10 +446,11 @@ function LessonContent() {
         correctAnswers,
         showHowToAnswer,
         shuffledIndices,
-        consecutiveCorrect
+        consecutiveCorrect,
+        userAnswers
       }));
     }
-  }, [phase, currentExampleIndex, currentIndex, selectedOption, status, timeLeft, correctAnswers, showHowToAnswer, isLoaded, testId, shuffledIndices, consecutiveCorrect]);
+  }, [phase, currentExampleIndex, currentIndex, selectedOption, status, timeLeft, correctAnswers, showHowToAnswer, isLoaded, testId, shuffledIndices, consecutiveCorrect, userAnswers]);
 
   // Timer logic
   useEffect(() => {
@@ -657,6 +637,88 @@ function LessonContent() {
     }
   }, [status, correctAnswers, questions.length, testId, isSignedIn, user, timeLeft, hearts]);
 
+  // Fetch AI Performance Assessment and Improvement Recommendations
+  const fetchAiAssessment = async (answersOverride?: Record<number, UserAnswerRecord>) => {
+    if (questions.length === 0) return;
+    setAiLoading(true);
+    setAiError(null);
+
+    const activeRecords = answersOverride || userAnswers;
+    const questionsSummary: UserAnswerRecord[] = questions.map((q, idx) => {
+      const record = activeRecords[idx];
+      if (record) return record;
+      return {
+        questionIndex: idx,
+        questionId: q.id,
+        prompt: q.prompt,
+        questionType: q.type || "multiple_choice",
+        image: q.image,
+        options: q.options || [],
+        selectedOptionIndex: null,
+        selectedOptionText: null,
+        correctOptionIndex: q.correctIndex,
+        correctOptionText: q.options ? q.options[q.correctIndex] : "",
+        isCorrect: false,
+        explanation: q.explanation || ""
+      };
+    });
+
+    const savedDurationStr = localStorage.getItem("timer_duration");
+    const timerDurationMinutes = savedDurationStr ? parseInt(savedDurationStr, 10) : 5;
+    const totalSeconds = timerDurationMinutes * 60;
+    const timeSpent = Math.max(0, totalSeconds - timeLeft);
+
+    try {
+      const res = await fetch("/api/ai/assessment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          testId,
+          testTitle: formatTestTitle(testId),
+          totalQuestions: questions.length,
+          correctAnswers,
+          scorePercentage: (correctAnswers / questions.length) * 100,
+          timeSpentSeconds: timeSpent,
+          totalTimeSeconds: totalSeconds,
+          questionsSummary
+        })
+      });
+
+      if (!res.ok) {
+        throw new Error(`Failed to generate assessment (${res.status})`);
+      }
+
+      const data: AIAssessmentResult = await res.json();
+      setAiAssessment(data);
+      try {
+        localStorage.setItem(`quiz_assessment_${testId}`, JSON.stringify(data));
+      } catch (e) {}
+    } catch (err: any) {
+      console.error("AI assessment request failed:", err);
+      setAiError(err.message || "Failed to load AI assessment");
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  // Automatically fetch or restore AI assessment on test completion
+  useEffect(() => {
+    if ((status === "completed" || phase === "completed") && questions.length > 0 && !assessmentFetchedRef.current) {
+      assessmentFetchedRef.current = true;
+      const cached = localStorage.getItem(`quiz_assessment_${testId}`);
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached);
+          if (parsed && parsed.testId === testId) {
+            setAiAssessment(parsed);
+            return;
+          }
+        } catch (e) {}
+      }
+      fetchAiAssessment();
+    }
+  }, [status, phase, questions.length, testId]);
+
   console.log('Quiz Render Diagnostics:', {
     phase,
     currentIndex,
@@ -676,14 +738,6 @@ function LessonContent() {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
 
       if (streakRiveModal) {
-        return;
-      }
-
-      if (streakOverlay) {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          setStreakOverlay(null);
-        }
         return;
       }
 
@@ -740,7 +794,26 @@ function LessonContent() {
         }
         if (status === "selected" && selectedOption !== null) {
           // Equivalent to handleCheck logic, using functional state updates where possible
-          if (selectedOption === question.correctIndex) {
+          const isCorrect = selectedOption === question.correctIndex;
+          setUserAnswers((prev) => ({
+            ...prev,
+            [currentIndex]: {
+              questionIndex: currentIndex,
+              questionId: question.id,
+              prompt: question.prompt,
+              questionType: question.type || "multiple_choice",
+              image: question.image,
+              options: question.options || [],
+              selectedOptionIndex: selectedOption,
+              selectedOptionText: question.options && selectedOption !== null ? question.options[selectedOption] : null,
+              correctOptionIndex: question.correctIndex,
+              correctOptionText: question.options ? question.options[question.correctIndex] : "",
+              isCorrect,
+              explanation: question.explanation || ""
+            }
+          }));
+
+          if (isCorrect) {
             playCorrectSound();
             setStatus("correct");
             setCorrectAnswers((prev) => prev + 1);
@@ -793,7 +866,6 @@ function LessonContent() {
     showOutOfHeartsModal,
     showExitModal,
     hearts,
-    streakOverlay,
     streakRiveModal
   ]);
 
@@ -807,7 +879,26 @@ function LessonContent() {
   const handleCheck = () => {
     if (selectedOption === null) return;
 
-    if (selectedOption === question.correctIndex) {
+    const isCorrect = selectedOption === question.correctIndex;
+    setUserAnswers((prev) => ({
+      ...prev,
+      [currentIndex]: {
+        questionIndex: currentIndex,
+        questionId: question.id,
+        prompt: question.prompt,
+        questionType: question.type || "multiple_choice",
+        image: question.image,
+        options: question.options || [],
+        selectedOptionIndex: selectedOption,
+        selectedOptionText: question.options && selectedOption !== null ? question.options[selectedOption] : null,
+        correctOptionIndex: question.correctIndex,
+        correctOptionText: question.options ? question.options[question.correctIndex] : "",
+        isCorrect,
+        explanation: question.explanation || ""
+      }
+    }));
+
+    if (isCorrect) {
       playCorrectSound();
       setStatus("correct");
       setCorrectAnswers((prev) => prev + 1);
@@ -850,6 +941,11 @@ function LessonContent() {
       return;
     }
     localStorage.removeItem(`quiz_state_${testId}`);
+    localStorage.removeItem(`quiz_assessment_${testId}`);
+    assessmentFetchedRef.current = false;
+    setUserAnswers({});
+    setAiAssessment(null);
+    setAiError(null);
     setPhase(testExamples.length > 0 ? "examples" : "quiz");
     setCurrentExampleIndex(0);
     setCurrentIndex(0);
@@ -860,6 +956,8 @@ function LessonContent() {
     setStreakRiveModal(null);
     setEliminatedOptions([]);
     setHintRevealed(false);
+    setStreakIncreased(false);
+    setShowStreakPage(false);
     scoreSavedRef.current = false;
     const savedDuration = localStorage.getItem("timer_duration");
     setTimeLeft((savedDuration ? parseInt(savedDuration, 10) : 5) * 60);
@@ -1147,7 +1245,7 @@ function LessonContent() {
     }
 
     return (
-      <div className="dark-mode min-h-screen flex flex-col items-center justify-center bg-snow-white font-din-round text-almost-black px-4 py-6 md:px-6 text-center transition-colors duration-300">
+      <div className="dark-mode min-h-screen flex flex-col items-center justify-start bg-snow-white font-din-round text-almost-black px-4 py-8 md:px-6 text-center transition-colors duration-300">
         <h1 className={`font-feather text-2xl md:text-4xl mb-3 md:mb-4 ${isTimeUp ? "text-[#ea2b2b]" : "text-duo-green"}`}>
           {isTimeUp ? "Time's Up!" : "Lesson Complete!"}
         </h1>
@@ -1231,7 +1329,7 @@ function LessonContent() {
           )}
         </div>
 
-        <p className="text-xs md:text-[17px] text-graphite dark:text-silver mb-4 md:mb-8 max-w-xs md:max-w-md px-2 leading-relaxed">
+        <p className="text-xs md:text-[17px] text-graphite dark:text-silver mb-4 max-w-xs md:max-w-md px-2 leading-relaxed">
           {isPassed
             ? (isPerfect ? "Perfect score! You've successfully finished this practice set and unlocked the next one." : "Great job! You've successfully finished this practice set and unlocked the next one.")
             : `Great effort! However, you need to score at least 80% (${Math.ceil(questions.length * 0.8)}/${questions.length}) to unlock the next test.`}
@@ -1252,7 +1350,21 @@ function LessonContent() {
           </div>
         )}
 
-        <div className="flex flex-col gap-3 w-full max-w-[280px] md:max-w-xs px-2">
+        {/* AI Performance Assessment & Improvement Recommendations */}
+        <div className="w-full max-w-2xl my-4 flex justify-center">
+          <AIAssessmentCard
+            assessment={aiAssessment}
+            loading={aiLoading}
+            error={aiError}
+            onRefresh={() => {
+              assessmentFetchedRef.current = false;
+              fetchAiAssessment();
+            }}
+            testTitle={formatTestTitle(testId)}
+          />
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-3 w-full px-4 sm:px-2 sm:max-w-md my-4">
           <button
             onClick={() => {
               if (streakIncreased) {
@@ -1261,13 +1373,13 @@ function LessonContent() {
                 router.push("/dashboard");
               }
             }}
-            className="bg-duo-green text-white font-bold text-sm md:text-[17px] h-[46px] md:h-[50px] px-6 md:px-8 rounded-2xl shadow-[0_4px_0_#3f8f01] active:translate-y-1 active:shadow-none transition-all"
+            className="flex-1 bg-duo-green text-white font-bold text-sm h-[50px] p-2 rounded-2xl shadow-[0_4px_0_#3f8f01] active:translate-y-1 active:shadow-none transition-all cursor-pointer"
           >
             BACK TO DASHBOARD
           </button>
           <button
             onClick={handleRetake}
-            className="bg-white dark:bg-transparent text-sky-blue border-2 border-sky-blue font-bold text-sm md:text-[17px] h-[46px] md:h-[50px] px-6 md:px-8 rounded-2xl shadow-[0_4px_0_#189edc] dark:shadow-none active:translate-y-1 active:shadow-none transition-all cursor-pointer"
+            className="flex-1 bg-white dark:bg-transparent text-sky-blue border-2 border-sky-blue font-bold text-sm h-[50px] p-2 rounded-2xl shadow-[0_4px_0_#189edc] dark:shadow-none active:translate-y-1 active:shadow-none transition-all cursor-pointer"
           >
             RETAKE TEST
           </button>
@@ -1633,40 +1745,13 @@ function LessonContent() {
 
       {streakRiveModal && (
         <FiveStreakRive
+          key={streakRiveModal}
           src={streakRiveModal}
           onContinue={() => {
             setStreakRiveModal(null);
             handleContinue();
           }}
         />
-      )}
-
-      {streakOverlay && (
-        <div 
-          onClick={() => setStreakOverlay(null)}
-          className="fixed inset-0 bg-black/35 backdrop-blur-[1px] flex flex-col items-center justify-center z-[100] p-4 animate-[fadeIn_0.2s_ease-out] cursor-pointer"
-        >
-          <div className="flex flex-col items-center gap-6 select-none pointer-events-none animate-[streakFade_2.0s_ease-in-out_forwards]">
-            <div className="w-[300px] h-[300px] md:w-[400px] md:h-[400px] relative flex items-center justify-center">
-              <Image
-                src={streakOverlay.src}
-                alt={streakOverlay.title}
-                fill
-                sizes="(max-width: 768px) 300px, 400px"
-                className="object-contain drop-shadow-2xl"
-                priority
-              />
-            </div>
-            <h3 
-              className={`font-feather font-black text-3xl md:text-5xl tracking-wider uppercase select-none ${streakOverlay.color}`}
-              style={{
-                textShadow: "0 4px 0 #000, 0 -4px 0 #000, 4px 0 0 #000, -4px 0 0 #000, 4px 4px 0 #000, -4px -4px 0 #000, 4px -4px 0 #000, -4px 4px 0 #000",
-              }}
-            >
-              {streakOverlay.title}
-            </h3>
-          </div>
-        </div>
       )}
 
       <style dangerouslySetInnerHTML={{

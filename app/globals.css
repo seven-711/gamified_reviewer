@@ -128,3 +128,42 @@ body {
 .dark-mode .quiz-explanation-table {
   background-color: rgba(0, 0, 0, 0.2) !important;
 }
+
+/* Duolingo 3D Buttons & Learning Path Styles */
+.btn-3d-green {
+  background: radial-gradient(circle at 35% 25%, #6bf304 0%, #58cc02 60%, #4cb402 100%);
+  box-shadow: 0 9px 0 #46a302, 0 14px 10px rgba(0, 0, 0, 0.12);
+  transition: all 0.1s ease-in-out;
+}
+.btn-3d-green:active {
+  transform: translateY(4px);
+  box-shadow: 0 5px 0 #46a302, 0 8px 6px rgba(0, 0, 0, 0.1);
+}
+.btn-3d-gold {
+  background: radial-gradient(circle at 35% 25%, #ffe600 0%, #ffc800 60%, #e6a800 100%);
+  box-shadow: 0 9px 0 #b87700, 0 14px 10px rgba(0, 0, 0, 0.12);
+  transition: all 0.1s ease-in-out;
+}
+.btn-3d-gold:active {
+  transform: translateY(4px);
+  box-shadow: 0 5px 0 #b87700, 0 8px 6px rgba(0, 0, 0, 0.1);
+}
+.btn-3d-gray {
+  background: radial-gradient(circle at 35% 25%, #f2f2f2 0%, #e5e5e5 60%, #d8d8d8 100%);
+  box-shadow: 0 9px 0 #afafaf, 0 14px 10px rgba(0, 0, 0, 0.08);
+  transition: all 0.1s ease-in-out;
+}
+.btn-3d-gray:active {
+  transform: translateY(4px);
+  box-shadow: 0 5px 0 #afafaf, 0 8px 6px rgba(0, 0, 0, 0.06);
+}
+.btn-inner-shine {
+  background: radial-gradient(ellipse at top left, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0) 65%);
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

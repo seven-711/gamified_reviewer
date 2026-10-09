@@ -90,9 +90,9 @@ BEGIN
 
     IF NEW.lessons_completed > 0 AND (
         NEW.last_lesson_date IS NULL OR 
-        (TG_OP = 'UPDATE' AND NEW.lessons_completed > COALESCE(OLD.lessons_completed, 0))
+        (TG_OP = 'UPDATE' AND NEW.lessons_completed > COALESCE(OLD.lessons_completed, 0) AND (NEW.last_lesson_date = OLD.last_lesson_date OR NEW.last_lesson_date IS NULL))
     ) THEN
-        NEW.last_lesson_date := TO_CHAR(CURRENT_DATE, 'YYYY-MM-DD');
+        NEW.last_lesson_date := CURRENT_DATE;
     END IF;
 
     RETURN NEW;
@@ -214,6 +214,10 @@ BEGIN
     RETURN NEW;
 END;
 $$;
+
+-- Drop legacy triggers that cause last_lesson_date cast errors on lesson_events
+DROP TRIGGER IF EXISTS trg_sync_lesson_event_to_progress ON lesson_events;
+DROP FUNCTION IF EXISTS fn_trg_sync_lesson_event_to_progress();
 
 DROP TRIGGER IF EXISTS trg_auto_log_cadet_activity ON lesson_events;
 CREATE TRIGGER trg_auto_log_cadet_activity

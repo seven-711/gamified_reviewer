@@ -257,24 +257,36 @@ export async function updateProfileStats(
     let newStreak = currentStreak;
     let finalFreezes = currentFreezes;
 
-    if (!lastLessonDateStr && typeof window !== "undefined") {
-      lastLessonDateStr = localStorage.getItem("last_lesson_completed_date");
+    // Check localStorage first or merge with DB to obtain the most recent completion date.
+    // If the browser already completed a lesson today, effectiveLastDate will match todayStr,
+    // guaranteeing that retakes or additional attempts on the same calendar day never increment streak.
+    let effectiveLastDate = lastLessonDateStr;
+    if (typeof window !== "undefined") {
+      const localLastDate = localStorage.getItem("last_lesson_completed_date");
+      if (localLastDate) {
+        if (!effectiveLastDate || localLastDate > effectiveLastDate) {
+          effectiveLastDate = localLastDate;
+        }
+      }
     }
 
-    if (lastLessonDateStr) {
+    if (effectiveLastDate) {
       const [y1, m1, d1] = todayStr.split("-").map(Number);
-      const cleanLastDate = lastLessonDateStr.slice(0, 10);
+      const cleanLastDate = effectiveLastDate.slice(0, 10);
       const [y2, m2, d2] = cleanLastDate.split("-").map(Number);
       const todayDate = new Date(y1, m1 - 1, d1);
       const lastDate = new Date(y2, m2 - 1, d2);
       const diffTime = todayDate.getTime() - lastDate.getTime();
       const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
 
-      if (diffDays === 1) {
-        newStreak = currentStreak + 1;
-      } else if (diffDays <= 0) {
+      if (diffDays <= 0) {
+        // Same calendar day — retake or repeated drill. Keep streak exactly as-is, never increment.
         newStreak = currentStreak === 0 ? 1 : currentStreak;
+      } else if (diffDays === 1) {
+        // Consecutive day — increment.
+        newStreak = currentStreak + 1;
       } else if (diffDays > 1) {
+        // Missed day(s) — use freeze if available, otherwise reset.
         if (currentFreezes > 0) {
           finalFreezes = currentFreezes - 1;
           newStreak = currentStreak + 1;
@@ -286,12 +298,12 @@ export async function updateProfileStats(
         }
       }
     } else {
-      // If there was no recorded last_lesson_date but the cadet had an inactive streak (> 0):
-      // Taking a lesson activates it and increments it instead of resetting!
-      newStreak = currentStreak > 0 ? currentStreak + 1 : 1;
+      // First ever lesson with no previous record
+      newStreak = 1;
     }
 
-    streakIncreased = newStreak > currentStreak || (currentStreak > 0 && lastLessonDateStr !== todayStr);
+    // streakIncreased is ONLY true when the numeric value actually went up.
+    streakIncreased = newStreak > currentStreak;
     finalStreakVal = newStreak;
 
     if (typeof window !== "undefined") {
@@ -301,8 +313,8 @@ export async function updateProfileStats(
       }
     }
 
-    // 7-day streak milestone check
-    if (newStreak > 0 && newStreak % 7 === 0 && (lastLessonDateStr !== todayStr)) {
+    // 7-day streak milestone check — only award bonus gems when streak actually increased.
+    if (streakIncreased && newStreak > 0 && newStreak % 7 === 0) {
       gemsEarned += 50;
     }
 
@@ -335,6 +347,14 @@ export async function updateProfileStats(
 
     if (progressError) {
       console.error("Failed to update profile_progress:", progressError);
+    } else {
+      // Secondary explicit update for last_lesson_date so database triggers
+      // (which may trigger on lessons_completed change and default to UTC CURRENT_DATE)
+      // preserve the client's local calendar date.
+      await supabase
+        .from("profile_progress")
+        .update({ last_lesson_date: todayStr })
+        .eq("profile_id", profileId);
     }
 
     // 3. Update profile_game_state
@@ -358,13 +378,17 @@ export async function updateProfileStats(
         localStorage.setItem("last_lesson_completed_date", todayStr);
       }
 
-      // Write a lesson_events audit record
-      await supabase.from("lesson_events").insert({
-        profile_id: profileId,
-        event_type: "lesson_completed",
-        score_delta: xpEarned,
-        level_delta: 0,
-      });
+      // Write a lesson_events audit record safely (catch errors without breaking response)
+      try {
+        await supabase.from("lesson_events").insert({
+          profile_id: profileId,
+          event_type: "lesson_completed",
+          score_delta: xpEarned,
+          level_delta: 0,
+        });
+      } catch (evtErr) {
+        console.warn("Notice: could not write lesson_events record:", evtErr);
+      }
     }
   } catch (err) {
     console.error("Error in updateProfileStats:", err);

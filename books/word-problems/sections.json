@@ -1,0 +1,37 @@
+[
+  {
+    "folder": "ch01",
+    "title": "Number Problems & The 7-Step Strategy",
+    "start": 1,
+    "end": 1,
+    "unit": "Foundations & Linear Models"
+  },
+  {
+    "folder": "ch02",
+    "title": "Distance, Rate, and Time",
+    "start": 1,
+    "end": 2,
+    "unit": "Motion & Rates"
+  },
+  {
+    "folder": "ch03",
+    "title": "Mixture Problems",
+    "start": 2,
+    "end": 3,
+    "unit": "Concentrations & Weighted Averages"
+  },
+  {
+    "folder": "ch04",
+    "title": "Money and Coin Problems",
+    "start": 3,
+    "end": 3,
+    "unit": "System Quantities"
+  },
+  {
+    "folder": "ch05",
+    "title": "Age Problems",
+    "start": 4,
+    "end": 4,
+    "unit": "Temporal Relationships"
+  }
+]

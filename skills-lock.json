@@ -1,6 +1,12 @@
 {
   "version": 1,
   "skills": {
+    "papermorph": {
+      "source": "DozenTwelve/Papermorph",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/papermorph/SKILL.md",
+      "computedHash": "a3c0e2b45e2f6a75531e7a1d5cb142ace88376d6bca2c276231e68f07da1670e"
+    },
     "supabase": {
       "source": "supabase/agent-skills",
       "sourceType": "github",

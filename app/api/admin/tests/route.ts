@@ -3,17 +3,20 @@ import fs from 'fs';
 import path from 'path';
 import alasql from 'alasql';
 
-const dataDir = path.join(process.cwd(), 'public', 'data');
-const quantDir = path.join(process.cwd(), 'public', 'img', 'afp_reviewer_imgs', 'quantitative_reasoning');
+export const dynamic = 'force-dynamic';
 
-const fileMap: Record<string, string> = {
-  abstract: path.join(dataDir, 'abstractReasoning.json'),
-  logical: path.join(dataDir, 'logicalReasoning.json'),
-  numerical: path.join(dataDir, 'numericalReasoning.json'),
-  quantitative: path.join(quantDir, 'quantitativeReasoning.json'),
-  word_problems: path.join(dataDir, 'wordProblemsAndOperations.json'),
-  data_sufficiency: path.join(dataDir, 'dataSufficiency.json'),
-};
+function getFileMap(): Record<string, string> {
+  const dataDir = path.join(/*turbopackIgnore: true*/ process.cwd(), 'public', 'data');
+  const quantDir = path.join(/*turbopackIgnore: true*/ process.cwd(), 'public', 'img', 'afp_reviewer_imgs', 'quantitative_reasoning');
+  return {
+    abstract: path.join(/*turbopackIgnore: true*/ dataDir, 'abstractReasoning.json'),
+    logical: path.join(/*turbopackIgnore: true*/ dataDir, 'logicalReasoning.json'),
+    numerical: path.join(/*turbopackIgnore: true*/ dataDir, 'numericalReasoning.json'),
+    quantitative: path.join(/*turbopackIgnore: true*/ quantDir, 'quantitativeReasoning.json'),
+    word_problems: path.join(/*turbopackIgnore: true*/ dataDir, 'wordProblemsAndOperations.json'),
+    data_sufficiency: path.join(/*turbopackIgnore: true*/ dataDir, 'dataSufficiency.json'),
+  };
+}
 
 const CATEGORY_LABELS: Record<string, string> = {
   abstract: 'Abstract Reasoning',
@@ -35,10 +38,12 @@ function getCategoryForTestId(testId: string): string {
 }
 
 function getFilePathForTest(testId: string): string {
+  const fileMap = getFileMap();
   return fileMap[getCategoryForTestId(testId)] ?? fileMap.abstract;
 }
 
 async function loadAllData() {
+  const fileMap = getFileMap();
   const abstractStr = await fs.promises.readFile(fileMap.abstract, 'utf8');
   const logicalStr = await fs.promises.readFile(fileMap.logical, 'utf8');
   const numericalStr = await fs.promises.readFile(fileMap.numerical, 'utf8');

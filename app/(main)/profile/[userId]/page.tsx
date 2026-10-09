@@ -9,6 +9,7 @@ import { fetchFullProfile } from "@/lib/session";
 import { getProfileCache, setProfileCache } from "@/lib/profileCache";
 import { getStreakImage } from "@/lib/streak";
 import { RiveLoader } from "@/components/ui/RiveLoader";
+import { toggleFollowCadet, fetchFollowCounts, checkIsFollowing } from "@/lib/follow";
 import dynamic from "next/dynamic";
 
 const DotLottieReact = dynamic(
@@ -207,8 +208,13 @@ function UserProfileContent({ userId }: { userId: string }) {
 
   // Toggle follow state
   const handleFollowToggle = async () => {
-    const currentUserId = currentUser ? currentUser.id : localStorage.getItem("guest_session_id");
-    if (!currentUserId) return;
+    const currentUserId = currentUser ? currentUser.id : (typeof window !== "undefined" ? localStorage.getItem("guest_session_id") : null);
+    if (!currentUserId) {
+      router.push("/signup");
+      return;
+    }
+
+    if (currentUserId === userId) return;
 
     const originalFollowingState = isFollowing;
     const freshFollowing = !originalFollowingState;
@@ -224,32 +230,17 @@ function UserProfileContent({ userId }: { userId: string }) {
       setProfileCache(userId, {
         ...cacheEntry,
         isFollowing: freshFollowing,
-        followersCount: freshFollowersCount
+        followersCount: freshFollowersCount,
       });
     }
 
     try {
-      if (originalFollowingState) {
-        // Unfollow
-        const { error } = await supabase
-          .from("lesson_events")
-          .delete()
-          .eq("profile_id", currentUserId)
-          .eq("event_type", `claimed_achievement_follow:${userId}`);
-        if (error) throw error;
-      } else {
-        // Follow
-        const { error } = await supabase
-          .from("lesson_events")
-          .insert({
-            profile_id: currentUserId,
-            event_type: `claimed_achievement_follow:${userId}`
-          });
-        if (error) throw error;
+      const res = await toggleFollowCadet(currentUserId, userId, freshFollowing);
+      if (!res.success) {
+        throw new Error("Unable to save follow status");
       }
-      window.dispatchEvent(new CustomEvent("reviewer-db-update"));
     } catch (err) {
-      console.error("Follow status change failed:", err);
+      console.warn("Follow status change failed:", err);
       // Rollback on failure
       setIsFollowing(originalFollowingState);
       setFollowersCount(followersCount);
@@ -258,7 +249,7 @@ function UserProfileContent({ userId }: { userId: string }) {
         setProfileCache(userId, {
           ...originalCache,
           isFollowing: originalFollowingState,
-          followersCount: followersCount
+          followersCount: followersCount,
         });
       }
     }
@@ -332,41 +323,17 @@ function UserProfileContent({ userId }: { userId: string }) {
       let freshFollowersCount = 0;
       let freshIsFollowing = false;
       try {
-        const promises: any[] = [
-          // Following count
-          supabase
-            .from("lesson_events")
-            .select("id", { count: "exact", head: true })
-            .eq("profile_id", userId)
-            .like("event_type", "claimed_achievement_follow:%"),
-          // Followers count
-          supabase
-            .from("lesson_events")
-            .select("id", { count: "exact", head: true })
-            .eq("event_type", `claimed_achievement_follow:${userId}`),
-        ];
+        const [counts, followingStatus] = await Promise.all([
+          fetchFollowCounts(userId),
+          currentUserId ? checkIsFollowing(currentUserId, userId) : Promise.resolve(false),
+        ]);
 
-        if (currentUserId) {
-          promises.push(
-            supabase
-              .from("lesson_events")
-              .select("id")
-              .eq("profile_id", currentUserId)
-              .eq("event_type", `claimed_achievement_follow:${userId}`)
-              .maybeSingle()
-          );
-        }
+        freshFollowingCount = counts.followingCount;
+        freshFollowersCount = counts.followersCount;
+        freshIsFollowing = followingStatus;
 
-        const [followingRes, followersRes, isFollowingRes] = await Promise.all(promises);
-
-        freshFollowingCount = followingRes.count || 0;
-        freshFollowersCount = followersRes.count || 0;
         setFollowingCount(freshFollowingCount);
         setFollowersCount(freshFollowersCount);
-        
-        if (isFollowingRes && !isFollowingRes.error && isFollowingRes.data) {
-          freshIsFollowing = true;
-        }
         setIsFollowing(freshIsFollowing);
       } catch (e) {
         console.error("Failed to fetch following/followers data", e);
@@ -440,8 +407,9 @@ function UserProfileContent({ userId }: { userId: string }) {
       loadData(true);
     };
     window.addEventListener("reviewer-db-update", handleUpdate);
+    window.addEventListener("reviewer-follow-update", handleUpdate);
 
-    // Subscribe to realtime updates on lesson_events table
+    // Subscribe to realtime updates on lesson_events and cadet_activity_logs tables
     const channel = supabase
       .channel(`realtime:profile_events:${userId}`)
       .on(
@@ -455,10 +423,22 @@ function UserProfileContent({ userId }: { userId: string }) {
           loadData(true);
         }
       )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "cadet_activity_logs",
+        },
+        () => {
+          loadData(true);
+        }
+      )
       .subscribe();
 
     return () => {
       window.removeEventListener("reviewer-db-update", handleUpdate);
+      window.removeEventListener("reviewer-follow-update", handleUpdate);
       supabase.removeChannel(channel);
     };
   }, [userId, isCurrentUserLoaded, loadData]);

@@ -7,10 +7,11 @@ import { Button } from "@/components/ui/Button";
 
 const Rive = dynamic(() => import("@rive-app/react-canvas"), { ssr: false });
 
-interface AlertOptions {
+export interface AlertOptions {
   title?: string;
   emoji?: string;
   buttonText?: string;
+  image?: string;
 }
 
 interface AlertState {
@@ -19,6 +20,7 @@ interface AlertState {
   title?: string;
   emoji?: string;
   buttonText?: string;
+  image?: string;
   resolve?: () => void;
 }
 
@@ -50,7 +52,10 @@ function parseAlertMessage(msg: string): { emoji?: string; cleanMessage: string 
   return { cleanMessage: msg };
 }
 
-function getMascotForMessage(message: string, emoji?: string): string {
+function getMascotForMessage(message: string, emoji?: string, image?: string): string {
+  if (image) {
+    return image;
+  }
   const msgLower = message.toLowerCase();
   
   if (emoji === "❌" || msgLower.includes("fail") || msgLower.includes("error")) {
@@ -58,6 +63,18 @@ function getMascotForMessage(message: string, emoji?: string): string {
   }
   if (emoji === "😢" || msgLower.includes("oh no") || msgLower.includes("missed") || msgLower.includes("lost")) {
     return "/emoji/wahhh.webp";
+  }
+  if (
+    msgLower.includes("achievement") ||
+    msgLower.includes("award")
+  ) {
+    return "/img/gen_imgs/achievements/gold_star.webp";
+  }
+  if (msgLower.includes("quest completed") || msgLower.includes("quest claim")) {
+    return "/img/gen_imgs/trophy.webp";
+  }
+  if (msgLower.includes("daily login reward")) {
+    return "/img/gen_imgs/achievements/gift_box.webp";
   }
   if (
     emoji === "🎉" ||
@@ -126,6 +143,7 @@ export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         title: options?.title || (options?.emoji || parsed.emoji ? undefined : "Yay!"),
         emoji: options?.emoji || parsed.emoji,
         buttonText: options?.buttonText || "CONTINUE",
+        image: options?.image,
         resolve,
       });
     });
@@ -139,7 +157,7 @@ export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const mascot = alertState
-    ? getMascotForMessage(alertState.message, alertState.emoji)
+    ? getMascotForMessage(alertState.message, alertState.emoji, alertState.image)
     : "/emoji/general.webp";
 
   const isError =

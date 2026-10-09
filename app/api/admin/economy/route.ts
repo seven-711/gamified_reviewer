@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
 
-const configPath = path.join(process.cwd(), 'public', 'data', 'economyConfig.json');
+const configPath = path.join(/*turbopackIgnore: true*/ process.cwd(), 'public', 'data', 'economyConfig.json');
 
 const DEFAULT_CONFIG = {
   heartCost: 50,

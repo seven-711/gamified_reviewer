@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 import { fetchFullProfile } from "@/lib/session";
 import { getProfileCache, setProfileCache, clearProfileCache } from "@/lib/profileCache";
+import { toggleFollowCadet, fetchFollowingIds } from "@/lib/follow";
 
 interface ProfileItem {
   id: string;
@@ -39,17 +40,7 @@ function FollowingContent({ userId }: { userId: string }) {
         setTargetUser(fetchedProfile);
 
         // 2. Fetch the list of users this person is following
-        const { data: followEvents, error: followError } = await supabase
-          .from("lesson_events")
-          .select("event_type")
-          .eq("profile_id", userId)
-          .like("event_type", "claimed_achievement_follow:%");
-
-        if (followError) throw followError;
-
-        const followedIds = followEvents 
-          ? followEvents.map((e: any) => e.event_type.replace("claimed_achievement_follow:", "")) 
-          : [];
+        const followedIds = await fetchFollowingIds(userId);
 
         let mapped: ProfileItem[] = [];
 
@@ -67,15 +58,7 @@ function FollowingContent({ userId }: { userId: string }) {
           let viewerFollowsIds: string[] = [];
 
           if (currentUserId) {
-            const { data: viewerEvents } = await supabase
-              .from("lesson_events")
-              .select("event_type")
-              .eq("profile_id", currentUserId)
-              .like("event_type", "claimed_achievement_follow:%");
-
-            viewerFollowsIds = viewerEvents 
-              ? viewerEvents.map((e: any) => e.event_type.replace("claimed_achievement_follow:", "")) 
-              : [];
+            viewerFollowsIds = await fetchFollowingIds(currentUserId);
           }
 
           mapped = (profiles || []).map((p) => ({
@@ -116,7 +99,7 @@ function FollowingContent({ userId }: { userId: string }) {
   }, [userId, currentUser, isCurrentUserLoaded]);
 
   const handleFollowAction = async (targetProfileId: string, isCurrentlyFollowed: boolean) => {
-    const currentUserId = currentUser ? currentUser.id : localStorage.getItem("guest_session_id");
+    const currentUserId = currentUser ? currentUser.id : (typeof window !== "undefined" ? localStorage.getItem("guest_session_id") : null);
     if (!currentUserId) {
       router.push("/signup");
       return;
@@ -137,28 +120,12 @@ function FollowingContent({ userId }: { userId: string }) {
     clearProfileCache(targetProfileId);
 
     try {
-      if (isCurrentlyFollowed) {
-        // Unfollow
-        const { error } = await supabase
-          .from("lesson_events")
-          .delete()
-          .eq("profile_id", currentUserId)
-          .eq("event_type", `claimed_achievement_follow:${targetProfileId}`);
-        
-        if (error) throw error;
-      } else {
-        // Follow
-        const { error } = await supabase
-          .from("lesson_events")
-          .insert({
-            profile_id: currentUserId,
-            event_type: `claimed_achievement_follow:${targetProfileId}`
-          });
-        
-        if (error) throw error;
+      const res = await toggleFollowCadet(currentUserId, targetProfileId, !isCurrentlyFollowed);
+      if (!res.success) {
+        throw new Error("Unable to update follow status");
       }
     } catch (err) {
-      console.error("Failed to follow/unfollow user in list:", err);
+      console.warn("Failed to follow/unfollow user in list:", err);
       // Rollback on failure
       setFollowingList((prev) =>
         prev.map((item) =>
